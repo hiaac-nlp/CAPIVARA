@@ -1,0 +1,7 @@
+numpy==1.23.5
+omegaconf==2.2.3
+pandas==1.5.2
+pytorch_lightning==1.8.3.post1
+torchaudio==0.13.0
+tqdm==4.64.1
+transformers==4.24.0
