@@ -1,17 +1,16 @@
-import torch
 import numpy as np
+import torch
 import torch.nn as nn
 from transformers import AutoModel
 from transformers import CLIPVisionModel
-from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
 
 
 class CLIPTBR(nn.Module):
     def __init__(
-        self,
-        projection_dim: int = 512,
-        vision_encoder_version: str = "openai/clip-vit-base-patch32",
-        text_encoder_version: str = "neuralmind/bert-base-portuguese-cased"
+            self,
+            projection_dim: int = 512,
+            vision_encoder_version: str = "openai/clip-vit-base-patch32",
+            text_encoder_version: str = "neuralmind/bert-base-portuguese-cased"
     ):
         super().__init__()
 
@@ -36,19 +35,16 @@ class CLIPTBR(nn.Module):
 
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-
     def encode_visual(self, visual_inputs):
         outputs = self.model_clip(visual_inputs)
         hidden_states = outputs.pooler_output
 
         return self.visual_projection(hidden_states)
 
-
     def encode_text(self, text_inputs):
         outputs = self.model_bertimbau(**text_inputs)
 
         return self.text_projection(outputs.pooler_output)
-
 
     def forward(self, data):
         image_input, text_input = data
@@ -57,12 +53,11 @@ class CLIPTBR(nn.Module):
 
         return image_features, text_features
 
-
     def compute_logits(
-        self,
-        image_features,
-        text_features,
-        fixed_logit
+            self,
+            image_features,
+            text_features,
+            fixed_logit
     ):
         # normalized features
         image_features = image_features / image_features.norm(dim=1, keepdim=True)
@@ -79,8 +74,7 @@ class CLIPTBR(nn.Module):
         # shape: [batch_size, batch_size]
         return logits_per_image, logits_per_text
 
-
-    def model_requires_grad(self, status = True):
+    def model_requires_grad(self, status=True):
         for param in self.model_clip.parameters():
             param.requires_grad = status
         for param in self.model_bertimbau.parameters():
