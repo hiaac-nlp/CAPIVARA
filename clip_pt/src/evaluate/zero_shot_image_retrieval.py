@@ -293,7 +293,7 @@ def main():
         text_loader=text_loader,
         # model_clip=model_clip,
         clip_processor=clip_processor,
-        model_clip=pl_model.model.model_clip,
+        model_clip=pl_model.model.image_encoder,
         df=df
     )
 

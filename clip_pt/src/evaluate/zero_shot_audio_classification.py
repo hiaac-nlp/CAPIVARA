@@ -156,7 +156,7 @@ def get_dataset_acc(audio_dataset, clip_processor, model, labels):
     text_data.to(device)
 
     with torch.no_grad():
-        text_features = model.model_clip.get_text_features(
+        text_features = model.image_encoder.get_text_features(
             input_ids=text_data['input_ids'],
             attention_mask=text_data['attention_mask']
         )

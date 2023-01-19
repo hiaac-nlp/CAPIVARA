@@ -165,7 +165,7 @@ def precompute_text_features(loader, clip_processor, model_clip):
         )
         text_data.to(device)
         with torch.no_grad():
-            text_features = model_clip.model_clip.get_text_features(
+            text_features = model_clip.image_encoder.get_text_features(
                 input_ids=text_data['input_ids'],
                 attention_mask=text_data['attention_mask']
             )

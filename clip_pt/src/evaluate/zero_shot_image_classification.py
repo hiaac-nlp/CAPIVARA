@@ -174,7 +174,7 @@ def main():
     targets_multi_clip, preds_multi_clip = get_dataset_acc(
         image_dataset=dataset,
         clip_processor=clip_processor,
-        model_clip=pl_model.model.model_clip
+        model_clip=pl_model.model.image_encoder
     )
 
     # save_conf_matrix(targets_clip_orig, preds_clip_orig, dataset.classes, "cifar10_clip.png")
