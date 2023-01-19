@@ -66,8 +66,8 @@ class CustomDataset(torch.utils.data.Dataset):
         to_tensor = transforms.ToTensor()
 
         return to_tensor(img), {"image": f"{str(index2key).zfill(12)}.jpg",
-                                "captions-PT": self.dataset[index2key]["captions"],
-                                "captions-EN": []}
+                                "captions-pt": self.dataset[index2key]["captions"],
+                                "captions-en": []}
 
     def __read_pracegover(self, path, split):
         """
@@ -87,8 +87,8 @@ class CustomDataset(torch.utils.data.Dataset):
         to_tensor = transforms.ToTensor()
 
         return to_tensor(img), {"image": example["filename"],
-                                "captions-PT": [example["caption"]],
-                                "captions-EN": []}
+                                "captions-pt": [example["caption"]],
+                                "captions-en": []}
 
     def __read_flickr30k(self, path, translation_path, split):
         """
@@ -105,22 +105,22 @@ class CustomDataset(torch.utils.data.Dataset):
         df_trad.loc[:, "image"] = df_trad["image"].apply(lambda image: image[:-2])
 
         dataset = defaultdict(lambda: {"image": None,
-                                       "captions-PT": [],
-                                       "captions-EN": []})
+                                       "captions-pt": [],
+                                       "captions-en": []})
 
         for example in karpathy_dataset["images"]:
             if example["split"] == split:
                 img = example["filename"]
                 en_captions = [caption["raw"] for caption in example["sentences"]]
                 dataset[img]["image"] = img
-                dataset[img]["captions-EN"] = en_captions
+                dataset[img]["captions-en"] = en_captions
 
         for row in df_trad.iterrows():
             img = row[1]["image"]
             pt_caption = row[1]["caption"]
             # take only the images from karpathy set
             if img in dataset:
-                dataset[img]["captions-PT"].append(pt_caption)
+                dataset[img]["captions-pt"].append(pt_caption)
 
         return list(dataset.values())
 
