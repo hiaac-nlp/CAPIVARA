@@ -33,6 +33,7 @@ class CLIPTBR(nn.Module):
             bias=False
         )
 
+        # value extracted from original CLIP proposal
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
     def encode_visual(self, visual_inputs):
@@ -57,17 +58,18 @@ class CLIPTBR(nn.Module):
             self,
             image_features,
             text_features,
-            fixed_logit
+            fixed_logit: bool
     ):
         # normalized features
         image_features = image_features / image_features.norm(dim=1, keepdim=True)
         text_features = text_features / text_features.norm(dim=1, keepdim=True)
 
         # cosine similarity as logits
-        if (fixed_logit) >= 0:
-            logit_scale = self.logit_scale.exp()
-        else:
+        if fixed_logit:
             logit_scale = 20
+        else:
+            logit_scale = self.logit_scale.exp()
+
         logits_per_image = logit_scale * image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 
