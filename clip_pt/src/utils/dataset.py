@@ -10,7 +10,7 @@ from torchvision import transforms
 
 class CustomDataset(torch.utils.data.Dataset):
 
-    def __init__(self, dataset_name: str, dataset_path: str, image_base_dir: str, 
+    def __init__(self, dataset_name: str, dataset_path: str, image_base_dir: str,
                  split="train", **kwargs):
         """
 
@@ -25,7 +25,18 @@ class CustomDataset(torch.utils.data.Dataset):
         if dataset_name.lower() == "pracegover":
             self.dataset = self.__read_pracegover(dataset_path, split)
         elif dataset_name.lower() == "mscoco":
-            self.dataset = self.__read_mscoco(dataset_path, split)
+            train_translation_path = kwargs["train_translation_path"]
+            val_orig_path = kwargs["val_orig_path"]
+            val_translation_path = kwargs["val_translation_path"]
+            val_img_base_dir = kwargs["val_img_base_dir"]
+            self.dataset = self.__read_mscoco(
+                path=dataset_path,
+                train_translation_path=train_translation_path,
+                val_orig_path=val_orig_path,
+                val_translation_path=val_translation_path,
+                val_img_base_dir=val_img_base_dir,
+                split=split
+            )
         elif dataset_name.lower() == "flickr30k":
             translation_path = kwargs["translation_path"]
             self.dataset = self.__read_flickr30k(dataset_path, translation_path, split)
@@ -40,23 +51,67 @@ class CustomDataset(torch.utils.data.Dataset):
             example = self.__get_example_mscoco(index)
         elif self.dataset_name.lower() == "flickr30k":
             example = self.__get_example_flickr30k(index)
-            
+
         return example
 
-    def __read_mscoco(self, path, split):
-        id2image = {}
-        with open(path) as j:
-            data = json.load(j)
+    def __read_files_mscoco(self, path: str, translation_path: str):
+        """
 
-        for annotation in data["annotations"]:
-            if annotation["image_id"] in id2image:
-                id2image[annotation["image_id"]]["captions"].append(annotation["caption"])
+        :param path: path to the original dataset metadata file
+        :param translation_path: path to the translated dataset metadata file
+        :return:
+        """
+        id2image = {}
+        with open(path) as orig_file:
+            orig_data = json.load(orig_file)
+
+        with open(translation_path) as translation_file:
+            translation_data = json.load(translation_file)
+
+        for orig_annotation, translation_annotation in zip(orig_data["annotations"], translation_data["annotations"]):
+            assert orig_annotation["image_id"] == translation_annotation["image_id"], "Not synced"
+            if orig_annotation["image_id"] in id2image:
+                id2image[orig_annotation["image_id"]]["en_captions"].append(orig_annotation["caption"])
+                id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation["caption"])
             else:
-                id2image[annotation["image_id"]] = {}
-                id2image[annotation["image_id"]]["captions"] = []
-                id2image[annotation["image_id"]]["captions"].append(annotation["caption"])
+                id2image[orig_annotation["image_id"]] = {}
+                id2image[orig_annotation["image_id"]]["en_captions"] = []
+                id2image[orig_annotation["image_id"]]["pt_captions"] = []
+                id2image[orig_annotation["image_id"]]["en_captions"].append(orig_annotation["caption"])
+                id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation["caption"])
 
         return id2image
+
+    def __read_mscoco(
+        self,
+        path: str,
+        train_translation_path: str,
+        val_orig_path: str,
+        val_translation_path: str,
+        val_img_base_dir: str,
+        split: str
+    ):
+        """
+
+        :param path: path to the original dataset metadata file (train)
+        :param train_translation_path: path to the translated dataset metadata file (train)
+        :param val_orig_path: path to the original dataset metadata file (val)
+        :param val_translation_path: path to the translated dataset metadata file (val)
+        :param val_img_base_dir: path to the directory with the images of the val split
+        :param split: train/val/test
+        :return:
+        """
+        if split == "train":
+            return self.__read_files_mscoco(path=path, translation_path=train_translation_path)
+
+        elif split == "val":
+            self.image_base_dir = val_img_base_dir
+            return self.__read_files_mscoco(path=val_orig_path, translation_path=val_translation_path)
+
+        else:
+            raise NotImplementedError(
+                f"split '{split}' not implemented"
+            )
 
     def __get_example_mscoco(self, index):
         index2key = list(self.dataset)[index]
@@ -66,8 +121,8 @@ class CustomDataset(torch.utils.data.Dataset):
         to_tensor = transforms.ToTensor()
 
         return to_tensor(img), {"image": f"{str(index2key).zfill(12)}.jpg",
-                                "captions-pt": self.dataset[index2key]["captions"],
-                                "captions-en": []}
+                                "captions-pt": self.dataset[index2key]["pt_captions"],
+                                "captions-en": self.dataset[index2key]["en_captions"]}
 
     def __read_pracegover(self, path, split):
         """
@@ -77,7 +132,7 @@ class CustomDataset(torch.utils.data.Dataset):
         :return:
         """
         with open(path) as file:
-            dataset = json.load(file)            
+            dataset = json.load(file)
         return dataset[split if split.lower() != "val" else "validation"]
 
     def __get_example_pracegover(self, index):
