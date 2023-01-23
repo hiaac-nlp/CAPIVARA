@@ -1,10 +1,8 @@
 import os
-import random
 from typing import List, Tuple
 
-import torch
-import numpy as np
 import pandas as pd
+import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -66,41 +64,3 @@ class CollateFuncTextImg:
 
         return image_input, text_input
 
-
-class CollateFnImgMultipleText:
-    def __init__(
-        self,
-        vision_processor,
-        text_tokenizer,
-        text_padding_size
-    ):
-        self.vision_processor = vision_processor
-        self.text_tokenizer = text_tokenizer
-        self.text_padding_size = text_padding_size
-
-    def __call__(self, batch: List) -> Tuple[torch.Tensor, torch.Tensor]:
-        texts = []
-        images = []
-
-        for element in batch:
-            image, texts = element
-            # select a random caption
-            texts.append(random.choice(texts["captions-PT"]))
-            images.append(image)
-
-        image_input = self.vision_processor(
-            images=images,
-            return_tensors="pt",
-            padding=True,
-            truncation=True
-        )
-
-        text_input = self.text_tokenizer(
-            texts,
-            return_tensors='pt',
-            padding=True,
-            truncation=True,
-            max_length=self.text_padding_size
-        )
-
-        return image_input, text_input
