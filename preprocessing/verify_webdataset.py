@@ -19,7 +19,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 dataset = wds.WebDataset(args.dataset_path).decode("torchrgb").to_tuple("jpg;png", "json")
-#dataloader = torch.utils.data.DataLoader(dataset, num_workers=4, batch_size=1)
+#dataloader = torch.preprocessing.data.DataLoader(dataset, num_workers=4, batch_size=1)
 
 for input, output in dataset:
     if args.argument_1:
