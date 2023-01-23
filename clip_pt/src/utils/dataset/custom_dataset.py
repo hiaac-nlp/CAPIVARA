@@ -6,6 +6,11 @@ import pandas as pd
 import torch
 from PIL import Image
 from torchvision import transforms
+from torchvision.transforms import InterpolationMode
+
+
+def _convert_image_to_rgb(image):
+    return image.convert("RGB")
 
 
 class CustomDataset(torch.utils.data.Dataset):
@@ -21,6 +26,16 @@ class CustomDataset(torch.utils.data.Dataset):
         """
         self.dataset_name = dataset_name
         self.image_base_dir = image_base_dir
+
+        # same size used in original CLIP
+        self.transform = transforms.Compose([
+            transforms.Resize(256, interpolation=InterpolationMode.BICUBIC),
+            transforms.CenterCrop(224),
+            _convert_image_to_rgb,
+            transforms.ToTensor(),
+            transforms.Normalize((0.48145466, 0.4578275, 0.40821073),
+                                 (0.26862954, 0.26130258, 0.27577711)),
+        ])
 
         if dataset_name.lower() == "pracegover":
             self.dataset = self.__read_pracegover(dataset_path, split)
@@ -46,13 +61,14 @@ class CustomDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         if self.dataset_name.lower() == "pracegover":
-            example = self.__get_example_pracegover(index)
+            img, annotations = self.__get_example_pracegover(index)
         elif self.dataset_name.lower() == "mscoco":
-            example = self.__get_example_mscoco(index)
+            img, annotations = self.__get_example_mscoco(index)
         elif self.dataset_name.lower() == "flickr30k":
-            example = self.__get_example_flickr30k(index)
+            img, annotations = self.__get_example_flickr30k(index)
 
-        return example
+        return self.transform(img), annotations
+
 
     def __read_files_mscoco(self, path: str, translation_path: str):
         """
@@ -118,9 +134,8 @@ class CustomDataset(torch.utils.data.Dataset):
 
         img_path = os.path.join(self.image_base_dir, f"{str(index2key).zfill(12)}.jpg")
         img = Image.open(img_path)
-        to_tensor = transforms.ToTensor()
 
-        return to_tensor(img), {"image": f"{str(index2key).zfill(12)}.jpg",
+        return img, {"image": f"{str(index2key).zfill(12)}.jpg",
                                 "captions-pt": self.dataset[index2key]["pt_captions"],
                                 "captions-en": self.dataset[index2key]["en_captions"]}
 
@@ -139,9 +154,8 @@ class CustomDataset(torch.utils.data.Dataset):
         example = self.dataset[index]
         img_path = os.path.join(self.image_base_dir, example["filename"])
         img = Image.open(img_path)
-        to_tensor = transforms.ToTensor()
 
-        return to_tensor(img), {"image": example["filename"],
+        return img, {"image": example["filename"],
                                 "captions-pt": [example["caption"]],
                                 "captions-en": []}
 
@@ -183,6 +197,5 @@ class CustomDataset(torch.utils.data.Dataset):
         example = self.dataset[index]
         img_path = os.path.join(self.image_base_dir, example["image"])
         img = Image.open(img_path)
-        to_tensor = transforms.ToTensor()
 
-        return to_tensor(img), example
+        return img, example
