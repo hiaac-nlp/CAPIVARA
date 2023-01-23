@@ -18,11 +18,14 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-dataset = wds.WebDataset(args.dataset_path)
-dataloader = torch.utils.data.DataLoader(dataset, num_workers=4, batch_size=1)
+dataset = wds.WebDataset(args.dataset_path).decode("torchrgb").to_tuple("jpg;png", "json")
+#dataloader = torch.utils.data.DataLoader(dataset, num_workers=4, batch_size=1)
 
-for data in dataloader:
+for input, output in dataset:
     if args.argument_1:
-        print(data[args.argument_1][0].decode("utf-8"))
+        try:
+            print(output[args.argument_1].decode("utf-8"))
+        except:
+            print(output[args.argument_1])
     else:
-        print(data)
+        print(input, output)
