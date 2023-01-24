@@ -1,14 +1,21 @@
-image_text_dataset:
-    metadata_path: "/datasets/pracegover/pracegover_173k/pracegover_dataset.json"
-    base_image_path: "/datasets/pracegover/images"
+datasets:
+    train:
+        - name: flickr30k
+          path: "/home/gabriel/dataset_flickr30k.json"
+          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
+          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
+        - name: cc3m
+          path: "/home/gabriel/dataset_clip_pt/cc3m-w/{00000..00001}.tar"
+          image_base_dir:
+    validation:
+        - name: flickr30k
+          path: "/home/gabriel/dataset_flickr30k.json"
+          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
+          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
 
-    train_set_size: 0.75
 
-    text_column: "comment"
-    image_path_column: image_name
-
-    batch_size: 32
-    padding_size : 95
+batch_size: 32
+text_padding_size: 95
 
 model:
     optimizer: "Adam"

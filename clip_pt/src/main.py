@@ -2,18 +2,17 @@ import argparse
 import logging
 import os
 
-logging.basicConfig(level='ERROR')
-
 import pytorch_lightning as pl
-from omegaconf import OmegaConf
-from pytorch_lightning.loggers import NeptuneLogger
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
-
-from models.clip_pt_br_wrapper import CLIPPTBRWrapper
-from utils.utils import prepare_pracegover, prepare_image_text_dataloader
-
 from dotenv import load_dotenv
+from omegaconf import OmegaConf
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
+from pytorch_lightning.loggers import NeptuneLogger
+from transformers import CLIPProcessor, AutoTokenizer
 
+from clip_pt.src.utils.dataset.load_datasets import load_datasets
+from models.clip_pt_br_wrapper import CLIPPTBRWrapper
+
+logging.basicConfig(level='ERROR')
 load_dotenv()
 
 
@@ -30,16 +29,12 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    df_train, df_val = prepare_pracegover(
-        train_metadata_path="/datasets/pracegover/pracegover_173k/pracegover_dataset.json",
-        val_metadata_path="/datasets/pracegover/pracegover_173k/pracegover_captions_val2014.json"
-    )
+    vision_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
+                                                   do_lower_case=False)
 
-    train_loader, val_loader = prepare_image_text_dataloader(
-        df_train,
-        df_val,
-        config
-    )
+    dataloaders = load_datasets(config=config, vision_processor=vision_processor,
+                                text_tokenizer=text_tokenizer)
 
     clip_pt = CLIPPTBRWrapper(config.model)
     neptune_logger = NeptuneLogger(
@@ -48,20 +43,15 @@ def main() -> None:
     )
 
     trainer = pl.Trainer(
-        # devices=-1 ,strategy="ddp_sharded", # strategy="ddp_sharded"
-        logger=neptune_logger,
         **config["trainer"],
+        logger=neptune_logger,
         callbacks=[
-            ModelCheckpoint(
-                **config["model_checkpoint"]
-            ),
-            EarlyStopping(
-                **config["early_stopping"]
-            ),
+            ModelCheckpoint(**config["model_checkpoint"]),
+            EarlyStopping(**config["early_stopping"]),
             LearningRateMonitor("step")
         ]
     )
-    trainer.fit(clip_pt, train_loader, val_loader)
+    trainer.fit(clip_pt, dataloaders['train'], dataloaders['val'])
 
 
 if __name__ == "__main__":
