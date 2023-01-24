@@ -1,11 +1,8 @@
-import torch
-import numpy as np
-from torchmetrics import Accuracy
-import torch.nn as nn
-from torch.optim import Adam
 import pytorch_lightning as pl
-
+import torch
 from models.model import CLIPTBR
+from torch.optim import Adam
+from torchmetrics import Accuracy
 from utils.loss import clip_loss
 
 
