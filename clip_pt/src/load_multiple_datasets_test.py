@@ -4,7 +4,7 @@ from omegaconf import OmegaConf
 from transformers import AutoTokenizer
 from transformers import CLIPProcessor
 
-from src.utils.dataset.load_datasets import load_datasets
+from utils.dataset.load_datasets import load_datasets
 
 batch_size = 5
 home_directory = os.path.expanduser('~')

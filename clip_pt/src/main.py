@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, Learning
 from pytorch_lightning.loggers import NeptuneLogger
 from transformers import CLIPProcessor, AutoTokenizer
 
-from src.utils.dataset.load_datasets import load_datasets
+from utils.dataset.load_datasets import load_datasets
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 
 logging.basicConfig(level='ERROR')
