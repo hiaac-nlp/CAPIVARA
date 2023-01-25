@@ -3,8 +3,8 @@ from typing import List, Dict
 import webdataset as wds
 from torch.utils.data import DataLoader
 
-from clip_pt.src.utils.dataset.custom_dataset import CustomDataset
-from clip_pt.src.utils.dataset.data_collator import ImageMultipleTextDataCollator
+from src.utils.dataset.custom_dataset import CustomDataset
+from src.utils.dataset.data_collator import ImageMultipleTextDataCollator
 
 
 def __load_dataloader(config, info, text_tokenizer, vision_processor, split):

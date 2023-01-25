@@ -4,7 +4,7 @@ from omegaconf import OmegaConf
 from transformers import AutoTokenizer
 from transformers import CLIPProcessor
 
-from clip_pt.src.utils.dataset.load_datasets import load_datasets
+from src.utils.dataset.load_datasets import load_datasets
 
 batch_size = 5
 home_directory = os.path.expanduser('~')
@@ -18,6 +18,20 @@ dataloaders = load_datasets(config=config, vision_processor=vision_processor, te
 i = 1
 k = 0
 for dataloader in dataloaders['train']:
+    print(len(dataloader.dataset))
+    for data in dataloader:
+        images, texts = data
+        print(i, '---')
+        print(images)
+        print(texts)
+        i += 1
+        # if k == 1:
+        break
+    k += 1
+i = 1
+k = 0
+for dataloader in dataloaders['val']:
+    print(len(dataloader.dataset))
     for data in dataloader:
         images, texts = data
         print(i, '---')
