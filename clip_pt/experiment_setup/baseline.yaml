@@ -1,17 +1,17 @@
 datasets:
     train:
         - name: flickr30k
-          path: "/home/gabriel/dataset_flickr30k.json"
-          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
-          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
-        - name: cc3m
-          path: "/home/gabriel/dataset_clip_pt/cc3m-w/{00000..00001}.tar"
-          image_base_dir:
+          path: "/hadatasets/clip_pt/original_data/dataset_flickr30k.json"
+          image_base_dir: "/datasets/diego.moreira/flickr30k_images/flickr30k_images"
+          translation_path: "/hadatasets/clip_pt/marian_translations/flickr30k/results_20130124_ptbr.token"
+        - name: pracegover
+          path: "/datasets/pracegover/pracegover_400k.json"
+          image_base_dir: "/datasets/pracegover/images"
     validation:
         - name: flickr30k
-          path: "/home/gabriel/dataset_flickr30k.json"
-          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
-          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
+          path: "/hadatasets/clip_pt/original_data/dataset_flickr30k.json"
+          image_base_dir: "/datasets/diego.moreira/flickr30k_images/flickr30k_images"
+          translation_path: "/hadatasets/clip_pt/marian_translations/flickr30k/results_20130124_ptbr.token"
 
 
 batch_size: 32
@@ -45,3 +45,4 @@ early_stopping:
     verbose: true
     monitor: "val/loss"
     patience: 100
+
