@@ -5,3 +5,8 @@ pytorch_lightning==1.8.3.post1
 torchaudio==0.13.0
 tqdm==4.64.1
 transformers==4.24.0
+webdataset==0.2.31
+python-dotenv==0.21.1
+Pillow==9.4.0
+torchvision==0.14.0 -f https://download.pytorch.org/whl/cu117/torch_stable.html
+neptune-client==0.16.16
