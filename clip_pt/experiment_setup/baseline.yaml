@@ -1,18 +1,13 @@
 datasets:
     train:
-        - name: flickr30k
-          path: "/home/gabriel/dataset_flickr30k.json"
-          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
-          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
         - name: cc3m
           path: "/home/gabriel/dataset_clip_pt/cc3m-w/{00000..00001}.tar"
-          image_base_dir:
-    validation:
-        - name: flickr30k
-          path: "/home/gabriel/dataset_flickr30k.json"
-          image_base_dir: "/home/gabriel/flickr30k/flickr30k_images"
-          translation_path: "/home/gabriel/dataset_clip_pt/flickr30k/results_20130124_ptbr.token"
+        - name: cc12m
+          path: "/home/gabriel/dataset_clip_pt/cc12m/{00002..00005}.tar"
 
+    validation:
+        - name: cc12m
+          path: "/home/gabriel/dataset_clip_pt/cc12m/{00005..000015}.tar"
 
 batch_size: 32
 text_padding_size: 95
@@ -45,3 +40,4 @@ early_stopping:
     verbose: true
     monitor: "val/loss"
     patience: 100
+
