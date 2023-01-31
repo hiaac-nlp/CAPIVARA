@@ -33,8 +33,9 @@ def main() -> None:
     text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
                                                    do_lower_case=False)
 
-    dataloaders = load_datasets(config=config, vision_processor=vision_processor,
-                                text_tokenizer=text_tokenizer)
+    train_dataloader, val_dataloader = load_datasets(config=config,
+                                                     vision_processor=vision_processor,
+                                                     text_tokenizer=text_tokenizer)
 
     clip_pt = CLIPPTBRWrapper(config.model)
     neptune_logger = NeptuneLogger(
@@ -51,7 +52,7 @@ def main() -> None:
             LearningRateMonitor("step")
         ]
     )
-    trainer.fit(clip_pt, dataloaders['train'], dataloaders['val'])
+    trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
 
 if __name__ == "__main__":

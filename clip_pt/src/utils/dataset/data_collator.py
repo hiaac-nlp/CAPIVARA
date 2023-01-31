@@ -19,16 +19,9 @@ class ImageMultipleTextDataCollator:
         texts = []
         images = []
 
-        for element in batch:
-            image, annotations = element
-            # handle WebDataset
-            if len(image.shape) == 4 and isinstance(annotations, list):
-                annotations = annotations[0]
-                image = image[0]
-
+        for image, annotations in zip(batch[0], batch[1]):
             # select a random caption
             texts.append(random.choice(annotations["captions-pt"]))
-
             images.append(image)
 
         image_input = self.vision_processor(
