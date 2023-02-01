@@ -130,4 +130,4 @@ dmypy.json
 
 .idea/
 .neptune/
-
+.ipynb_checkpoints/
