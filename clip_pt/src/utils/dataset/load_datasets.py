@@ -5,26 +5,35 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 
 from utils.dataset.data_collator import ImageMultipleTextDataCollator
+from utils.dataset.pracegover_dataset import PraCegoVerDataset
 
 
 def load_datasets(config, vision_processor, text_tokenizer) -> \
         Tuple[DataLoader[Any], DataLoader[Any]]:
-    train = []
-    for dataset in config.datasets.train:
-        train += list(braceexpand.braceexpand(dataset['path']))
+    # train = []
+    # for dataset in config.datasets.train:
+    #     train += list(braceexpand.braceexpand(dataset['path']))
+    #
+    # val = []
+    # for dataset in config.datasets.validation:
+    #     val += list(braceexpand.braceexpand(dataset['path']))
+    #
+    # train_dataset = wds.WebDataset(train, shardshuffle=True).shuffle(10000)\
+    #                                                         .decode("torchrgb") \
+    #                                                         .to_tuple("jpg;png", "json") \
+    #                                                         .batched(config.batch_size)
+    # val_dataset = wds.WebDataset(val, shardshuffle=True).shuffle(10000) \
+    #                                                     .decode("torchrgb") \
+    #                                                     .to_tuple("jpg;png", "json") \
+    #                                                     .batched(config.batch_size)
 
-    val = []
-    for dataset in config.datasets.validation:
-        val += list(braceexpand.braceexpand(dataset['path']))
+    train_dataset = PraCegoVerDataset(dataset_path='/datasets/pracegover/pracegover_400k.json',
+                                      image_base_dir='/datasets/pracegover/images/',
+                                      split='train')
 
-    train_dataset = wds.WebDataset(train, shardshuffle=True).shuffle(10000)\
-                                                            .decode("torchrgb") \
-                                                            .to_tuple("jpg;png", "json") \
-                                                            .batched(config.batch_size)
-    val_dataset = wds.WebDataset(val, shardshuffle=True).shuffle(10000) \
-                                                        .decode("torchrgb") \
-                                                        .to_tuple("jpg;png", "json") \
-                                                        .batched(config.batch_size)
+    val_dataset = PraCegoVerDataset(dataset_path='/datasets/pracegover/pracegover_400k.json',
+                                    image_base_dir='/datasets/pracegover/images/',
+                                    split='val')
 
     collate_fn = ImageMultipleTextDataCollator(vision_processor=vision_processor,
                                                text_tokenizer=text_tokenizer,

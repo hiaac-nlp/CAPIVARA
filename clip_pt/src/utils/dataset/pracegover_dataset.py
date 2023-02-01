@@ -6,7 +6,7 @@ from PIL import Image
 from torchvision import transforms
 
 
-class PraCegoDataset(torch.utils.data.Dataset):
+class PraCegoVerDataset(torch.utils.data.Dataset):
     def __init__(self, dataset_path: str, image_base_dir: str, split='train'):
         self.image_base_dir = image_base_dir
 

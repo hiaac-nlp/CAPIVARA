@@ -73,7 +73,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
         if (batch_idx + 1) % self.config["accumulate_grad_batches"] == 0:
             image_features = torch.concat(self.image_feature_list, dim=0)
             text_features = torch.concat(self.text_feature_list, dim=0)
-            logits_per_image, logits_per_text = self.model.compute_logits(image_features, text_features,
+            logits_per_image, logits_per_text = self.model.compute_logits(image_features,
+                                                                          text_features,
                                                                           fixed_logit=True)
             loss = clip_loss(logits_per_text)
             optimizer.zero_grad()
@@ -83,7 +84,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
             preds_image = logits_per_image.argmax(dim=1)
             preds_text = logits_per_text.argmax(dim=1)
-            ground_truth = torch.arange(len(logits_per_image), dtype=torch.long, device=logits_per_image.device)
+            ground_truth = torch.arange(len(logits_per_image), dtype=torch.long,
+                                        device=logits_per_image.device)
 
             batch_image_accuracy = self.image_train_acc(preds_image, ground_truth)
             batch_text_accuracy = self.text_train_acc(preds_text, ground_truth)
@@ -124,12 +126,14 @@ class CLIPPTBRWrapper(pl.LightningModule):
         if (batch_idx + 1) % self.config["accumulate_grad_batches"] == 0:
             image_features = torch.concat(self.valid_image_feature_list, dim=0)
             text_features = torch.concat(self.valid_text_feature_list, dim=0)
-            logits_per_image, logits_per_text = self.model.compute_logits(image_features, text_features,
+            logits_per_image, logits_per_text = self.model.compute_logits(image_features,
+                                                                          text_features,
                                                                           fixed_logit=True)
 
             loss = clip_loss(logits_per_text)
 
-            ground_truth = torch.arange(len(logits_per_image), dtype=torch.long, device=logits_per_image.device)
+            ground_truth = torch.arange(len(logits_per_image), dtype=torch.long,
+                                        device=logits_per_image.device)
 
             preds_image = logits_per_image.argmax(dim=1)
             preds_text = logits_per_text.argmax(dim=1)

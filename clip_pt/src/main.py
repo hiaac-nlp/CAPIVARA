@@ -30,9 +30,11 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    vision_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    vision_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32",
+                                                     cache_dir='/hahomes/gabriel.santos/')
     text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
-                                                   do_lower_case=False)
+                                                   do_lower_case=False,
+                                                   cache_dir='/hahomes/gabriel.santos/')
 
     train_dataloader, val_dataloader = load_datasets(config=config,
                                                      vision_processor=vision_processor,
