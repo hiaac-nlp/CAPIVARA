@@ -25,6 +25,7 @@ def main() -> None:
         type=str,
         help="YAML file with configurations"
     )
+    parser.add_argument("-g", "--gpu", required=True)
     args = parser.parse_args()
 
     config = OmegaConf.load(args.config_path)
@@ -50,10 +51,12 @@ def main() -> None:
             ModelCheckpoint(**config["model_checkpoint"]),
             EarlyStopping(**config["early_stopping"]),
             LearningRateMonitor("step")
-        ]
+        ],
+        devices=args.gpu
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
 
 if __name__ == "__main__":
     main()
+
