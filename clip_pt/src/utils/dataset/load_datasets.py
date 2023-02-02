@@ -27,12 +27,12 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
     #                                                     .to_tuple("jpg;png", "json") \
     #                                                     .batched(config.batch_size)
 
-    train_dataset = PraCegoVerDataset(dataset_path='/datasets/pracegover/pracegover_400k.json',
-                                      image_base_dir='/datasets/pracegover/images/',
+    train_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
+                                      image_base_dir='/hadatasets/pracegover/images/',
                                       split='train')
 
-    val_dataset = PraCegoVerDataset(dataset_path='/datasets/pracegover/pracegover_400k.json',
-                                    image_base_dir='/datasets/pracegover/images/',
+    val_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
+                                    image_base_dir='/hadatasets/pracegover/images/',
                                     split='val')
 
     collate_fn = ImageMultipleTextDataCollator(vision_processor=vision_processor,

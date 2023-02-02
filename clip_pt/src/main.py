@@ -25,7 +25,8 @@ def main() -> None:
         type=str,
         help="YAML file with configurations"
     )
-    parser.add_argument("-g", "--gpu", required=True)
+    parser.add_argument("-g", "--gpu", required=True, type=str,)
+
     args = parser.parse_args()
 
     config = OmegaConf.load(args.config_path)
