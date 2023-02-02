@@ -14,7 +14,8 @@ model:
     eps: 1e-6
     weight_decay: 0.001
     betas: [0.9, 0.98]
-    scheduler_patience: 10 # steps
+    scheduler:
+    scheduler_patience:
     batch_size: 32
     accumulate_grad_batches: 1
 

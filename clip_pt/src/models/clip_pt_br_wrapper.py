@@ -14,7 +14,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.automatic_optimization = False
-
+        print(f"==== Device: {self.device} ====")
         self.model = CLIPTBR()
         self.config = config
 
@@ -44,6 +44,9 @@ class CLIPPTBRWrapper(pl.LightningModule):
             betas=self.config["betas"],
             weight_decay=self.config["weight_decay"]
         )
+
+        if not self.config['scheduler']:
+            return optimizer
 
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
