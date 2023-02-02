@@ -25,7 +25,7 @@ def main() -> None:
         type=str,
         help="YAML file with configurations"
     )
-    parser.add_argument("-g", "--gpu", required=True, type=str,)
+    parser.add_argument("-g", "--gpu", required=True, type=int)
 
     args = parser.parse_args()
 
