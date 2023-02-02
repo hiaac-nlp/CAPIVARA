@@ -55,7 +55,7 @@ def main() -> None:
             EarlyStopping(**config["early_stopping"]),
             LearningRateMonitor("step")
         ],
-        devices=args.gpu
+        devices=[args.gpu]
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
