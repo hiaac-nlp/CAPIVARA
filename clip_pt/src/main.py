@@ -41,7 +41,7 @@ def main() -> None:
                                                      vision_processor=vision_processor,
                                                      text_tokenizer=text_tokenizer)
 
-    clip_pt = CLIPPTBRWrapper(config.model)
+    clip_pt = CLIPPTBRWrapper(config)
     neptune_logger = NeptuneLogger(
         project=os.environ.get("NEPTUNE_PROJECT"),
         api_token=os.environ.get("NEPTUNE_API_TOKEN"),

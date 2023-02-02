@@ -10,10 +10,11 @@ class CLIPTBR(nn.Module):
             self,
             projection_dim: int = 512,
             vision_encoder_version: str = "openai/clip-vit-base-patch32",
-            text_encoder_version: str = "neuralmind/bert-base-portuguese-cased"
+            text_encoder_version: str = "neuralmind/bert-base-portuguese-cased",
+            pretraining: str = "LiT"
     ):
         super().__init__()
-
+        self.pretraining = pretraining
         self.projection_dim = projection_dim
         self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
                                                              cache_dir='/hahomes/gabriel.santos/')
@@ -83,3 +84,19 @@ class CLIPTBR(nn.Module):
             param.requires_grad = status
         for param in self.text_encoder.parameters():
             param.requires_grad = status
+
+    def freeze(self):
+        for param in self.image_encoder.parameters():
+            param.requires_grad = False
+
+        if self.pretraining.lower() == "lit":
+            for param in self.text_encoder.parameters():
+                param.requires_grad = False
+
+    def unfreeze(self):
+        for param in self.image_encoder.parameters():
+            param.requires_grad = True
+
+        if self.pretraining.lower() == "lit":
+            for param in self.text_encoder.parameters():
+                param.requires_grad = True

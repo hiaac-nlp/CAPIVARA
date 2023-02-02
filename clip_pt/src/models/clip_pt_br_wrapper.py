@@ -1,5 +1,7 @@
 import pytorch_lightning as pl
 import torch
+from omegaconf import DictConfig
+
 from models.model import CLIPTBR
 from torch.optim import Adam
 from torchmetrics import Accuracy
@@ -9,13 +11,15 @@ from utils.loss import clip_loss
 class CLIPPTBRWrapper(pl.LightningModule):
     def __init__(
             self,
-            config: dict
+            config: DictConfig
     ):
         super().__init__()
         self.save_hyperparameters()
         self.automatic_optimization = False
-        print(f"==== Device: {self.device} ====")
-        self.model = CLIPTBR()
+        self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
+                             text_encoder_version=config.model.text_encoder,
+                             pretraining=config.model.pretraining)
+        self.model.freeze()
         self.config = config
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]
@@ -31,18 +35,20 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
         self.complete_training = False
         self.complete_validation = False
+        self.unfreeze = config.model["warmup"] > 0
 
     def configure_optimizers(self):
+        opt_params = self.config.optimizer["param"]
         optimizer = Adam(
             [
                 {
                     "params": self.model.parameters(),
-                    "lr": self.config["learning_rate"]
+                    "lr": opt_params["learning_rate"]
                 }
             ],
-            eps=self.config["eps"],
-            betas=self.config["betas"],
-            weight_decay=self.config["weight_decay"]
+            eps=opt_params["eps"],
+            betas=opt_params["betas"],
+            weight_decay=opt_params["weight_decay"]
         )
 
         if not self.config['scheduler']:
@@ -64,6 +70,11 @@ class CLIPPTBRWrapper(pl.LightningModule):
         }
 
     def training_step(self, train_batch, batch_idx):
+        # warmup
+        if self.current_epoch >= self.config.model["warmup_steps"] and self.unfreeze:
+            print(f"Epoch {self.current_epoch}: unfreezing model")
+            self.model.unfreeze()
+            self.unfreeze = False
 
         optimizer = self.optimizers()
         lr_scheduler = self.lr_schedulers()

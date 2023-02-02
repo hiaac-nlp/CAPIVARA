@@ -8,16 +8,24 @@ datasets:
           path: "/hadatasets/pracegover/{00000..00403}.tar"
 
 model:
+    text_encoder: "neuralmind/bert-base-portuguese-cased"
+    image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
-    optimizer: "Adam"
-    learning_rate: 1e-5
-    eps: 1e-6
-    weight_decay: 0.001
-    betas: [0.9, 0.98]
-    scheduler:
-    scheduler_patience:
-    batch_size: 32
-    accumulate_grad_batches: 1
+    warmup_steps: 250
+    pretraining: "LiT" #options: LiT / contrastive
+
+optimizer:
+    name: "Adam"
+    params:
+        learning_rate: 1e-5
+        eps: 1e-6
+        weight_decay: 0.001
+        betas: [ 0.9, 0.98 ]
+
+scheduler:
+
+batch_size: 32
+accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
