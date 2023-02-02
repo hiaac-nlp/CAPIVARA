@@ -24,6 +24,6 @@ class PraCegoVerDataset(torch.utils.data.Dataset):
         img_path = os.path.join(self.image_base_dir, example["filename"])
         img = Image.open(img_path)
 
-        return [self.transform(img)], [{"image": example["filename"],
-                                        "captions-pt": [example["caption"]],
-                                        "captions-en": []}]
+        return self.transform(img), {"image": example["filename"],
+                                     "captions-pt": [example["caption"]],
+                                     "captions-en": []}

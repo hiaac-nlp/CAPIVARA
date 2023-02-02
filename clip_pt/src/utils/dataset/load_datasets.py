@@ -5,6 +5,7 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 
 from utils.dataset.data_collator import ImageMultipleTextDataCollator
+from utils.dataset.pracegover_data_collator import PraCegoVerImageMultipleTextDataCollator
 from utils.dataset.pracegover_dataset import PraCegoVerDataset
 
 
@@ -35,9 +36,9 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
                                     image_base_dir='/hadatasets/pracegover/images/',
                                     split='val')
 
-    collate_fn = ImageMultipleTextDataCollator(vision_processor=vision_processor,
-                                               text_tokenizer=text_tokenizer,
-                                               text_padding_size=config.model.text_padding_size)
+    collate_fn = PraCegoVerImageMultipleTextDataCollator(vision_processor=vision_processor,
+                                                         text_tokenizer=text_tokenizer,
+                                                         text_padding_size=config.model.text_padding_size)
 
     train_dataloader = DataLoader(train_dataset, batch_size=config.model.batch_size,
                                   collate_fn=collate_fn, num_workers=10)
