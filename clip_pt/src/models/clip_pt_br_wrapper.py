@@ -35,7 +35,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
         self.complete_training = False
         self.complete_validation = False
-        self.unfreeze = config.model["warmup"] > 0
+        self.unfreeze = config.model["warmup_steps"] > 0
 
     def configure_optimizers(self):
         opt_params = self.config.optimizer["param"]
