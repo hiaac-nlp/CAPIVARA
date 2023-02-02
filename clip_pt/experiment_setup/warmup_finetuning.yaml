@@ -31,7 +31,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/loss"
-    dirpath: "../checkpoints/clip_pt/pretraining_grad_accum"
+    dirpath: "../checkpoints/clip_pt/warmup_finetuning"
 
 early_stopping:
     verbose: true
