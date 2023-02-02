@@ -36,9 +36,10 @@ class CLIPPTBRWrapper(pl.LightningModule):
         self.complete_training = False
         self.complete_validation = False
         self.unfreeze = config.model["warmup_steps"] > 0
+        print(f"===== Unfreeze: {self.unfreeze}")
 
     def configure_optimizers(self):
-        opt_params = self.config.optimizer["param"]
+        opt_params = self.config.optimizer["params"]
         optimizer = Adam(
             [
                 {
@@ -94,7 +95,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
             optimizer.zero_grad()
             self.manual_backward(loss)
             optimizer.step()
-            lr_scheduler.step(loss)
+            if lr_scheduler:
+                lr_scheduler.step(loss)
 
             preds_image = logits_per_image.argmax(dim=1)
             preds_text = logits_per_text.argmax(dim=1)

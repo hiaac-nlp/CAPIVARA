@@ -11,7 +11,7 @@ model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
-    warmup_steps: 250
+    warmup_steps: 0
     pretraining: "LiT" #options: LiT / contrastive
 
 optimizer:
@@ -24,7 +24,7 @@ optimizer:
 
 scheduler:
 
-batch_size: 32
+batch_size: 512
 accumulate_grad_batches: 1
 
 trainer:
