@@ -21,11 +21,11 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
     # train_dataset = wds.WebDataset(train, shardshuffle=True).shuffle(10000)\
     #                                                         .decode("torchrgb") \
     #                                                         .to_tuple("jpg;png", "json") \
-    #                                                         .batched(config.batch_size)
+    #                                                         .batched(config.model.batch_size)
     # val_dataset = wds.WebDataset(val, shardshuffle=True).shuffle(10000) \
     #                                                     .decode("torchrgb") \
     #                                                     .to_tuple("jpg;png", "json") \
-    #                                                     .batched(config.batch_size)
+    #                                                     .batched(config.model.batch_size)
 
     train_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
                                       image_base_dir='/hadatasets/pracegover/images/',
@@ -37,11 +37,12 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
 
     collate_fn = ImageMultipleTextDataCollator(vision_processor=vision_processor,
                                                text_tokenizer=text_tokenizer,
-                                               text_padding_size=config.text_padding_size)
+                                               text_padding_size=config.model.text_padding_size)
 
-    train_dataloader = DataLoader(train_dataset, batch_size=None, collate_fn=collate_fn,
-                                  num_workers=10)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.model.batch_size,
+                                  collate_fn=collate_fn, num_workers=10)
 
-    val_dataloader = DataLoader(val_dataset, batch_size=None, collate_fn=collate_fn, num_workers=10)
+    val_dataloader = DataLoader(val_dataset, batch_size=config.model.batch_size,
+                                collate_fn=collate_fn, num_workers=10)
 
     return train_dataloader, val_dataloader

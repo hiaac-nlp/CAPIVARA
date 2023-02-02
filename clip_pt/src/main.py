@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument(
         "-c",
         "--config_path",
-        default=os.path.join("../", "experiment_setup", "baseline.yaml"),
+        default=os.path.join("../", "experiment_setup", "warmup_finetuning.yaml"),
         type=str,
         help="YAML file with configurations"
     )

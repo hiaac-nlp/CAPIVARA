@@ -1,18 +1,14 @@
 datasets:
     train:
-        - name: cc3m
-          path: "/home/gabriel/dataset_clip_pt/cc3m-w/{00000..00001}.tar"
-        - name: cc12m
-          path: "/home/gabriel/dataset_clip_pt/cc12m/{00002..00005}.tar"
+        - name: pracegover
+          path: "/hadatasets/pracegover/{00000..00403}.tar"
 
     validation:
-        - name: cc12m
-          path: "/home/gabriel/dataset_clip_pt/cc12m/{00005..000015}.tar"
-
-batch_size: 32
-text_padding_size: 95
+        - name: pracegover
+          path: "/hadatasets/pracegover/{00000..00403}.tar"
 
 model:
+    text_padding_size: 95
     optimizer: "Adam"
     learning_rate: 1e-5
     eps: 1e-6
@@ -20,7 +16,7 @@ model:
     betas: [0.9, 0.98]
     scheduler_patience: 10 # steps
     batch_size: 32
-    accumulate_grad_batches: 16
+    accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
