@@ -19,7 +19,6 @@ class CLIPPTBRWrapper(pl.LightningModule):
         self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
                              text_encoder_version=config.model.text_encoder,
                              pretraining=config.model.pretraining)
-        self.model.freeze()
         self.config = config
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]
@@ -36,7 +35,9 @@ class CLIPPTBRWrapper(pl.LightningModule):
         self.complete_training = False
         self.complete_validation = False
         self.unfreeze = config.model["warmup_steps"] > 0
-        print(f"===== Unfreeze: {self.unfreeze}")
+        if not self.unfreeze:
+            print("Freezing model!!")
+            self.model.freeze()
 
     def configure_optimizers(self):
         opt_params = self.config.optimizer["params"]

@@ -23,7 +23,10 @@ class PraCegoVerDataset(torch.utils.data.Dataset):
         example = self.dataset[index]
         img_path = os.path.join(self.image_base_dir, example["filename"])
         img = Image.open(img_path)
+        img = self.transform(img)
+        if img.shape[0] == 1:
+            img = img.repeat(3, 1, 1)
 
-        return self.transform(img), {"image": example["filename"],
+        return img, {"image": example["filename"],
                                      "captions-pt": [example["caption"]],
                                      "captions-en": []}
