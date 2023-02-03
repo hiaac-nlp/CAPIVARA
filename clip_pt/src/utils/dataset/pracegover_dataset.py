@@ -7,8 +7,11 @@ from torchvision import transforms
 
 
 class PraCegoVerDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset_path: str, image_base_dir: str, split='train'):
+    def __init__(self, dataset_path: str, image_base_dir: str,
+                 vision_processor, text_tokenizer, split='train'):
         self.image_base_dir = image_base_dir
+        self.vision_processor = vision_processor
+        self.text_tokenizer = text_tokenizer
 
         with open(dataset_path) as file:
             dataset = json.load(file)
@@ -23,10 +26,21 @@ class PraCegoVerDataset(torch.utils.data.Dataset):
         example = self.dataset[index]
         img_path = os.path.join(self.image_base_dir, example["filename"])
         img = Image.open(img_path)
-        img = self.transform(img)
-        if img.shape[0] == 1:
-            img = img.repeat(3, 1, 1)
 
-        return img, {"image": example["filename"],
-                                     "captions-pt": [example["caption"]],
-                                     "captions-en": []}
+        image_input = self.vision_processor(
+            images=img,
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        )
+
+        text_input = self.text_tokenizer(
+            example["caption"],
+            return_tensors='pt',
+            padding='max_length',
+            truncation=True,
+            max_length=30
+        )
+
+        return image_input, text_input
+
