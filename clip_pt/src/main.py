@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
 from pytorch_lightning.loggers import NeptuneLogger
-from transformers import CLIPProcessor, AutoTokenizer
+from transformers import CLIPProcessor, AutoTokenizer, CLIPFeatureExtractor
 
 from utils.dataset.load_datasets import load_datasets
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
@@ -31,8 +31,8 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    vision_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32",
-                                                     cache_dir='/hahomes/gabriel.santos/')
+    vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
+                                                            cache_dir='/hahomes/gabriel.santos/')
     text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
                                                    do_lower_case=False,
                                                    cache_dir='/hahomes/gabriel.santos/')

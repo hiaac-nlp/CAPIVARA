@@ -30,20 +30,17 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
 
     train_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
                                       image_base_dir='/hadatasets/pracegover/images/',
-                                      split='train')
+                                      split='train',
+                                      vision_processor=vision_processor,
+                                      text_tokenizer=text_tokenizer)
 
     val_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
                                     image_base_dir='/hadatasets/pracegover/images/',
-                                    split='val')
+                                    split='val',
+                                    vision_processor=vision_processor,
+                                    text_tokenizer=text_tokenizer)
 
-    collate_fn = PraCegoVerImageMultipleTextDataCollator(vision_processor=vision_processor,
-                                                         text_tokenizer=text_tokenizer,
-                                                         text_padding_size=config.model.text_padding_size)
-
-    train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size,
-                                  collate_fn=collate_fn, num_workers=10)
-
-    val_dataloader = DataLoader(val_dataset, batch_size=config.batch_size,
-                                collate_fn=collate_fn, num_workers=10)
+    train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, num_workers=10)
+    val_dataloader = DataLoader(val_dataset, batch_size=config.batch_size, num_workers=10)
 
     return train_dataloader, val_dataloader
