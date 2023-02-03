@@ -5,12 +5,15 @@ import torch
 from PIL import Image
 from torchvision import transforms
 from PIL import ImageFile
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+
 class PraCegoVerDataset(torch.utils.data.Dataset):
-    def __init__(self, dataset_path: str, image_base_dir: str,
+    def __init__(self, dataset_path: str, image_base_dir: str, max_length: int,
                  vision_processor, text_tokenizer, split='train'):
         self.image_base_dir = image_base_dir
+        self.max_length = max_length
         self.vision_processor = vision_processor
         self.text_tokenizer = text_tokenizer
 
@@ -40,8 +43,7 @@ class PraCegoVerDataset(torch.utils.data.Dataset):
             return_tensors='pt',
             padding='max_length',
             truncation=True,
-            max_length=30
+            max_length=self.max_length
         )
 
         return image_input, text_input
-

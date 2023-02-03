@@ -32,13 +32,15 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
                                       image_base_dir='/hadatasets/pracegover/images/',
                                       split='train',
                                       vision_processor=vision_processor,
-                                      text_tokenizer=text_tokenizer)
+                                      text_tokenizer=text_tokenizer,
+                                      max_length=config.model.text_padding_size)
 
     val_dataset = PraCegoVerDataset(dataset_path='/hadatasets/pracegover/pracegover_400k.json',
                                     image_base_dir='/hadatasets/pracegover/images/',
                                     split='val',
                                     vision_processor=vision_processor,
-                                    text_tokenizer=text_tokenizer)
+                                    text_tokenizer=text_tokenizer,
+                                    max_length=config.model.text_padding_size)
 
     train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=config.batch_size, num_workers=10)
