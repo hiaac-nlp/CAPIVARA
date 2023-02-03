@@ -4,7 +4,8 @@ import os
 import torch
 from PIL import Image
 from torchvision import transforms
-
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class PraCegoVerDataset(torch.utils.data.Dataset):
     def __init__(self, dataset_path: str, image_base_dir: str,
