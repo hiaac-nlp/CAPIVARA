@@ -16,7 +16,7 @@ from torchvision import transforms
 
 class CustomDataset(torch.utils.data.Dataset):
 
-    def __init__(self, dataset_name: str, dataset_path: str, image_base_dir: str, translation_path: str, split="train"):
+    def __init__(self, dataset_name: str, dataset_path: str, image_base_dir: str, translation_path: str, translation_path_2 = '' ,split="train"):
         """
         :param dataset_name: the name of the dataset (pracegover, mscoco, flickr30k)
         :param dataset_path: the path to the dataset
@@ -31,7 +31,7 @@ class CustomDataset(torch.utils.data.Dataset):
         if dataset_name.lower() == "pracegover":
             self.dataset = self.__read_pracegover(dataset_path, split)
         elif dataset_name.lower() == "mscoco":
-            self.dataset = self.__read_mscoco(path=dataset_path, translation_path=translation_path)
+            self.dataset = self.__read_mscoco(path=dataset_path, translation_path=translation_path,translation_path_2=translation_path_2)
         elif dataset_name.lower() == "flickr30k":
             self.dataset = self.__read_flickr30k(path=dataset_path,
                                                  translation_path=translation_path,
@@ -56,7 +56,7 @@ class CustomDataset(torch.utils.data.Dataset):
             print("Image error, index: " + str(index))
             return False, False
 
-    def __read_mscoco(self, path: str, translation_path: str):
+    def __read_mscoco(self, path: str, translation_path: str, translation_path_2: str):
         """
         :param path: path to the original dataset metadata file
         :param translation_path: path to the translated dataset metadata file
@@ -68,18 +68,22 @@ class CustomDataset(torch.utils.data.Dataset):
 
         with open(translation_path) as translation_file:
             translation_data = json.load(translation_file)
+        
+        translation_data_2 = pd.read_csv(translation_path_2, names=["caption"])
 
-        for orig_annotation, translation_annotation in zip(orig_data["annotations"], translation_data["annotations"]):
+        for orig_annotation, translation_annotation, translation_annotation_2 in zip(orig_data["annotations"], translation_data["annotations"], translation_data_2["caption"]):
             assert orig_annotation["image_id"] == translation_annotation["image_id"], "Not synced"
             if orig_annotation["image_id"] in id2image:
                 id2image[orig_annotation["image_id"]]["en_captions"].append(orig_annotation["caption"])
                 id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation["caption"])
+                id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation_2.strip())
             else:
                 id2image[orig_annotation["image_id"]] = {}
                 id2image[orig_annotation["image_id"]]["en_captions"] = []
                 id2image[orig_annotation["image_id"]]["pt_captions"] = []
                 id2image[orig_annotation["image_id"]]["en_captions"].append(orig_annotation["caption"])
                 id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation["caption"])
+                id2image[orig_annotation["image_id"]]["pt_captions"].append(translation_annotation_2.strip())
 
         return id2image
 
@@ -158,7 +162,6 @@ def main():
         "-p",
         "--dataset_path",
         type=str,
-        help="Path to the directory of the dataset in the format: e.g: http://storage.googleapis.com/nvdata-openimages/openimages-train-{000000..000554}.tar"
     )
 
     parser.add_argument(
@@ -170,6 +173,13 @@ def main():
     parser.add_argument(
         "-t",
         "--translate_path",
+        type=str,
+        help="Path to the csv translation file"
+    )
+
+    parser.add_argument(
+        "-t_2",
+        "--translate_path_2",
         type=str,
         help="Path to the csv translation file"
     )
@@ -196,6 +206,12 @@ def main():
     )
 
     parser.add_argument(
+        "-c_d_n",
+        "--complementary_dataset_name",
+        type=str
+    )
+
+    parser.add_argument(
         "-s_p",
         "--separator",
         default='\t',
@@ -212,15 +228,18 @@ def main():
 
 
     args = parser.parse_args()
-
-    dataset = CustomDataset(args.dataset_name, args.dataset_path, args.image_dataset_path, args.translate_path)
     
+    if args.dataset_name == 'pracegover':
+        dataset = CustomDataset(args.dataset_name, args.dataset_path, args.image_dataset_path, args.translate_path, split=args.split)
+    else:
+        dataset = CustomDataset(args.dataset_name, args.dataset_path, args.image_dataset_path, args.translate_path, translation_path_2= args.translate_path_2, split=args.split)
+
     # check and create storage directory
-    if not os.path.isdir(args.save_path+'/'+args.dataset_name):
-        os.makedirs(args.save_path+'/'+args.dataset_name)
+    if not os.path.isdir(args.save_path+'/'+args.dataset_name+'_'+args.complementary_dataset_name):
+        os.makedirs(args.save_path+'/'+args.dataset_name+'_'+args.complementary_dataset_name)
 
     # iterates and saves the data in webdataset
-    sink = wds.ShardWriter(args.save_path + '/' + args.dataset_name + '/%05d.tar', maxcount=10000)
+    sink = wds.ShardWriter(args.save_path + '/' + args.dataset_name+'_'+args.complementary_dataset_name + '/%05d.tar', maxcount=10000)
     if not bool(args.repetition):
         dictionary = defaultdict(lambda: 0)
         print("dictionary created")
