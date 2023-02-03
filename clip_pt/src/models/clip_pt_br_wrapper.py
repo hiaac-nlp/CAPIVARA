@@ -35,7 +35,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
         self.complete_training = False
         self.complete_validation = False
         self.unfreeze = config.model["warmup_steps"] > 0
-        if not self.unfreeze:
+        if self.unfreeze:
             print("Freezing model!!")
             self.model.freeze()
 

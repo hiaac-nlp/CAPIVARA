@@ -89,7 +89,7 @@ class CLIPTBR(nn.Module):
         for param in self.image_encoder.parameters():
             param.requires_grad = False
 
-        if self.pretraining.lower() == "lit":
+        if self.pretraining.lower() != "lit":
             for param in self.text_encoder.parameters():
                 param.requires_grad = False
 
@@ -97,6 +97,6 @@ class CLIPTBR(nn.Module):
         for param in self.image_encoder.parameters():
             param.requires_grad = True
 
-        if self.pretraining.lower() == "lit":
+        if self.pretraining.lower() != "lit":
             for param in self.text_encoder.parameters():
                 param.requires_grad = True
