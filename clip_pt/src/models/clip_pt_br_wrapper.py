@@ -73,7 +73,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
     def training_step(self, train_batch, batch_idx):
         # warmup
-        if self.current_epoch >= self.config.model["warmup_steps"] and self.unfreeze:
+        if self.trainer.global_step >= self.config.model["warmup_steps"] and self.unfreeze:
             print(f"Epoch {self.current_epoch}: unfreezing model")
             self.model.unfreeze()
             self.unfreeze = False
