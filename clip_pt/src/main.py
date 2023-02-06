@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
-from pytorch_lightning.loggers import NeptuneLogger
+from pytorch_lightning.loggers import NeptuneLogger, WandbLogger
 from transformers import CLIPProcessor, AutoTokenizer, CLIPFeatureExtractor
 
 from utils.dataset.load_datasets import load_datasets
@@ -42,14 +42,12 @@ def main() -> None:
                                                      text_tokenizer=text_tokenizer)
 
     clip_pt = CLIPPTBRWrapper(config)
-    neptune_logger = NeptuneLogger(
-        project=os.environ.get("NEPTUNE_PROJECT"),
-        api_token=os.environ.get("NEPTUNE_API_TOKEN"),
-    )
+    logger = WandbLogger(project="CLIP-PT",
+                         name=config.title)
 
     trainer = pl.Trainer(
         **config["trainer"],
-        logger=neptune_logger,
+        logger=logger,
         callbacks=[
             ModelCheckpoint(**config["model_checkpoint"]),
             EarlyStopping(**config["early_stopping"]),
