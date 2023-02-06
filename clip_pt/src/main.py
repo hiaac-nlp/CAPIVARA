@@ -6,11 +6,11 @@ import pytorch_lightning as pl
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping, LearningRateMonitor
-from pytorch_lightning.loggers import NeptuneLogger, WandbLogger
-from transformers import CLIPProcessor, AutoTokenizer, CLIPFeatureExtractor
+from pytorch_lightning.loggers import WandbLogger
+from transformers import AutoTokenizer, CLIPFeatureExtractor
 
-from utils.dataset.load_datasets import load_datasets
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
+from utils.dataset.load_datasets import load_datasets
 
 logging.basicConfig(level='ERROR')
 load_dotenv()
