@@ -14,7 +14,7 @@ model:
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
     warmup_steps: 500
-    pretraining: "LiT" #options: LiT / contrastive
+    pretraining: "linear" #options: LiT / linear
 
 optimizer:
     name: "Adam"

@@ -1,4 +1,4 @@
-title: warmup_250
+title: warmup_500
 
 datasets:
     train:
@@ -13,8 +13,8 @@ model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
-    warmup_steps: 250
-    pretraining: "linear" #options: LiT / linear
+    warmup_steps: 500
+    pretraining: "LiT" #options: LiT / contrastive
 
 optimizer:
     name: "Adam"
@@ -41,7 +41,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/loss"
-    dirpath: "../checkpoints/clip_pt/warmup_finetuning_250"
+    dirpath: "../checkpoints/clip_pt/warmup_finetuning_500"
 
 early_stopping:
     verbose: true
