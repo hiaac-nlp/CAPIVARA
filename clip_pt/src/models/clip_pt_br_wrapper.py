@@ -1,11 +1,12 @@
 import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig
-
-from models.model import CLIPTBR
 from torch.optim import Adam
 from torchmetrics import Accuracy
+
+from models.model import CLIPTBR
 from utils.loss import clip_loss
+from utils.scheduler import CosineWarmupLR
 
 
 class CLIPPTBRWrapper(pl.LightningModule):
@@ -56,12 +57,24 @@ class CLIPPTBRWrapper(pl.LightningModule):
         if not self.config['scheduler']:
             return optimizer
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer,
-            "min",
-            patience=self.config["scheduler_patience"],
-            factor=0.9
-        )
+        scheduler = None
+        if self.config['scheduler'].lower() == 'reducelronplateau':
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                "min",
+                patience=self.config.scheduler.params["patience"],
+                factor=0.9,
+                min_lr=1.0e-6
+            )
+
+        if self.config["scheduler"].lower() == "cosinewarmuplr":
+            scheduler = CosineWarmupLR(
+                optimizer,
+                lr_min=1.0e-6,
+                lr_max=self.opt_params["learning_rate"],
+                warmup=self.elf.config.scheduler.params["warmup_lr"],
+                T_max=self.trainer.estimated_stepping_batches
+            )
 
         return {
             "optimizer": optimizer,
