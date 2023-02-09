@@ -58,7 +58,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
             return optimizer
 
         scheduler = None
-        if self.config['scheduler'].lower() == 'reducelronplateau':
+        if self.config.scheduler.name.lower() == 'reducelronplateau':
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer,
                 "min",
@@ -67,12 +67,12 @@ class CLIPPTBRWrapper(pl.LightningModule):
                 min_lr=1.0e-6
             )
 
-        if self.config["scheduler"].lower() == "cosinewarmuplr":
+        if self.config.scheduler.name.lower() == "cosinewarmuplr":
             scheduler = CosineWarmupLR(
                 optimizer,
                 lr_min=1.0e-6,
-                lr_max=self.opt_params["learning_rate"],
-                warmup=self.elf.config.scheduler.params["warmup_lr"],
+                lr_max=opt_params["learning_rate"],
+                warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=self.trainer.estimated_stepping_batches
             )
 
