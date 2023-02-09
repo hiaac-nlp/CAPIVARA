@@ -1,3 +1,4 @@
+import numpy as np
 import pytorch_lightning as pl
 import torch
 from omegaconf import DictConfig
@@ -83,6 +84,10 @@ class CLIPPTBRWrapper(pl.LightningModule):
                 "interval": "step"
             }
         }
+
+    def optimizer_step(self, *args, **kwargs):
+        super().optimizer_step(*args, **kwargs)
+        self.model.logit_scale.data.clamp_(0, np.log(100))
 
     def training_step(self, train_batch, batch_idx):
         # warmup
