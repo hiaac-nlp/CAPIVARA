@@ -9,13 +9,14 @@ import tqdm
 from transformers import CLIPFeatureExtractor, AutoTokenizer
 
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
+from models.mCLIP import mCLIP
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", help="Path to model checkpoint", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
-    parser.add_argument("--translation", choices=['marian', 'google'], required=False)
+    parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
 
     return parser.parse_args()
@@ -33,25 +34,25 @@ def tokenize(example, args):
     if len(example[1]["captions-pt"]) == 1:
         text_input = text_tokenizer(
             example[1]["captions-pt"][0],
-            return_tensors='pt',
-            padding='max_length',
+            return_tensors="pt",
+            padding="max_length",
             truncation=True,
             max_length=95
         )
     else:
-        if args.translation == 'marian':
+        if args.translation == "marian":
             text_input = text_tokenizer(
                 example[1]["captions-pt"][1::2],
-                return_tensors='pt',
-                padding='max_length',
+                return_tensors="pt",
+                padding="max_length",
                 truncation=True,
                 max_length=95
             )
-        elif args.translation == 'google':
+        elif args.translation == "google":
             text_input = text_tokenizer(
                 example[1]["captions-pt"][0::2],
-                return_tensors='pt',
-                padding='max_length',
+                return_tensors="pt",
+                padding="max_length",
                 truncation=True,
                 max_length=95
             )
@@ -65,15 +66,13 @@ def format_batch(batch):
     attention_mask = []
     token_type_ids = []
     for img, txt in zip(batch[0], batch[1]):
-        pixel_values.append(img['pixel_values'])
-        input_ids.append(txt['input_ids'])
-        attention_mask.append(txt['attention_mask'])
-        token_type_ids.append(txt['token_type_ids'])
+        pixel_values.append(img["pixel_values"])
+        input_ids.append(txt["input_ids"])
+        attention_mask.append(txt["attention_mask"])
 
-    image_input = {'pixel_values': torch.cat(pixel_values, dim=0)}
-    text_input = {'input_ids': torch.cat(input_ids, dim=0),
-                  'attention_mask': torch.cat(attention_mask, dim=0),
-                  'token_type_ids': torch.cat(token_type_ids, dim=0), }
+    image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
+    text_input = {"input_ids": torch.cat(input_ids, dim=0),
+                  "attention_mask": torch.cat(attention_mask, dim=0),}
 
     return image_input, text_input
 
@@ -87,14 +86,18 @@ def feature_extraction(model, dataloader, device):
     with torch.no_grad():
         for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
             image_input, text_input = batch
-            image_input['pixel_values'] = image_input['pixel_values'].to(device)
-            text_input['input_ids'] = text_input['input_ids'].to(device)
-            text_input['attention_mask'] = text_input['attention_mask'].to(device)
-            text_input['token_type_ids'] = text_input['token_type_ids'].to(device)
+            image_input["pixel_values"] = image_input["pixel_values"].to(device)
+            text_input["input_ids"] = text_input["input_ids"].to(device)
+            text_input["attention_mask"] = text_input["attention_mask"].to(device)
+            #text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
 
             batch = image_input, text_input
 
-            img_features, txt_features = model.model(batch)
+            if isinstance(model, mCLIP):
+                img_features, txt_features = model.encode(batch)
+            else:
+                img_features, txt_features = model.model(batch)
+
             norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
             norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
             image_features.append(norm_img_features)
@@ -161,12 +164,18 @@ if __name__ == "__main__":
 
     print(">>>>>>> Loading processors")
     vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
-                                                            cache_dir='/hahomes/gabriel.santos/')
-    text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
-                                                   do_lower_case=False,
-                                                   cache_dir='/hahomes/gabriel.santos/')
+                                                            cache_dir="/hahomes/gabriel.santos/")
+
     print(">>>>>>> Loading model")
-    model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
+    if args.model_path == "mCLIP":
+        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
+                                                       cache_dir="/hahomes/gabriel.santos/")
+        model = mCLIP()
+    else:
+        text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
+                                                       do_lower_case=False,
+                                                       cache_dir="/hahomes/gabriel.santos/")
+        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
     image_features, text_features = feature_extraction(model, dataloader, device)
@@ -188,3 +197,4 @@ if __name__ == "__main__":
     print("Recall@5: ", recall_5.item())
     print("Recall@10: ", recall_10.item())
     print("Mean Recall: ", mr.item())
+
