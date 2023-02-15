@@ -50,7 +50,6 @@ def main() -> None:
         logger=logger,
         callbacks=[
             ModelCheckpoint(**config["model_checkpoint"]),
-            EarlyStopping(**config["early_stopping"]),
             LearningRateMonitor("step")
         ],
         devices=[args.gpu]
