@@ -2,10 +2,12 @@ title: datasets_without_translation
 
 datasets:
     train:
+        - name: pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train/{00000..00024}.tar"
+        - name: WIT-PT
+          path: "/hadatasets/clip_pt/final_webdatasets/WIT_PT_TRAIN/{00000..00017}.tar"
         - name: CC3M
           path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
-        - name: CC12M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc12m-with-repetition/{00000..00980}.tar"
         - name: WIT-EN
           path: "/hadatasets/clip_pt/final_webdatasets/WIT_EN_TRAIN/{00000..000170}.tar"
 
