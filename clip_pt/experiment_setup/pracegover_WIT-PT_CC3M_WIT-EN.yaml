@@ -1,4 +1,4 @@
-title: datasets_without_translation
+title: pracegover_WIT-PT_CC3M_WIT-EN
 
 datasets:
     train:
@@ -51,7 +51,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/loss"
-    dirpath: "../checkpoints/clip_pt/datasets_without_translation"
+    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_CC3M_WIT-EN"
 
 early_stopping:
     verbose: true
