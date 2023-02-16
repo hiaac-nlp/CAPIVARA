@@ -21,4 +21,5 @@ args = parser.parse_args()
 
 dataset_path_list = list(braceexpand.braceexpand(args.dataset))
 result = thread_map(compute_size, dataset_path_list, max_workers=20)
-print("Total size:", sum(result))
+
+print(">>>>> Total size:", sum(result), " <<<<<")
