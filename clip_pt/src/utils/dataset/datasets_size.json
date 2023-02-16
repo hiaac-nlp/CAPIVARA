@@ -1,0 +1,9 @@
+{
+  "train": {
+    "pracegover": 242036,
+    "WIT-PT": 173377
+  },
+  "validation": {
+    "pracegover": 80628
+  }
+}

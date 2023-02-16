@@ -1,3 +1,4 @@
+import json
 import random
 from typing import Tuple, Any
 
@@ -46,15 +47,22 @@ def format_batch(batch):
 def load_datasets(config, vision_processor, text_tokenizer) -> \
         Tuple[DataLoader[Any], DataLoader[Any]]:
 
+    with open("datasets_size.json") as file:
+        datasets_sizes = json.load(file)
+
     print(">>>>> Train datasets:", [dataset['path'] for dataset in config.datasets.train])
     print(">>>>> Validation datasets:", [dataset['path'] for dataset in config.datasets.validation])
 
     train = []
+    train_size = 0
     for dataset in config.datasets.train:
+        train_size += datasets_sizes["train"][dataset['name']]
         train += list(braceexpand.braceexpand(dataset['path']))
 
     val = []
+    val_size = 0
     for dataset in config.datasets.validation:
+        val_size += datasets_sizes["validation"][dataset['name']]
         val += list(braceexpand.braceexpand(dataset['path']))
 
     max_length = config.model.text_padding_size
@@ -74,6 +82,10 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
                         .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
                         .batched(config.batch_size) \
                         .map(format_batch)
+
+    # dataset size correctly
+    train_dataset = train_dataset.with_length(train_size)
+    val_dataset = val_dataset.with_length(val_size)
 
     train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
