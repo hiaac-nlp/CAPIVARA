@@ -50,7 +50,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
     """
         previously computed dataset sizes. This is necessary because __len__ method in WebDataset
         returns an inaccurate value, so we have to set it manually.
-        Reference: https://github.com/Lightning-AI/lightning/issues/10290
+        Reference: https://webdataset.github.io/webdataset/sharding/
     """
     with open("datasets_size.json") as file:
         datasets_sizes = json.load(file)
