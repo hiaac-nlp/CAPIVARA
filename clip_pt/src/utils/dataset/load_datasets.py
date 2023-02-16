@@ -1,4 +1,5 @@
 import json
+import os
 import random
 from typing import Tuple, Any
 
@@ -52,7 +53,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
         returns an inaccurate value, so we have to set it manually.
         Reference: https://webdataset.github.io/webdataset/sharding/
     """
-    with open("datasets_size.json") as file:
+
+    with open(os.path.join(os.getcwd(), "datasets_size.json")) as file:
         datasets_sizes = json.load(file)
 
     print(">>>>> Train datasets:", [dataset['path'] for dataset in config.datasets.train])
