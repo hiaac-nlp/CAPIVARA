@@ -37,11 +37,16 @@ def main() -> None:
                                                    do_lower_case=False,
                                                    cache_dir='/hahomes/gabriel.santos/')
 
-    train_dataloader, val_dataloader = load_datasets(config=config,
-                                                     vision_processor=vision_processor,
-                                                     text_tokenizer=text_tokenizer)
+    datasets = load_datasets(config=config,
+                             vision_processor=vision_processor,
+                             text_tokenizer=text_tokenizer)
 
-    clip_pt = CLIPPTBRWrapper(config)
+    train_dataloader = datasets["train_dataloader"]
+    val_dataloader = datasets["val_dataloader"]
+    train_size = datasets["train_size"]
+    val_size = datasets["val_size"]
+
+    clip_pt = CLIPPTBRWrapper(config, train_size, val_size)
     logger = WandbLogger(project="CLIP-PT",
                          name=config.title)
 

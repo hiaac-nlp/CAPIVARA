@@ -1,7 +1,7 @@
 import json
 import os
 import random
-from typing import Tuple, Any
+from typing import Tuple, Any, Dict
 
 import braceexpand
 import torch
@@ -45,9 +45,7 @@ def format_batch(batch):
     return image_input, text_input
 
 
-def load_datasets(config, vision_processor, text_tokenizer) -> \
-        Tuple[DataLoader[Any], DataLoader[Any]]:
-
+def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
     """
         previously computed dataset sizes. This is necessary because __len__ method in WebDataset
         returns an inaccurate value, so we have to set it manually.
@@ -74,27 +72,30 @@ def load_datasets(config, vision_processor, text_tokenizer) -> \
 
     max_length = config.model.text_padding_size
 
-    train_dataset = wds.WebDataset(train, shardshuffle=True)\
-                        .shuffle(10000) \
-                        .decode("torchrgb") \
-                        .to_tuple("jpg;png", "json") \
-                        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
-                        .batched(config.batch_size) \
-                        .map(format_batch)
+    train_dataset = wds.WebDataset(train, shardshuffle=True) \
+        .shuffle(10000) \
+        .decode("torchrgb") \
+        .to_tuple("jpg;png", "json") \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
+        .batched(config.batch_size) \
+        .map(format_batch)
 
     val_dataset = wds.WebDataset(val, shardshuffle=True) \
-                        .shuffle(10000) \
-                        .decode("torchrgb") \
-                        .to_tuple("jpg;png", "json") \
-                        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
-                        .batched(config.batch_size) \
-                        .map(format_batch)
+        .shuffle(10000) \
+        .decode("torchrgb") \
+        .to_tuple("jpg;png", "json") \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
+        .batched(config.batch_size) \
+        .map(format_batch)
 
-    # dataset size correctly
-    train_dataset = train_dataset.with_length(train_size)
-    val_dataset = val_dataset.with_length(val_size)
+    # dataset size correctly according to the number of batches
+    train_size = train_size // config.batch_size
+    val_size = val_size // config.batch_size
 
     train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
 
-    return train_dataloader, val_dataloader
+    return {"train_dataloader": train_dataloader,
+            "train_size": train_size,
+            "val_dataloader": val_dataloader,
+            "val_size": val_size}

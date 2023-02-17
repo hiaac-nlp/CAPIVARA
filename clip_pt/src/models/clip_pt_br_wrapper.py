@@ -13,7 +13,9 @@ from utils.scheduler import CosineWarmupLR
 class CLIPPTBRWrapper(pl.LightningModule):
     def __init__(
             self,
-            config: DictConfig
+            config: DictConfig,
+            train_size: int,
+            val_size: int
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -22,6 +24,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
                              text_encoder_version=config.model.text_encoder,
                              pretraining=config.model.pretraining)
         self.config = config
+        self.train_size = train_size
+        self.val_size = val_size
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]
         self.image_train_acc = Accuracy(task="multiclass", num_classes=n_classes)
@@ -74,7 +78,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=self.trainer.estimated_stepping_batches
+                T_max=self.train_size
             )
 
         return {
@@ -92,7 +96,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
     def training_step(self, train_batch, batch_idx):
         # warmup
         if self.trainer.global_step >= self.config.model["warmup_steps"] and self.unfreeze:
-            print(f"Epoch {self.current_epoch}: unfreezing model")
+            print(f"Epoch {self.current_epoch}: unfreezing model!!")
             self.model.unfreeze()
             self.unfreeze = False
 
