@@ -1,17 +1,30 @@
 import json
 import os
 import random
-from typing import Tuple, Any, Dict
+from typing import Dict
 
 import braceexpand
 import torch
 import webdataset as wds
 from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.transforms import AutoAugmentPolicy
 
 
-def tokenize(example, vision_processor, text_tokenizer, max_length):
+def image_augmentation(image):
+    augmentation = transforms.Compose([transforms.RandomResizedCrop(224),
+                                       AutoAugmentPolicy.IMAGENET,
+                                       transforms.ToTensor()])
+    return augmentation(image)
+
+
+def tokenize(example, vision_processor, text_tokenizer, max_length, augment=False):
+    img = example[0]
+    if augment:
+        img = image_augmentation(img)
+
     image_input = vision_processor(
-        images=example[0],
+        images=img,
         return_tensors="pt",
         padding=True,
         truncation=True
@@ -72,11 +85,12 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
 
     max_length = config.model.text_padding_size
 
+    augment = config.get("augment", False)
     train_dataset = wds.WebDataset(train, shardshuffle=True) \
         .shuffle(10000) \
         .decode("torchrgb") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length, augment)) \
         .batched(config.batch_size) \
         .map(format_batch)
 
