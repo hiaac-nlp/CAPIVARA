@@ -8,12 +8,11 @@ import torch
 import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.transforms import AutoAugmentPolicy
 
 
 def image_augmentation(image):
     augmentation = transforms.Compose([transforms.RandomResizedCrop(224),
-                                       AutoAugmentPolicy.IMAGENET,
+                                       transforms.AutoAugment(),
                                        transforms.ToTensor()])
     return augmentation(image)
 
