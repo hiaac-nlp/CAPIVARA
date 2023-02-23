@@ -11,7 +11,7 @@ datasets:
         - name: CC12M
           path: "/hadatasets/clip_pt/final_webdatasets/cc12m_with-repetition/{00000..00980}.tar"
         - name: WIT-EN
-          path: "/hadatasets/clip_pt/final_webdatasets/WIT_EN_TRAIN/{00000..000170}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/WIT_EN_TRAIN/{00000..00170}.tar"
 
     validation:
         - name: pracegover
