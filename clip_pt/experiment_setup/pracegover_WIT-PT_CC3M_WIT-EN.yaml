@@ -15,6 +15,8 @@ datasets:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
 
+augment: True
+
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"

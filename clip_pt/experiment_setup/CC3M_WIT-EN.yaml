@@ -1,4 +1,4 @@
-title: CC3M_WIT-EN
+title: CC12M_WIT-EN
 
 datasets:
     train:
@@ -10,6 +10,8 @@ datasets:
     validation:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+
+augment: True
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
