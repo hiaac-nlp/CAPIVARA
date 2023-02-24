@@ -11,9 +11,11 @@ from torchvision import transforms
 
 
 def image_augmentation(image):
-    augmentation = transforms.Compose([transforms.RandomResizedCrop(224),
+    augmentation = transforms.Compose([transforms.Resize(250), 
+                                       transforms.RandomResizedCrop(224),
                                        transforms.AutoAugment(),
-                                       transforms.ToTensor()])
+                                       #transforms.ToTensor()
+                                       ])
     return augmentation(image)
 
 
@@ -85,9 +87,10 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
     max_length = config.model.text_padding_size
 
     augment = config.get("augment", False)
+    decode_format = "torchrgb8" if augment else "torchrgb"
     train_dataset = wds.WebDataset(train, shardshuffle=True) \
         .shuffle(10000) \
-        .decode("torchrgb") \
+        .decode(decode_format) \
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length, augment)) \
         .batched(config.batch_size) \

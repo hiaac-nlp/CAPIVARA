@@ -78,7 +78,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=self.train_size
+                T_max=self.train_size * self.trainer.max_epochs
             )
 
         return {
