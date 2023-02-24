@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
+    parser.add_argument("--gpu", help="GPU", )
 
     return parser.parse_args()
 
@@ -165,7 +166,7 @@ if __name__ == "__main__":
     args = parse_args()
     print(args)
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
     dataset = wds.WebDataset(args.dataset_path) \
