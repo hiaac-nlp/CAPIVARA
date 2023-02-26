@@ -4,11 +4,12 @@ from multilingual_clip import pt_multilingual_clip
 
 
 class mCLIP(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super().__init__()
         self.vision_model_name = "ViT-B/32"
         self.image_encoder, self.image_preprocessor = clip.load(self.vision_model_name,
-                                                                download_root='/work/gabriel.santos/cache')
+                                                                download_root='/work/gabriel.santos/cache',
+                                                                device=device)
         del self.image_encoder.transformer  # delete original text encoder
 
         self.text_model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"

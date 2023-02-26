@@ -51,7 +51,7 @@ if __name__ == "__main__":
     if args.model_path == "mCLIP":
         text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
                                                        cache_dir="/hahomes/gabriel.santos/")
-        model = mCLIP()
+        model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
     else:
         vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
