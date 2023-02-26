@@ -3,6 +3,7 @@ import os.path
 import pandas as pd
 import torch
 from PIL import Image
+from transformers import PreTrainedTokenizer
 
 from utils.dataset.evaluation_dataset import EvaluationDataset
 
@@ -30,13 +31,17 @@ class GroceryStoreDataset(EvaluationDataset):
         image_path, label_id = self.df_dataset.loc[index, ["filepath", "coarse_id"]]
         image_path = os.path.join(self.root_dir, image_path)
 
-        image = Image.open(image_path).convert("RGB")
-        image_input = self.vision_processor(
-            images=image,
-            return_tensors="pt",
-            padding=True,
-            truncation=True
-        )
+        image = Image.open(image_path)
+
+        if isinstance(self.vision_processor, PreTrainedTokenizer):
+            image_input = self.vision_processor(
+                images=image,
+                return_tensors="pt",
+                padding=True,
+                truncation=True
+            )
+        else:
+            image_input = self.vision_processor(image)
 
         return image_input, label_id
 
