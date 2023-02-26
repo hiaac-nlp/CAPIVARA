@@ -10,7 +10,7 @@ from utils.dataset.evaluation_dataset import EvaluationDataset
 class GroceryStoreDataset(EvaluationDataset):
 
     def __init__(self, dataset_path, annotation_path, vision_processor, text_tokenizer,
-                 template="Uma imagem de [CLASS]"):
+                 template="Uma foto de [CLASS]."):
         self.template = template
         self.root_dir = os.path.dirname(dataset_path)
         self.df_dataset = pd.read_csv(dataset_path, names=["filepath", "coarse_id", "fine_id"])
@@ -43,7 +43,7 @@ class GroceryStoreDataset(EvaluationDataset):
     def get_labels(self):
         # replace the occurrences of [CLASS] to the translated label
         texts = [self.template.replace("[CLASS]", label) for label in self.labels]
-
+        print(texts)
         return self.text_tokenizer(
             texts,
             return_tensors="pt",

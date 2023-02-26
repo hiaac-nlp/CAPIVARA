@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument("--model-path", help="Path to model checkpoint", )
     parser.add_argument("--dataset", help="Dataset name", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
-    parser.add_argument("--translation_path", help="Path to translated labels")
+    parser.add_argument("--translation-path", help="Path to translated labels")
     parser.add_argument("--batch", type=int, help="Batch size", )
     parser.add_argument("--gpu", help="GPU", )
 
@@ -67,10 +67,6 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError(f"{args.dataset} is not a supported dataset.")
 
-    text_input = dataset.get_labels()
-    text_input["input_ids"] = text_input["input_ids"].to(device)
-    text_input["attention_mask"] = text_input["attention_mask"].to(device)
-
     dataloader = DataLoader(dataset, batch_size=args.batch, num_workers=10)
 
     print(">>>>>>> Loading model")
@@ -80,14 +76,22 @@ if __name__ == "__main__":
     model.eval()
     logits = []
     class_idx_list = []
+    text_input = None
     with torch.no_grad():
         for batch in tqdm.tqdm(dataloader):
+            if text_input is None:
+                text_input = dataset.get_labels()
+                text_input["input_ids"] = text_input["input_ids"].to(device)
+                text_input["attention_mask"] = text_input["attention_mask"].to(device)
+                text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
+
             image_input, class_idx = batch
-            image_input["pixel_values"] = image_input["pixel_values"].to(device)
+            image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
             batch = image_input, text_input
             img_features, txt_features = model.model(batch)
             logits_per_image, _ = model.model.compute_logits(img_features,
-                                                             txt_features)  # shape: [n_imgs, n_classes]
+                                                             txt_features,
+                                                             fixed_logit=False)  # shape: [n_imgs, n_classes]
             logits.append(logits_per_image)
             class_idx_list.append(class_idx)
 
@@ -95,3 +99,4 @@ if __name__ == "__main__":
     targets = torch.cat(class_idx_list, dim=0).cpu()
     metrics = topk_accuracy(logits, targets)
     print(metrics)
+
