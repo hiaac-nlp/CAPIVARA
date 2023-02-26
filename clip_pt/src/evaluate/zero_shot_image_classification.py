@@ -5,6 +5,7 @@ import tqdm
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer
 
+from models.mCLIP import mCLIP
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 from utils.dataset.object_net import ObjectNetDataset
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
@@ -47,11 +48,12 @@ if __name__ == "__main__":
     print("Device: ", device)
 
     print(">>>>>>> Loading processors")
-    vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
-                                                            cache_dir="/hahomes/gabriel.santos/")
-    text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
-                                                   do_lower_case=False,
-                                                   cache_dir="/hahomes/gabriel.santos/")
+    if args.model_path != "mCLIP":
+        vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
+                                                                cache_dir="/hahomes/gabriel.santos/")
+        text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
+                                                       do_lower_case=False,
+                                                       cache_dir="/hahomes/gabriel.santos/")
 
     print(">>>>>>> Loading dataset")
     if args.dataset.lower() == 'objectnet':
@@ -70,7 +72,13 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=args.batch, num_workers=10)
 
     print(">>>>>>> Loading model")
-    model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
+    if args.model_path == "mCLIP":
+        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
+                                                       cache_dir="/hahomes/gabriel.santos/")
+        model = mCLIP()
+        vision_processor = model.image_preprocessor
+    else:
+        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
 
     model.to(device)
     model.eval()
@@ -83,7 +91,7 @@ if __name__ == "__main__":
                 text_input = dataset.get_labels()
                 text_input["input_ids"] = text_input["input_ids"].to(device)
                 text_input["attention_mask"] = text_input["attention_mask"].to(device)
-                text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
+                del text_input["token_type_ids"]
 
             image_input, class_idx = batch
             image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
@@ -99,4 +107,5 @@ if __name__ == "__main__":
     targets = torch.cat(class_idx_list, dim=0).cpu()
     metrics = topk_accuracy(logits, targets)
     print(metrics)
+    print("Avg. acc.:", sum(metrics.values())/len(metrics))
 
