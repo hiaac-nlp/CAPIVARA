@@ -88,7 +88,8 @@ if __name__ == "__main__":
                 text_input = dataset.get_labels()
                 text_input["input_ids"] = text_input["input_ids"].to(device)
                 text_input["attention_mask"] = text_input["attention_mask"].to(device)
-                del text_input["token_type_ids"]
+                if "token_type_ids" in text_input:
+                    text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
 
             image_input, class_idx = batch
             image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
