@@ -47,13 +47,19 @@ if __name__ == "__main__":
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
-    print(">>>>>>> Loading processors")
-    if args.model_path != "mCLIP":
+    print(">>>>>>> Loading model")
+    if args.model_path == "mCLIP":
+        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
+                                                       cache_dir="/hahomes/gabriel.santos/")
+        model = mCLIP()
+        vision_processor = model.image_preprocessor
+    else:
         vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
                                                                 cache_dir="/hahomes/gabriel.santos/")
         text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
                                                        do_lower_case=False,
                                                        cache_dir="/hahomes/gabriel.santos/")
+        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Loading dataset")
     if args.dataset.lower() == 'objectnet':
@@ -70,15 +76,6 @@ if __name__ == "__main__":
         raise NotImplementedError(f"{args.dataset} is not a supported dataset.")
 
     dataloader = DataLoader(dataset, batch_size=args.batch, num_workers=10)
-
-    print(">>>>>>> Loading model")
-    if args.model_path == "mCLIP":
-        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
-                                                       cache_dir="/hahomes/gabriel.santos/")
-        model = mCLIP()
-        vision_processor = model.image_preprocessor
-    else:
-        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
 
     model.to(device)
     model.eval()
