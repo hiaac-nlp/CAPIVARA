@@ -3,6 +3,7 @@ import os
 
 import tqdm
 from PIL import Image
+from transformers import PreTrainedTokenizer
 
 from utils.dataset.evaluation_dataset import EvaluationDataset
 
@@ -41,14 +42,17 @@ class ObjectNetDataset(EvaluationDataset):
 
     def __getitem__(self, idx):
         image_path, label_id = self.images[idx]
-        image = Image.open(image_path).convert('RGB')
+        image = Image.open(image_path)
 
-        image_input = self.vision_processor(
-            images=image,
-            return_tensors="pt",
-            padding=True,
-            truncation=True
-        )
+        if isinstance(self.vision_processor, PreTrainedTokenizer):
+            image_input = self.vision_processor(
+                images=image,
+                return_tensors="pt",
+                padding=True,
+                truncation=True
+            )
+        else:
+            image_input = self.vision_processor(image)
 
         return image_input, label_id
 
