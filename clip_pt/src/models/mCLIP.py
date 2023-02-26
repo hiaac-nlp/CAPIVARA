@@ -6,12 +6,14 @@ from multilingual_clip import pt_multilingual_clip
 class mCLIP(torch.nn.Module):
     def __init__(self):
         super().__init__()
+        self.vision_model_name = "ViT-B/32"
+        self.image_encoder, self.image_preprocessor = clip.load(self.vision_model_name,
+                                                                download_root='/work/gabriel.santos/cache')
+        del self.image_encoder.transformer  # delete original text encoder
+
         self.text_model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"
         self.text_encoder = pt_multilingual_clip.MultilingualCLIP.from_pretrained(self.text_model_name,
                                                                                   cache_dir='/work/gabriel.santos/cache')
-        self.vision_model_name = "ViT-B/32"
-        self.image_encoder, self.image_preprocessor = clip.load(self.vision_model_name,
-                                                              download_root='/work/gabriel.santos/cache')
 
     def forward(self, batch):
         return self.encode(batch)
@@ -31,7 +33,7 @@ class mCLIP(torch.nn.Module):
         return self.text_encoder.LinearTransformation(embeddings)
 
     def encode_visual(self, visual_inputs):
-        outputs = self.image_encoder(**visual_inputs)
+        outputs = self.image_encoder.encode_image(visual_inputs)
         return outputs.image_embeds
 
     def compute_logits(
