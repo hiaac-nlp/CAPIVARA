@@ -1,9 +1,8 @@
 import os.path
 
 import pandas as pd
-import torch
 from PIL import Image
-from transformers import PreTrainedTokenizer
+from transformers import CLIPFeatureExtractor
 
 from utils.dataset.evaluation_dataset import EvaluationDataset
 
@@ -11,10 +10,11 @@ from utils.dataset.evaluation_dataset import EvaluationDataset
 class GroceryStoreDataset(EvaluationDataset):
 
     def __init__(self, dataset_path, annotation_path, vision_processor, text_tokenizer,
-                 template="Uma foto de [CLASS].", lang="pt"):
+                 template="Uma foto de [CLASS].", lang="pt", max_length=95):
         self.template = template
+        self.max_length = max_length
         self.root_dir = os.path.dirname(dataset_path)
-        self.df_dataset = pd.read_csv(dataset_path, names=["filepath", "coarse_id", "fine_id"])
+        self.df_dataset = pd.read_csv(dataset_path, names=["filepath", "fine_id", "coarse_id"])
 
         df_annotations = pd.read_csv(annotation_path)
         if lang == "pt":
@@ -37,7 +37,7 @@ class GroceryStoreDataset(EvaluationDataset):
 
         image = Image.open(image_path)
 
-        if isinstance(self.vision_processor, PreTrainedTokenizer):
+        if isinstance(self.vision_processor, CLIPFeatureExtractor):
             image_input = self.vision_processor(
                 images=image,
                 return_tensors="pt",
@@ -58,5 +58,6 @@ class GroceryStoreDataset(EvaluationDataset):
             return_tensors="pt",
             padding="max_length",
             truncation=True,
-            max_length=95
+            max_length=self.max_length
         )
+

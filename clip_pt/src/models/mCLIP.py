@@ -34,8 +34,8 @@ class mCLIP(torch.nn.Module):
         return self.text_encoder.LinearTransformation(embeddings)
 
     def encode_visual(self, visual_inputs):
-        outputs = self.image_encoder.encode_image(visual_inputs)
-        return outputs.image_embeds
+        outputs = self.image_encoder.encode_image(visual_inputs).float()
+        return outputs
 
     def compute_logits(
             self,
@@ -51,10 +51,11 @@ class mCLIP(torch.nn.Module):
         if fixed_logit:
             logit_scale = 20
         else:
-            logit_scale = self.image_encoder.logit_scale.exp()
+            logit_scale = self.image_encoder.logit_scale.exp().float()
 
         logits_per_image = logit_scale * image_features @ text_features.t()
         logits_per_text = logits_per_image.t()
 
         # shape: [batch_size, batch_size]
         return logits_per_image, logits_per_text
+

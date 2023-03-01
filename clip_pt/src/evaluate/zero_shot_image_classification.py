@@ -3,12 +3,12 @@ import argparse
 import torch
 import tqdm
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, AutoTokenizer
+from transformers import CLIPFeatureExtractor, AutoTokenizer, CLIPModel, BatchFeature
 
+from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 from models.mCLIP import mCLIP
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 from utils.dataset.object_net import ObjectNetDataset
-from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 
 
 def parse_args():
@@ -53,6 +53,13 @@ if __name__ == "__main__":
                                                        cache_dir="/hahomes/gabriel.santos/")
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
+    elif args.model_path == "CLIP":
+        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32",
+                                          cache_dir="/hahomes/gabriel.santos/")
+        text_tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32",
+                                                       cache_dir="/hahomes/gabriel.santos/")
+        vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
+                                                                cache_dir="/hahomes/gabriel.santos/")
     else:
         vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
                                                                 cache_dir="/hahomes/gabriel.santos/")
@@ -92,12 +99,27 @@ if __name__ == "__main__":
                     text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
 
             image_input, class_idx = batch
-            image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
+            if (isinstance(image_input, dict) or isinstance(image_input, BatchFeature)) \
+                    and "pixel_values" in image_input:
+                image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
+            else:
+                image_input = image_input.to(device)
+
             batch = image_input, text_input
-            img_features, txt_features = model.model(batch)
-            logits_per_image, _ = model.model.compute_logits(img_features,
-                                                             txt_features,
-                                                             fixed_logit=False)  # shape: [n_imgs, n_classes]
+
+            if args.model_path == "mCLIP":
+                img_features, txt_features = model.encode(batch)
+                logits_per_image, _ = model.compute_logits(img_features,
+                                                           txt_features,
+                                                           fixed_logit=False)
+            elif args.model_path == "CLIP":
+                outputs = model(**image_input, **text_input)
+                logits_per_image = outputs.logits_per_image.softmax(dim=1)
+            else:
+                img_features, txt_features = model.model(batch)
+                logits_per_image, _ = model.model.compute_logits(img_features,
+                                                                 txt_features,
+                                                                 fixed_logit=False)  # shape: [n_imgs, n_classes]
             logits.append(logits_per_image)
             class_idx_list.append(class_idx)
 
@@ -106,4 +128,5 @@ if __name__ == "__main__":
     metrics = topk_accuracy(logits, targets)
     print(metrics)
     print("Avg. acc.:", sum(metrics.values())/len(metrics))
+
 
