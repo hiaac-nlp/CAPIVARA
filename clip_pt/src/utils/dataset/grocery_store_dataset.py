@@ -11,14 +11,18 @@ from utils.dataset.evaluation_dataset import EvaluationDataset
 class GroceryStoreDataset(EvaluationDataset):
 
     def __init__(self, dataset_path, annotation_path, vision_processor, text_tokenizer,
-                 template="Uma foto de [CLASS]."):
+                 template="Uma foto de [CLASS].", lang="pt"):
         self.template = template
         self.root_dir = os.path.dirname(dataset_path)
         self.df_dataset = pd.read_csv(dataset_path, names=["filepath", "coarse_id", "fine_id"])
 
         df_annotations = pd.read_csv(annotation_path)
-        idx_to_label = {row["Coarse Class ID (int)"]: row["Translated Coarse Class Name (str)"]
-                        for _, row in df_annotations.iterrows()}
+        if lang == "pt":
+            idx_to_label = {row["Coarse Class ID (int)"]: row["Translated Coarse Class Name (str)"]
+                            for _, row in df_annotations.iterrows()}
+        else:
+            idx_to_label = {row["Coarse Class ID (int)"]: row["Coarse Class Name (str)"]
+                            for _, row in df_annotations.iterrows()}
         self.labels = idx_to_label.values()
 
         self.vision_processor = vision_processor
