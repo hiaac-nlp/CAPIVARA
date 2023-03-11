@@ -17,9 +17,9 @@ class CLIPTBR(nn.Module):
         self.pretraining = pretraining
         self.projection_dim = projection_dim
         self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
-                                                             cache_dir='/hahomes/gabriel.santos/')
+                                                             cache_dir='/tmp')
         self.text_encoder = AutoModel.from_pretrained(text_encoder_version,
-                                                      cache_dir='/hahomes/gabriel.santos/')
+                                                      cache_dir='/tmp')
 
         self.image_encoder.gradient_checkpointing_enable()
         self.text_encoder.gradient_checkpointing_enable()
