@@ -8,6 +8,7 @@ from PIL import Image
 from torchvision import transforms
 from vision_datasets import DatasetHub
 from vision_datasets import ManifestDataset
+from transformers import CLIPFeatureExtractor
 from vision_datasets import Usages, DatasetTypes
 from vision_datasets.pytorch import TorchDataset
 
@@ -81,13 +82,31 @@ def construct_dataloader(dataset, dataset_root, transform_clip):
 
         def transform_clip(x, y):
             test_set_ = ManifestDataset(test_set_dataset_info, test_set)
-            return (previous_transform(x, return_tensors="pt", padding=True, truncation=True), multilabel_to_vec(y, len(test_set_.labels)))
+            if isinstance(previous_transform, CLIPFeatureExtractor):
+                image_input = previous_transform(
+                    x,
+                    return_tensors="pt",
+                    padding=True,
+                    truncation=True
+                )
+            else:
+                image_input = previous_transform(x)
+            return (image_input, multilabel_to_vec(y, len(test_set_.labels)))
 
     elif test_set_dataset_info.type == DatasetTypes.IC_MULTICLASS:
         previous_transform = transform_clip
 
         def transform_clip(x, y):
-            return (previous_transform(x, return_tensors="pt", padding=True, truncation=True), multiclass_to_int(y))
+            if isinstance(previous_transform, CLIPFeatureExtractor):
+                image_input = previous_transform(
+                    x,
+                    return_tensors="pt",
+                    padding=True,
+                    truncation=True
+                )
+            else:
+                image_input = previous_transform(x)
+            return (image_input, multiclass_to_int(y))
 
     test_dataloader = get_dataloader(TorchDataset(ManifestDataset(test_set_dataset_info, test_set), transform=transform_clip))
 

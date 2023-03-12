@@ -14,15 +14,17 @@ def extract_feature(data_loader, model, device):
     with torch.no_grad():
         for batch in tqdm.tqdm(data_loader):
             x, y = batch[:2]
-            all_labels.append(y.cpu().numpy())
             if (isinstance(x, dict) or isinstance(x, BatchFeature)) \
                     and "pixel_values" in x:
-                x["pixel_values"] = x["pixel_values"].squeeze(1).to(device)
+                x = x["pixel_values"].squeeze(1).to(device)
+            else:
+                x = x.to(device)
+
             # compute output
             if device == torch.device('cuda'):
                 x = x.cuda(non_blocking=True)
                 y = y.cuda(non_blocking=True)
-            outputs = model.encode_visual(x["pixel_values"])
+            outputs = model.encode_visual(x)
             all_features.append(outputs.cpu().numpy())
             all_labels.append(y.cpu().numpy())
 

@@ -6,7 +6,7 @@ cifar10_classes = [
     'veado',
     'cão',
     'sapo',
-    'cavalo'
+    'cavalo',
     'navio',
     'caminhão'
 ]
