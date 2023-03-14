@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import random
 from typing import Dict
@@ -9,13 +10,13 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from utils.dataset.grocery_store_dataset import GroceryStoreDataset
+
 
 def image_augmentation(image):
     augmentation = transforms.Compose([transforms.Resize(250), 
                                        transforms.RandomResizedCrop(224),
-                                       transforms.AutoAugment(),
-                                       #transforms.ToTensor()
-                                       ])
+                                       transforms.AutoAugment()])
     return augmentation(image)
 
 
@@ -105,13 +106,29 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .map(format_batch)
 
     # dataset size correctly according to the number of batches
-    train_size = train_size // config.batch_size
+    train_size = math.ceil(train_size // config.batch_size)
     val_size = val_size // config.batch_size
 
     train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
 
-    return {"train_dataloader": train_dataloader,
-            "train_size": train_size,
-            "val_dataloader": val_dataloader,
-            "val_size": val_size}
+    output = {"train_dataloader": train_dataloader,
+              "train_size": train_size,
+              "val_dataloader": val_dataloader,
+              "val_size": val_size}
+
+    if config.datasets.get("img_classification", False):
+        img_classif_dataset = GroceryStoreDataset(
+            dataset_path=config.datasets.img_classification.path,
+            annotation_path=config.datasets.img_classification.annotation_path,
+            vision_processor=vision_processor,
+            text_tokenizer=text_tokenizer)
+
+        img_classif_dataloader = DataLoader(img_classif_dataset, batch_size=config.batch_size,
+                                            num_workers=10)
+
+        output["img_classification"] = img_classif_dataloader
+        output["img_classif_labels"] = img_classif_dataset.get_labels()
+
+    return output
+

@@ -5,7 +5,7 @@ import torch
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, AutoTokenizer
+from transformers import CLIPFeatureExtractor, AutoTokenizer, PreTrainedTokenizer
 
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 from models.mCLIP import mCLIP
@@ -23,12 +23,16 @@ def parse_args():
 
 
 def tokenize(example, args):
-    image_input = vision_processor(
-        images=example[0],
-        return_tensors="pt",
-        padding=True,
-        truncation=True
-    )
+    if isinstance(vision_processor, PreTrainedTokenizer):
+        image_input = vision_processor(
+            images=example[0],
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        )
+    else:
+        image_input = vision_processor(example[0])
+
 
     text_input = None
     if len(example[1]["captions-pt"]) == 1:
@@ -60,17 +64,22 @@ def tokenize(example, args):
     return image_input, text_input
 
 
-def format_batch(batch):
+def format_batch(batch, args):
     pixel_values = []
     input_ids = []
     attention_mask = []
-    token_type_ids = []
     for img, txt in zip(batch[0], batch[1]):
-        pixel_values.append(img["pixel_values"])
+        if args.model_path == "mCLIP":
+            pixel_values.append(img)
+        else:
+            pixel_values.append(img["pixel_values"])
         input_ids.append(txt["input_ids"])
         attention_mask.append(txt["attention_mask"])
 
-    image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
+    if args.model_path == "mCLIP":
+        image_input = torch.cat(pixel_values, dim=0)
+    else:
+        image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
     text_input = {"input_ids": torch.cat(input_ids, dim=0),
                   "attention_mask": torch.cat(attention_mask, dim=0), }
 
@@ -86,7 +95,11 @@ def feature_extraction(model, dataloader, device):
     with torch.no_grad():
         for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
             image_input, text_input = batch
-            image_input["pixel_values"] = image_input["pixel_values"].to(device)
+            if isinstance(image_input, dict) and "pixel_values" in image_input:
+                image_input["pixel_values"] = image_input["pixel_values"].to(device)
+            else:
+                image_input = image_input.to(device)
+
             text_input["input_ids"] = text_input["input_ids"].to(device)
             text_input["attention_mask"] = text_input["attention_mask"].to(device)
             # text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
@@ -144,9 +157,14 @@ def get_txt2img_ground_truth(args):
 
         return gt, n_relevants
 
-    dataset = wds.WebDataset(args.dataset_path) \
-        .decode("torchrgb") \
-        .to_tuple("jpg;png", "json")
+    if args.model_path == "mCLIP":
+        dataset = wds.WebDataset(args.dataset_path) \
+            .decode("pil") \
+            .to_tuple("jpg;png", "json")
+    else:
+        dataset = wds.WebDataset(args.dataset_path) \
+            .decode("torchrgb") \
+            .to_tuple("jpg;png", "json")
     gt = []
     for i, example in tqdm.tqdm(enumerate(dataset), desc="Computing ground truth"):
         n_captions = len(example[1]["captions-pt"])
@@ -169,12 +187,20 @@ if __name__ == "__main__":
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
-    dataset = wds.WebDataset(args.dataset_path) \
-        .decode("torchrgb") \
-        .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, args=args)) \
-        .batched(args.batch) \
-        .map(format_batch)
+    if args.model_path == "mCLIP":
+        dataset = wds.WebDataset(args.dataset_path) \
+            .decode("pil") \
+            .to_tuple("jpg;png", "json") \
+            .map(lambda x: tokenize(x, args=args)) \
+            .batched(args.batch) \
+            .map(lambda x: format_batch(x, args=args))
+    else:
+        dataset = wds.WebDataset(args.dataset_path) \
+            .decode("torchrgb") \
+            .to_tuple("jpg;png", "json") \
+            .map(lambda x: tokenize(x, args=args)) \
+            .batched(args.batch) \
+            .map(lambda x: format_batch(x, args=args))
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
     print(">>>>>>> Loading processors")
@@ -213,4 +239,5 @@ if __name__ == "__main__":
     print("Recall@5: ", recall_5.item())
     print("Recall@10: ", recall_10.item())
     print("Mean Recall: ", mr.item())
+
 

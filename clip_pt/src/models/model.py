@@ -61,7 +61,7 @@ class CLIPTBR(nn.Module):
             self,
             image_features,
             text_features,
-            fixed_logit: bool
+            fixed_logit: bool = False
     ):
         # normalized features
         image_features = image_features / image_features.norm(dim=1, keepdim=True)
