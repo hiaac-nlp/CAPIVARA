@@ -14,8 +14,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
     def __init__(
             self,
             config: DictConfig,
-            train_size: int,
-            val_size: int
+            train_size: int=0,
+            val_size: int=0
     ):
         super().__init__()
         self.save_hyperparameters()
