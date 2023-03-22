@@ -32,9 +32,9 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
+    vision_processor = CLIPFeatureExtractor.from_pretrained(config.model.image_encoder,
                                                             cache_dir='/hahomes/gabriel.santos/')
-    text_tokenizer = AutoTokenizer.from_pretrained('neuralmind/bert-base-portuguese-cased',
+    text_tokenizer = AutoTokenizer.from_pretrained(config.model.text_encoder,
                                                    do_lower_case=False,
                                                    cache_dir='/hahomes/gabriel.santos/')
 
