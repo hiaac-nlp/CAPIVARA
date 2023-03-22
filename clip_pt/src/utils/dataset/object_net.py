@@ -3,14 +3,14 @@ import os
 
 import tqdm
 from PIL import Image
-from transformers import PreTrainedTokenizer
+from transformers import CLIPFeatureExtractor
 
 from utils.dataset.evaluation_dataset import EvaluationDataset
 
 
 class ObjectNetDataset(EvaluationDataset):
     def __init__(self, root_dir, translation_path, vision_processor, text_tokenizer,
-                 template="Uma imagem de [CLASS]"):
+                 template="Uma foto de [CLASS]."):
         """
 
         :param root_dir: root directory
@@ -44,7 +44,7 @@ class ObjectNetDataset(EvaluationDataset):
         image_path, label_id = self.images[idx]
         image = Image.open(image_path)
 
-        if isinstance(self.vision_processor, PreTrainedTokenizer):
+        if isinstance(self.vision_processor, CLIPFeatureExtractor):
             image_input = self.vision_processor(
                 images=image,
                 return_tensors="pt",

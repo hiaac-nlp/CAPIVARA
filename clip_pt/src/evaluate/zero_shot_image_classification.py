@@ -101,7 +101,10 @@ if __name__ == "__main__":
             image_input, class_idx = batch
             if (isinstance(image_input, dict) or isinstance(image_input, BatchFeature)) \
                     and "pixel_values" in image_input:
-                image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
+                if isinstance(image_input["pixel_values"], list):
+                    image_input["pixel_values"] = image_input["pixel_values"][0].to(device)
+                else:
+                    image_input["pixel_values"] = image_input["pixel_values"].squeeze(1).to(device)
             else:
                 image_input = image_input.to(device)
 
