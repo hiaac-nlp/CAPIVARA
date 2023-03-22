@@ -1,4 +1,4 @@
-title: pracegover_LiT
+title: pracegover_XLM-R
 
 datasets:
     train:
@@ -15,7 +15,7 @@ datasets:
 
 
 model:
-    text_encoder: "neuralmind/bert-base-portuguese-cased"
+    text_encoder: "xlm-roberta-large"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
     warmup_steps: 1e9 # keeps the image encoder for the whole training
@@ -50,7 +50,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_lit"
+    dirpath: "../checkpoints/clip_pt/pracegover_xlm_r"
 
 early_stopping:
     verbose: true
