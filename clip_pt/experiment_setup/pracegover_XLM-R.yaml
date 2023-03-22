@@ -50,7 +50,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_xlm_r"
+    dirpath: "../checkpoints/clip_pt/pracegover_XLM-R"
 
 early_stopping:
     verbose: true
