@@ -1,4 +1,4 @@
-title: pracegover_WIT-PT_with_img_classification
+title: pracegover_WIT-PT_without_augmentation
 
 datasets:
     train:
@@ -15,7 +15,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: True
+# augment: True
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
@@ -53,7 +53,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_2"
+    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_without_augmentation"
 
 early_stopping:
     verbose: true

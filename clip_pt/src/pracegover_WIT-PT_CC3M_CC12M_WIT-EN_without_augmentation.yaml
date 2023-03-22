@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/gabriel.santos/CLIP-PtBr/clip_pt/src/main_image_classification.py", line 5, in <module>
+    import pytorch_lightning as pl
+  File "/home/gabriel.santos/miniconda3/envs/clip_pt/lib/python3.9/site-packages/pytorch_lightning/__init__.py", line 34, in <module>
+    from lightning_lite.utilities.seed import seed_everything  # noqa: E402
+  File "/home/gabriel.santos/miniconda3/envs/clip_pt/lib/python3.9/site-packages/lightning_lite/__init__.py", line 23, in <module>
+    from lightning_lite.lite import LightningLite  # noqa: E402
+  File "/home/gabriel.santos/miniconda3/envs/clip_pt/lib/python3.9/site-packages/lightning_lite/lite.py", line 21, in <module>
+    import torch
+  File "/home/gabriel.santos/miniconda3/envs/clip_pt/lib/python3.9/site-packages/torch/__init__.py", line 192, in <module>
+    from torch._C import *  # noqa: F403
+RuntimeError: KeyboardInterrupt: <MESSAGE UNAVAILABLE DUE TO ANOTHER EXCEPTION>
+
+MESSAGE UNAVAILABLE DUE TO EXCEPTION: KeyboardInterrupt: <EMPTY MESSAGE>
