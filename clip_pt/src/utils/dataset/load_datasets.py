@@ -13,17 +13,27 @@ from torchvision import transforms
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
-def image_augmentation(image):
-    augmentation = transforms.Compose([transforms.Resize(250), 
-                                       transforms.RandomResizedCrop(224),
-                                       transforms.AutoAugment()])
+def image_augmentation(image, augment):
+
+    if augment.lower() == "augmix":
+        augmentation = transforms.Compose([transforms.Resize(250),
+                                           transforms.RandomResizedCrop(224),
+                                           transforms.AugMix(severity=2)])
+    elif augment.lower() == "trivialaugmentwide":
+        augmentation = transforms.Compose([transforms.Resize(250),
+                                           transforms.RandomResizedCrop(224),
+                                           transforms.TrivialAugmentWide()])
+    else:
+        augmentation = transforms.Compose([transforms.Resize(250),
+                                           transforms.RandomResizedCrop(224),
+                                           transforms.AutoAugment()])
     return augmentation(image)
 
 
-def tokenize(example, vision_processor, text_tokenizer, max_length, augment=False):
+def tokenize(example, vision_processor, text_tokenizer, max_length, augment=None):
     img = example[0]
     if augment:
-        img = image_augmentation(img)
+        img = image_augmentation(img, augment)
 
     image_input = vision_processor(
         images=img,
