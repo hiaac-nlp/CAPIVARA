@@ -1,4 +1,4 @@
-title: pracegover_WIT-PT_CC3M_CC12M_WIT-EN_with_trivialaug_LiT
+title: pracegover_WIT-PT_without_augmentation
 
 datasets:
     train:
@@ -6,29 +6,18 @@ datasets:
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train/{00000..00024}.tar"
         - name: WIT-PT
           path: "/hadatasets/clip_pt/final_webdatasets/WIT_PT_TRAIN/{00000..00017}.tar"
-        - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
-        - name: CC12M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc12m_with-repetition/{00000..00980}.tar"
-        - name: WIT-EN
-          path: "/hadatasets/clip_pt/final_webdatasets/WIT_EN_TRAIN/{00000..00170}.tar"
 
     validation:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
 
-    img_classification:
-        path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
-        annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
-
-
-augment: TrivialAugmentWide
+# augment: True
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
-    warmup_steps: 1.0e9
+    warmup_steps: 1000
     pretraining: "LiT" #options: LiT / contrastive
 
 optimizer:
@@ -59,11 +48,11 @@ model_checkpoint:
     mode: "min"
     save_last: true
     save_weights_only: true
-    monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_CC3M_CC12M_WIT-EN_with_trivialaug_LiT"
+    monitor: "val/loss"
+    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_without_augmentation"
 
 early_stopping:
     verbose: true
-    monitor: "val/classification_loss/dataloader_idx_1"
+    monitor: "val/loss"
     patience: 100
 

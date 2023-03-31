@@ -1,4 +1,4 @@
-title: pracegover
+title: pracegover_augment_with_img
 
 datasets:
     train:
@@ -8,6 +8,12 @@ datasets:
     validation:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+
+    img_classification:
+        path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
+        annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
+
+augment: False
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
@@ -44,11 +50,11 @@ model_checkpoint:
     mode: "min"
     save_last: true
     save_weights_only: true
-    monitor: "val/loss"
-    dirpath: "../checkpoints/clip_pt/pracegover"
+    monitor: "val/classification_loss/dataloader_idx_1"
+    dirpath: "../checkpoints/clip_pt/pracegover_without_aug"
 
 early_stopping:
     verbose: true
-    monitor: "val/loss"
+    monitor: "val/classification_loss/dataloader_idx_1"
     patience: 100
 

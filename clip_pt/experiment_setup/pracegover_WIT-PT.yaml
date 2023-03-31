@@ -11,6 +11,10 @@ datasets:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
 
+    img_classification:
+        path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
+        annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
+
 # augment: True
 
 model:
@@ -48,11 +52,11 @@ model_checkpoint:
     mode: "min"
     save_last: true
     save_weights_only: true
-    monitor: "val/loss"
+    monitor: "val/classification_loss/dataloader_idx_1"
     dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_without_augmentation"
 
 early_stopping:
     verbose: true
-    monitor: "val/loss"
+    monitor: "val/classification_loss/dataloader_idx_1"
     patience: 100
 
