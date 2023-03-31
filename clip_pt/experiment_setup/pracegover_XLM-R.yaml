@@ -35,7 +35,7 @@ scheduler:
         warmup_lr: 800
 
 
-batch_size: 2816
+batch_size: 1816
 accumulate_grad_batches: 1
 
 trainer:

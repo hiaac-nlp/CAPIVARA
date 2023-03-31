@@ -1,4 +1,4 @@
-title: pracegover_WIT-PT_CC3M_CC12M_WIT-EN_without_aug
+title: pracegover_WIT-PT_CC3M_CC12M_WIT-EN_with_trivialaug_LiT
 
 datasets:
     train:
@@ -22,13 +22,13 @@ datasets:
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
 
-augment: True
+augment: TrivialAugmentWide
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
-    warmup_steps: 1000
+    warmup_steps: 1.0e9
     pretraining: "LiT" #options: LiT / contrastive
 
 optimizer:
@@ -60,7 +60,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_CC3M_CC12M_WIT-EN_without_aug"
+    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_CC3M_CC12M_WIT-EN_with_trivialaug_LiT"
 
 early_stopping:
     verbose: true
