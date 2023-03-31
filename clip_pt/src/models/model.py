@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModel
 from transformers import CLIPVisionModel
+from transformers import LoRAConfig, UniPELTConfig
 
 
 class CLIPTBR(nn.Module):
@@ -11,7 +12,8 @@ class CLIPTBR(nn.Module):
             projection_dim: int = 512,
             vision_encoder_version: str = "openai/clip-vit-base-patch32",
             text_encoder_version: str = "neuralmind/bert-base-portuguese-cased",
-            pretraining: str = "LiT"
+            pretraining: str = "LiT",
+            adapter: str = None
     ):
         super().__init__()
         self.pretraining = pretraining
@@ -20,7 +22,7 @@ class CLIPTBR(nn.Module):
                                                              cache_dir='/tmp')
         self.text_encoder = AutoModel.from_pretrained(text_encoder_version,
                                                       cache_dir='/tmp')
-
+        self.add_adapter(self.text_encoder)
         self.image_encoder.gradient_checkpointing_enable()
         self.text_encoder.gradient_checkpointing_enable()
 
@@ -38,6 +40,19 @@ class CLIPTBR(nn.Module):
 
         # value extracted from original CLIP proposal
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+
+    def add_adapter(self, model, adapter_name):
+        config = None
+        if adapter_name == "lora":
+            config = LoRAConfig()
+        elif adapter_name == "UniPELT":
+            config = UniPELTConfig()
+
+        if config is not None:
+            model.add_adapter(adapter_name, config=config)
+            # models parameters except the ones from the adapters
+            model.train_adapter(adapter_name)
+        return model
 
     def encode_visual(self, visual_inputs):
         outputs = self.image_encoder(visual_inputs)

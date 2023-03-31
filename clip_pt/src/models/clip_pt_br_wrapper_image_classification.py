@@ -23,7 +23,8 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         self.automatic_optimization = False
         self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
                              text_encoder_version=config.model.text_encoder,
-                             pretraining=config.model.pretraining)
+                             pretraining=config.model.pretraining,
+                             adapter=config.model.get("adapter", None))
         self.config = config
         self.train_size = train_size
         self.val_labels = val_labels
