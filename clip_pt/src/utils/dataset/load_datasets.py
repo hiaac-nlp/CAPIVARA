@@ -14,19 +14,17 @@ from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
 def image_augmentation(image, augment):
+    augmentation = [transforms.Resize(250),
+                    transforms.RandomResizedCrop(224, scale=(0.9, 1.0))]
 
     if augment.lower() == "augmix":
-        augmentation = transforms.Compose([transforms.Resize(250),
-                                           transforms.RandomResizedCrop(224),
-                                           transforms.AugMix(severity=2)])
+        augmentation.append(transforms.AugMix(severity=2))
     elif augment.lower() == "trivialaugmentwide":
-        augmentation = transforms.Compose([transforms.Resize(250),
-                                           transforms.RandomResizedCrop(224),
-                                           transforms.TrivialAugmentWide()])
-    else:
-        augmentation = transforms.Compose([transforms.Resize(250),
-                                           transforms.RandomResizedCrop(224),
-                                           transforms.AutoAugment()])
+        augmentation.append(transforms.TrivialAugmentWide())
+    elif augment.lower() == "autoaug":
+        augmentation.append(transforms.AutoAugment())
+
+    augmentation = transforms.Compose(augmentation)
     return augmentation(image)
 
 
