@@ -1,17 +1,9 @@
-title: pracegover_WIT-PT_CC3M_CC12M_WIT-EN_without_aug
+title: pracegover_augment_with_AugMix
 
 datasets:
     train:
         - name: pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train/{00000..00024}.tar"
-        - name: WIT-PT
-          path: "/hadatasets/clip_pt/final_webdatasets/WIT_PT_TRAIN/{00000..00017}.tar"
-        - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
-        - name: CC12M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc12m_with-repetition/{00000..00980}.tar"
-        - name: WIT-EN
-          path: "/hadatasets/clip_pt/final_webdatasets/WIT_EN_TRAIN/{00000..00170}.tar"
 
     validation:
         - name: pracegover
@@ -21,8 +13,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-
-augment: True
+augment: AugMix
 
 model:
     text_encoder: "neuralmind/bert-base-portuguese-cased"
@@ -60,7 +51,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_CC3M_CC12M_WIT-EN_without_aug"
+    dirpath: "../checkpoints/clip_pt/pracegover_with_AugMix"
 
 early_stopping:
     verbose: true
