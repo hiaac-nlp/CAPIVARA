@@ -10,6 +10,7 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from utils.dataset.clip_pt_br_transform import Clipt_PT_Transform
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
@@ -23,6 +24,8 @@ def image_augmentation(image, augment):
         augmentation.append(transforms.TrivialAugmentWide())
     elif augment.lower() == "autoaug":
         augmentation.append(transforms.AutoAugment())
+    elif augment.lower() == "clipptbr":
+        augmentation.append(Clipt_PT_Transform(augmentation_rate=0,num_transfor=2))
 
     augmentation = transforms.Compose(augmentation)
     return augmentation(image)
