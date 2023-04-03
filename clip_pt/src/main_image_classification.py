@@ -49,6 +49,7 @@ def main() -> None:
                                                  val_labels=datasets["img_classif_labels"])
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
+    config["model_checkpoint"].pop("dirpath")
 
     trainer = pl.Trainer(
         **config["trainer"],
@@ -57,7 +58,8 @@ def main() -> None:
             ModelCheckpoint(**config["model_checkpoint"]),
             LearningRateMonitor("step")
         ],
-        devices=[args.gpu]
+        devices=[args.gpu],
+        default_root_dir=os.path.join("../checkpoints/clip_pt", config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
