@@ -8,19 +8,17 @@ sys.path.append("../")
 
 import tqdm
 import torch
+from models.mCLIP import mCLIP
+from omegaconf import OmegaConf
+from models.model import CLIPTBR
 import torch.nn.functional as F
 from elevater.metric import get_metric
-from transformers import CLIPFeatureExtractor, AutoTokenizer
-
-from models.mCLIP import mCLIP
-from models.model import CLIPTBR
 from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 from elevater.feature_extractor import extract_feature
 from elevater.get_dataloader import construct_dataloader
+from transformers import CLIPFeatureExtractor, AutoTokenizer
 from elevater.text_feature_extractor import extract_text_features
 
-
-from omegaconf import OmegaConf
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -126,9 +124,8 @@ def main():
             do_lower_case=False,
             cache_dir="/tmp"
         )
-        # model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
-        # config = OmegaConf.load("../experiment_setup/epoch_finetuning.yaml")
-        model = CLIPTBR()
+        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
+        # model = CLIPTBR()
     else:
         raise NotImplementedError(
             f"Model {args.model_name} not implemented"
@@ -163,6 +160,7 @@ def main():
 
         msg = f"=> {args.model_name} | {dataset_name} | TEST: {metric} {100 * result:.3f}% "
         logging.info(msg)
+
 
 if __name__ == "__main__":
     main()
