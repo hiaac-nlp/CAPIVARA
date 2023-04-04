@@ -9,6 +9,7 @@ import torch
 import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
+from transformers import CLIPFeatureExtractor
 
 from utils.dataset.clip_pt_br_transform import CliptPTTransform
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
@@ -38,12 +39,15 @@ def tokenize(example, vision_processor, text_tokenizer, max_length, augment=None
     if augment:
         img = image_augmentation(img, augment)
 
-    image_input = vision_processor(
-        images=img,
-        return_tensors="pt",
-        padding=True,
-        truncation=True
-    )
+    if isinstance(vision_processor, CLIPFeatureExtractor):
+        image_input = vision_processor(
+            images=img,
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        )
+    else:
+        image_input = vision_processor(img)
 
     text_input = text_tokenizer(
         random.choice(example[1]["captions-pt"]),  # take a random caption
