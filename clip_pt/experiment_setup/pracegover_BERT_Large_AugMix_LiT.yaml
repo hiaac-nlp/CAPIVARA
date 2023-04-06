@@ -1,4 +1,4 @@
-title: pracegover_BERT_Large_with_aug
+title: pracegover_BERT_Large_AugMiX_LiT
 
 datasets:
     train:
@@ -13,7 +13,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: "TrivialAugmentWide"
+augment: AugMix
 
 model:
     text_encoder: "neuralmind/bert-large-portuguese-cased"
@@ -51,7 +51,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_BERT_Large_with_aug"
+    dirpath: "../checkpoints/clip_pt/pracegover_BERT_Large_AugMiX_LiT"
 
 early_stopping:
     verbose: true
