@@ -5,6 +5,7 @@ from elevater.resources.translated_prompts import class_map, template_map
 
 
 def extract_text_features(dataset_name: str, model, text_tokenizer, device):
+    # Work on the CPU because storing several text embeddings requires too much memory.
     model.to("cpu")
     class_names = class_map.get(dataset_name)
 

@@ -1,6 +1,10 @@
 import argparse
 import os
 
+import sys
+sys.path.append("./")
+sys.path.append("../")
+
 import torch
 import tqdm
 import webdataset as wds
@@ -204,19 +208,25 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
     print(">>>>>>> Loading processors")
-    vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
-                                                            cache_dir="/hahomes/gabriel.santos/")
+    vision_processor = CLIPFeatureExtractor.from_pretrained(
+        "openai/clip-vit-base-patch32",
+        cache_dir="/hahomes/gabriel.santos/"
+    )
 
     print(">>>>>>> Loading model")
     if args.model_path == "mCLIP":
-        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
-                                                       cache_dir="/hahomes/gabriel.santos/")
+        text_tokenizer = AutoTokenizer.from_pretrained(
+            "M-CLIP/XLM-Roberta-Large-Vit-B-32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
     else:
-        text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
-                                                       do_lower_case=False,
-                                                       cache_dir="/hahomes/gabriel.santos/")
+        text_tokenizer = AutoTokenizer.from_pretrained(
+            "neuralmind/bert-base-portuguese-cased",
+            do_lower_case=False,
+            cache_dir="/hahomes/gabriel.santos/"
+        )
         model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
