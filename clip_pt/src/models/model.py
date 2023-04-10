@@ -44,9 +44,9 @@ class CLIPTBR(nn.Module):
 
     def add_adapter(self, model, adapter_name):
         config = None
-        if adapter_name == "lora":
+        if adapter_name.lower() == "lora":
             config = LoRAConfig()
-        elif adapter_name == "UniPELT":
+        elif adapter_name.lower() == "unipelt":
             config = UniPELTConfig()
 
         if config is not None:
