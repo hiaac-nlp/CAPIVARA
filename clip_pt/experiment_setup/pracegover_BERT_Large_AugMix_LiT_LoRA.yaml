@@ -1,4 +1,4 @@
-title: pracegover_BERT_Large_AugMiX_LiT
+title: pracegover_BERT_Large_AugMiX_LiT_LoRA
 
 datasets:
     train:
@@ -21,6 +21,7 @@ model:
     text_padding_size: 95
     warmup_steps: 1e9 # keeps the image encoder for the whole training
     pretraining: "LiT" #options: LiT / contrastive
+    adapter: "LoRA"
 
 optimizer:
     name: "Adam"
@@ -51,7 +52,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_BERT_Large_AugMiX_LiT"
+    dirpath: "../checkpoints/clip_pt/pracegover_BERT_Large_AugMiX_LiT_LoRA"
 
 early_stopping:
     verbose: true
