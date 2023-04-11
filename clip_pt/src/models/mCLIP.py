@@ -1,6 +1,7 @@
 import clip
 import torch
 from multilingual_clip import pt_multilingual_clip
+from transformers.adapters import XLMRobertaAdapterModel
 
 
 class mCLIP(torch.nn.Module):
@@ -15,6 +16,31 @@ class mCLIP(torch.nn.Module):
         self.text_model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"
         self.text_encoder = pt_multilingual_clip.MultilingualCLIP.from_pretrained(self.text_model_name,
                                                                                   cache_dir='/work/gabriel.santos/cache')
+
+    def add_adapter(self, model, adapter_name):
+       config = None
+       if adapter_name.lower() == "lora":
+           config = LoRAConfig()
+       elif adapter_name.lower() == "unipelt":
+           config = UniPELTConfig()
+
+
+       if config is not None:
+           xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-large")
+            xlm_roberta_adapter.add_adapter(adapter_name, config=config)
+            # Add projection layer to resemble the original mCLIP model
+            xlm_roberta_adapter.add_module("LinearTransformation", nn.Linear(in_features=1024, out_features=512, bias=True))
+
+            state_dict = model.state_dict()
+            for key in list(state_dict.keys()):
+                # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
+                state_dict[key.replace('transformer', 'roberta')] = state_dict.pop(key)
+            xlm_roberta_adapter.load_state_dict(state_dict, strict=False)
+
+            xlm_roberta_adapter.train_adapter(adapter_name)
+
+            return xlm_roberta_adapter 
+       return model
 
     def forward(self, batch):
         return self.encode(batch)
