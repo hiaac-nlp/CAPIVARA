@@ -54,7 +54,11 @@ class mCLIP(torch.nn.Module):
         return image_features, text_features
 
     def encode_text(self, text_input):
-        embeddings = self.text_encoder.transformer(**text_input)[0]
+        if list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "transformer":
+        embeddings = text_encoder.transformer(**text_input)[0]
+        elif list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "roberta":
+            embeddings = text_encoder.roberta(**text_input)[0]
+
         att = text_input['attention_mask']
         embeddings = (embeddings * att.unsqueeze(2)).sum(dim=1) / att.sum(dim=1)[:, None]
         return self.text_encoder.LinearTransformation(embeddings)
