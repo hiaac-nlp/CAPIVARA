@@ -14,6 +14,9 @@ from models.mCLIP import mCLIP
 from models.m_clip_wrapper_image_classification import MCLIPWrapperImageClassification
 from utils.dataset.load_datasets import load_datasets
 
+from codecarbon import EmissionsTracker
+import wandb
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
 load_dotenv()
@@ -46,9 +49,14 @@ def main() -> None:
     train_dataloader = datasets["train_dataloader"]
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
     train_size = datasets["train_size"]
+
+    tracker_code_carbon = EmissionsTracker(log_level = 'error', tracking_mode=config.carbon["process"], gpu_ids=[args.gpu]) #TODO: param: gpu_ids=[0]
+    tracker_code_carbon.start()
+
     clip_pt = MCLIPWrapperImageClassification(config, train_size,
                                               val_labels=datasets["img_classif_labels"],
-                                              model=model)
+                                              model=model,
+                                              carbon_tracker=tracker_code_carbon)
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
 
@@ -63,6 +71,14 @@ def main() -> None:
         default_root_dir=os.path.join("../checkpoints/clip_pt", config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
+
+    our_emission = tracker_code_carbon.flush()
+    our_energy = tracker_code_carbon._total_energy.__float__()
+    tracker_code_carbon.stop()
+
+    wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
+    wandb.log({"carbon/Final Emission": our_energy * config.carbon["brazil_carbon_intensity"]})
+    wandb.log({"carbon/Final Energy": our_energy})
 
 
 if __name__ == "__main__":

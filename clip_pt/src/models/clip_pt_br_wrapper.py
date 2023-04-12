@@ -15,7 +15,8 @@ class CLIPPTBRWrapper(pl.LightningModule):
             self,
             config: DictConfig,
             train_size: int=0,
-            val_size: int=0
+            val_size: int=0,
+            carbon_tracker
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -26,6 +27,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
         self.config = config
         self.train_size = train_size
         self.val_size = val_size
+        self.carbon_tracker = carbon_tracker
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]
         self.image_train_acc = Accuracy(task="multiclass", num_classes=n_classes)
@@ -140,7 +142,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
             self.complete_training = True
 
-    def training_epoch_end(self, batch_parts):
+    def on_train_epoch_end(self, batch_parts):
         self.image_feature_list = []
         self.text_feature_list = []
 
@@ -155,6 +157,12 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
             self.image_train_acc.reset()
             self.text_train_acc.reset()
+
+            our_emission = self.carbon_tracker.flush()
+            our_energy = self.carbon_tracker._total_energy.__float__()
+            self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+            self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+            self.log('carbon/Spent energy', our_energy)
 
     def validation_step(self, val_batch, batch_idx):
         mb_image_features, mb_text_features = self.model(val_batch)
@@ -191,7 +199,7 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
             self.complete_validation = True
 
-    def validation_epoch_end(self, batch_parts):
+    def on_validation_epoch_end(self, batch_parts):
         self.valid_image_feature_list = []
         self.valid_text_feature_list = []
 
@@ -206,3 +214,9 @@ class CLIPPTBRWrapper(pl.LightningModule):
 
             self.image_val_acc.reset()
             self.text_val_acc.reset()
+
+            our_emission = self.carbon_tracker.flush()
+            our_energy = self.carbon_tracker._total_energy.__float__()
+            self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+            self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+            self.log('carbon/Spent energy', our_energy)
