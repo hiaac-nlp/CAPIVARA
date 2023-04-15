@@ -55,7 +55,7 @@ class mCLIP(torch.nn.Module):
 
     def encode_text(self, text_input):
         if list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "transformer":
-        embeddings = text_encoder.transformer(**text_input)[0]
+            embeddings = text_encoder.transformer(**text_input)[0]
         elif list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "roberta":
             embeddings = text_encoder.roberta(**text_input)[0]
 
