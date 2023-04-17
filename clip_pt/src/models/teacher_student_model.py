@@ -44,4 +44,4 @@ class TeacherStudentCLIPTBR(nn.Module):
 
         student_output = self.student(**source_lang_input)
 
-        return student_output, teacher_output
+        return teacher_output, student_output
