@@ -42,6 +42,6 @@ class TeacherStudentCLIPTBR(nn.Module):
         target_features = self.teacher(**teacher_input)
         teacher_output = target_features.last_hidden_state
 
-        student_output = self.student(**student_input)
+        student_output = self.student(student_input)
 
         return teacher_output, student_output
