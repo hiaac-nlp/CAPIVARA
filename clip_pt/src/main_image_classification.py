@@ -71,13 +71,12 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    our_emission = tracker_code_carbon.flush()
-    our_energy = tracker_code_carbon._total_energy.__float__()
-    tracker_code_carbon.stop()
+    our_emission = tracker_code_carbon.stop()
+    energy_in_kwh = tracker_code_carbon.final_emissions_data.energy_consumed
 
     wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
-    wandb.log({"carbon/Final Emission": our_energy * config.carbon["brazil_carbon_intensity"]})
-    wandb.log({"carbon/Final Energy": our_energy})
+    wandb.log({"carbon/Final Emission": energy_in_kwh * config.carbon["brazil_carbon_intensity"]})
+    wandb.log({"carbon/Final Energy": energy_in_kwh})
 
 if __name__ == "__main__":
     main()
