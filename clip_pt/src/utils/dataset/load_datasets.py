@@ -149,3 +149,102 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
 
     return output
 
+
+def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_length):
+    teacher_input = teacher_tokenizer(
+        random.choice(example[1]["captions-en"]),  # take a random caption
+        return_tensors="pt",
+        padding="max_length",
+        truncation=True,
+        max_length=max_length
+    )
+
+    student_input = student_tokenizer(
+        random.choice(example[1]["captions-pt"]),  # take a random caption
+        return_tensors="pt",
+        padding="max_length",
+        truncation=True,
+        max_length=max_length
+    )
+
+    return teacher_input, student_input
+
+
+def format_batch_teacher_student(batch):
+    teacher_input_ids = []
+    teacher_attention_mask = []
+    student_input_ids = []
+    student_attention_mask = []
+
+    for teacher, student in zip(batch[0], batch[1]):
+        teacher_input_ids.append(teacher["input_ids"])
+        teacher_attention_mask.append(teacher["attention_mask"])
+        student_input_ids.append(student["input_ids"])
+        student_attention_mask.append(student["attention_mask"])
+
+    teacher_input = {"input_ids": torch.cat(teacher_input_ids, dim=0),
+                     "attention_mask": torch.cat(teacher_attention_mask, dim=0)}
+
+    student_input = {"input_ids": torch.cat(student_input_ids, dim=0),
+                     "attention_mask": torch.cat(student_attention_mask, dim=0)}
+
+    return teacher_input, student_input
+
+
+def load_datasets_teacher_student(config, teacher_tokenizer, student_tokenizer) -> Dict:
+    """
+        previously computed dataset sizes. This is necessary because __len__ method in WebDataset
+        returns an inaccurate value, so we have to set it manually.
+        Reference: https://webdataset.github.io/webdataset/sharding/
+    """
+    current_path = os.path.dirname(__file__)
+    with open(os.path.join(current_path, "datasets_size.json")) as file:
+        datasets_sizes = json.load(file)
+
+    print(">>>>> Train datasets:", [dataset['path'] for dataset in config.datasets.train])
+    print(">>>>> Validation datasets:", [dataset['path'] for dataset in config.datasets.validation])
+
+    train = []
+    train_size = 0
+    for dataset in config.datasets.train:
+        train_size += datasets_sizes["train"][dataset['name']]
+        train += list(braceexpand.braceexpand(dataset['path']))
+
+    val = []
+    val_size = 0
+    for dataset in config.datasets.validation:
+        val_size += datasets_sizes["validation"][dataset['name']]
+        val += list(braceexpand.braceexpand(dataset['path']))
+
+    max_length = config.model.text_padding_size
+
+    train_dataset = wds.WebDataset(train, shardshuffle=True) \
+        .shuffle(10000) \
+        .decode("torchrgb") \
+        .to_tuple("jpg;png", "json") \
+        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length)) \
+        .batched(config.batch_size) \
+        .map(format_batch_teacher_student)
+
+    val_dataset = wds.WebDataset(val, shardshuffle=True) \
+        .shuffle(10000) \
+        .decode("torchrgb") \
+        .to_tuple("jpg;png", "json") \
+        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length)) \
+        .batched(config.batch_size) \
+        .map(format_batch_teacher_student)
+
+    # dataset size correctly according to the number of batches
+    train_size = math.ceil(train_size // config.batch_size)
+    val_size = val_size // config.batch_size
+
+    train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
+    val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
+
+    output = {"train_dataloader": train_dataloader,
+              "train_size": train_size,
+              "val_dataloader": val_dataloader,
+              "val_size": val_size}
+
+    return output
+

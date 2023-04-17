@@ -4,10 +4,8 @@ import torch
 from omegaconf import DictConfig
 from torch import nn
 from torch.optim import Adam
-from torchmetrics import Accuracy
 
 from models.teacher_student_model import TeacherStudentCLIPTBR
-from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR
 
 
@@ -16,7 +14,6 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
             self,
             config: DictConfig,
             train_size: int,
-            val_labels,
             carbon_tracker
     ):
         super().__init__()
@@ -26,7 +23,6 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
                                            student_version=config.model.student)
         self.config = config
         self.train_size = train_size
-        self.val_labels = val_labels
         self.carbon_tracker = carbon_tracker
         self.loss = nn.MSELoss()
 
