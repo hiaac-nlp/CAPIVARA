@@ -37,11 +37,11 @@ class TeacherStudentCLIPTBR(nn.Module):
         self.student = Student(student_version)
 
     def forward(self, data):
-        source_lang_input, target_lang_input = data
+        teacher_input, student_input = data
 
-        target_features = self.teacher(**target_lang_input)
+        target_features = self.teacher(**teacher_input)
         teacher_output = target_features.last_hidden_state
 
-        student_output = self.student(**source_lang_input)
+        student_output = self.student(**student_input)
 
         return teacher_output, student_output
