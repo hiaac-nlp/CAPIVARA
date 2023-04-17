@@ -56,3 +56,7 @@ early_stopping:
     verbose: true
     monitor: "val/classification_loss/dataloader_idx_1"
     patience: 100
+
+carbon:
+    brazil_carbon_intensity: 0.077
+    process: "process"

@@ -44,4 +44,6 @@ model_checkpoint:
     monitor: "val/loss"
     dirpath: "../checkpoints/clip_pt/CC3M_teacher_student"
 
-
+carbon:
+    brazil_carbon_intensity: 0.077
+    process: "process"

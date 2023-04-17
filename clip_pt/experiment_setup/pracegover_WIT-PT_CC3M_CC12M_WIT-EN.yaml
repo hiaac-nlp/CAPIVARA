@@ -62,3 +62,6 @@ early_stopping:
     monitor: "val/loss"
     patience: 100
 
+carbon:
+    brazil_carbon_intensity: 0.077
+    process: "process"
