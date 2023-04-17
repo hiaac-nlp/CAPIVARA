@@ -169,8 +169,7 @@ def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_
         random.choice(example[1]["captions-en"]),  # take a random caption
         return_tensors="pt",
         padding="max_length",
-        truncation=True,
-        max_length=max_length
+        truncation=True
     )
 
     student_input = student_tokenizer(
