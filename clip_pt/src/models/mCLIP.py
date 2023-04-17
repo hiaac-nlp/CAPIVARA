@@ -1,6 +1,7 @@
 import clip
 import torch
 from multilingual_clip import pt_multilingual_clip
+from transformers.adapters import XLMRobertaAdapterModel
 
 
 class mCLIP(torch.nn.Module):
@@ -17,6 +18,31 @@ class mCLIP(torch.nn.Module):
                                                                                   cache_dir='/work/gabriel.santos/cache')
         self.text_encoder.transformer.gradient_checkpointing_enable()
 
+    def add_adapter(self, model, adapter_name):
+       config = None
+       if adapter_name.lower() == "lora":
+           config = LoRAConfig()
+       elif adapter_name.lower() == "unipelt":
+           config = UniPELTConfig()
+
+
+       if config is not None:
+           xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-large")
+            xlm_roberta_adapter.add_adapter(adapter_name, config=config)
+            # Add projection layer to resemble the original mCLIP model
+            xlm_roberta_adapter.add_module("LinearTransformation", nn.Linear(in_features=1024, out_features=512, bias=True))
+
+            state_dict = model.state_dict()
+            for key in list(state_dict.keys()):
+                # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
+                state_dict[key.replace('transformer', 'roberta')] = state_dict.pop(key)
+            xlm_roberta_adapter.load_state_dict(state_dict, strict=False)
+
+            xlm_roberta_adapter.train_adapter(adapter_name)
+
+            return xlm_roberta_adapter 
+       return model
+
     def forward(self, batch):
         return self.encode(batch)
 
@@ -29,7 +55,11 @@ class mCLIP(torch.nn.Module):
         return image_features, text_features
 
     def encode_text(self, text_input):
-        embeddings = self.text_encoder.transformer(**text_input)[0]
+        if list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "transformer":
+            embeddings = text_encoder.transformer(**text_input)[0]
+        elif list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "roberta":
+            embeddings = text_encoder.roberta(**text_input)[0]
+
         att = text_input['attention_mask']
         embeddings = (embeddings * att.unsqueeze(2)).sum(dim=1) / att.sum(dim=1)[:, None]
         return self.text_encoder.LinearTransformation(embeddings)

@@ -16,7 +16,8 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
             self,
             config: DictConfig,
             train_size: int,
-            val_labels
+            val_labels,
+            carbon_tracker
     ):
         super().__init__()
         self.save_hyperparameters(config)
@@ -28,6 +29,7 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         self.config = config
         self.train_size = train_size
         self.val_labels = val_labels
+        self.carbon_tracker = carbon_tracker
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]
         self.image_train_acc = Accuracy(task="multiclass", num_classes=n_classes)
@@ -142,7 +144,7 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
 
             self.complete_training = True
 
-    def training_epoch_end(self, batch_parts):
+    def on_train_epoch_end(self):
         self.image_feature_list = []
         self.text_feature_list = []
 
@@ -158,7 +160,13 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
             self.image_train_acc.reset()
             self.text_train_acc.reset()
 
-    def validation_step(self, val_batch, batch_idx, dataset_idx):
+            our_emission = self.carbon_tracker.flush()
+            our_energy = self.carbon_tracker._total_energy.__float__()
+            self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+            self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+            self.log('carbon/Spent energy', our_energy)
+
+    def validation_step(self, val_batch, batch_idx, dataset_idx, dataloader_idx=0):
         if dataset_idx == 0:
             self.val_retrieval(val_batch)
         else:
@@ -193,7 +201,7 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         self.log("val/batch_classification_acc", image_accuracy)
         self.log("val/classification_loss", loss)
 
-    def validation_epoch_end(self, batch_parts):
+    def on_validation_epoch_end(self):
         epoch_retrieval_acc = self.retrieval_val_acc.compute()
         epoch_classification_acc = self.classification_val_acc.compute()
 
@@ -202,4 +210,10 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
 
         self.retrieval_val_acc.reset()
         self.classification_val_acc.reset()
+
+        our_emission = self.carbon_tracker.flush()
+        our_energy = self.carbon_tracker._total_energy.__float__()
+        self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+        self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+        self.log('carbon/Spent energy', our_energy)
 

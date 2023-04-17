@@ -131,3 +131,6 @@ dmypy.json
 .idea/
 .neptune/
 .ipynb_checkpoints/
+
+# Carbon Log
+emissions.csv
