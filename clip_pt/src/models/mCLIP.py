@@ -15,6 +15,7 @@ class mCLIP(torch.nn.Module):
         self.text_model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"
         self.text_encoder = pt_multilingual_clip.MultilingualCLIP.from_pretrained(self.text_model_name,
                                                                                   cache_dir='/work/gabriel.santos/cache')
+        self.text_encoder.transformer.gradient_checkpointing_enable()
 
     def forward(self, batch):
         return self.encode(batch)
