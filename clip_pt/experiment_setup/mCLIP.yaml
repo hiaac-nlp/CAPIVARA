@@ -18,7 +18,7 @@ model:
     text_encoder: "mCLIP"
     image_encoder: "mCLIP"
     text_padding_size: 95
-    warmup_steps: 1000
+    warmup_steps: 1e9
     pretraining: "LiT" #options: LiT / contrastive
 
 optimizer:
@@ -35,7 +35,7 @@ scheduler:
         warmup_lr: 800
 
 
-batch_size: 2816
+batch_size: 1816
 accumulate_grad_batches: 1
 
 trainer:

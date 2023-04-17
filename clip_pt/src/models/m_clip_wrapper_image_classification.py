@@ -178,7 +178,7 @@ class MCLIPWrapperImageClassification(pl.LightningModule):
         text_input = self.val_labels
         text_input = text_input.to(self.device)
         label_idx = label_idx.to(self.device)
-        image_input["pixel_values"] = image_input["pixel_values"].squeeze(1)
+        # image_input["pixel_values"] = image_input["pixel_values"].squeeze(1)
         batch = image_input, text_input
         image_features, text_features = self.model.encode(batch)
         logits_per_image, _ = self.model.compute_logits(image_features, text_features,

@@ -9,7 +9,7 @@ import torch
 import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from transformers import CLIPFeatureExtractor
+from transformers import CLIPFeatureExtractor, BatchFeature
 
 from utils.dataset.clip_pt_br_transform import CliptPTTransform
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
@@ -66,11 +66,19 @@ def format_batch(batch):
     attention_mask = []
 
     for img, txt in zip(batch[0], batch[1]):
-        pixel_values.append(img["pixel_values"])
+        if (isinstance(img, dict) or isinstance(img, BatchFeature)) and "pixel_values" in img:
+            pixel_values.append(img["pixel_values"])
+        else:
+            pixel_values.append(img)
+
         input_ids.append(txt["input_ids"])
         attention_mask.append(txt["attention_mask"])
 
-    image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
+    if (isinstance(img, dict) or isinstance(img, BatchFeature)) and "pixel_values" in img:
+        image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
+    else:
+        image_input = torch.stack(pixel_values, dim=0)
+
     text_input = {"input_ids": torch.cat(input_ids, dim=0),
                   "attention_mask": torch.cat(attention_mask, dim=0)}
 
@@ -105,7 +113,13 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
     max_length = config.model.text_padding_size
 
     augment = config.get("augment", False)
-    decode_format = "torchrgb8" if augment else "torchrgb"
+    if config.model.image_encoder.lower() == "mclip":
+        decode_format = "pil"
+        val_decode_format = "pil"
+    else:
+        decode_format = "torchrgb8" if augment else "torchrgb"
+        val_decode_format = "torchrgb"
+
     train_dataset = wds.WebDataset(train, shardshuffle=True) \
         .shuffle(10000) \
         .decode(decode_format) \
@@ -116,7 +130,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
 
     val_dataset = wds.WebDataset(val, shardshuffle=True) \
         .shuffle(10000) \
-        .decode("torchrgb") \
+        .decode(val_decode_format) \
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer, max_length)) \
         .batched(config.batch_size) \
@@ -247,4 +261,3 @@ def load_datasets_teacher_student(config, teacher_tokenizer, student_tokenizer) 
               "val_size": val_size}
 
     return output
-

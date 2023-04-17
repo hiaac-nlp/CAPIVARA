@@ -16,6 +16,7 @@ class mCLIP(torch.nn.Module):
         self.text_model_name = "M-CLIP/XLM-Roberta-Large-Vit-B-32"
         self.text_encoder = pt_multilingual_clip.MultilingualCLIP.from_pretrained(self.text_model_name,
                                                                                   cache_dir='/work/gabriel.santos/cache')
+        self.text_encoder.transformer.gradient_checkpointing_enable()
 
     def add_adapter(self, model, adapter_name):
        config = None
@@ -55,7 +56,7 @@ class mCLIP(torch.nn.Module):
 
     def encode_text(self, text_input):
         if list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "transformer":
-        embeddings = text_encoder.transformer(**text_input)[0]
+            embeddings = text_encoder.transformer(**text_input)[0]
         elif list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "roberta":
             embeddings = text_encoder.roberta(**text_input)[0]
 
