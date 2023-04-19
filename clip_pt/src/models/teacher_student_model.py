@@ -33,8 +33,12 @@ class TeacherStudentCLIPTBR(nn.Module):
         super().__init__()
         self.teacher = CLIPTextModel.from_pretrained(teacher_version,
                                                      cache_dir='/hahomes/gabriel.santos')
-        self.teacher.gradient_checkpointing_enable()
+        # freeze teacher params
+        for param in self.teacher.parameters():
+            param.requires_grad = False
+
         self.student = Student(student_version)
+
 
     def forward(self, data):
         teacher_input, student_input = data
