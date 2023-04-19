@@ -2,17 +2,18 @@ import argparse
 import os
 
 import sys
-sys.path.append("./")
-sys.path.append("../")
+
+from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 
 import torch
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer, PreTrainedTokenizer
-
-from models.clip_pt_br_wrapper import CLIPPTBRWrapper
 from models.mCLIP import mCLIP
+
+sys.path.append("./")
+sys.path.append("../")
 
 
 def parse_args():
@@ -227,7 +228,7 @@ if __name__ == "__main__":
             do_lower_case=False,
             cache_dir="/hahomes/gabriel.santos/"
         )
-        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
+        model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
     image_features, text_features = feature_extraction(model, dataloader, device)
