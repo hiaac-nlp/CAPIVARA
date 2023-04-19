@@ -5,7 +5,7 @@ import tqdm
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer, CLIPModel, BatchFeature
 
-from models.clip_pt_br_wrapper import CLIPPTBRWrapper
+from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 from utils.dataset.object_net import ObjectNetDataset
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
                                                        do_lower_case=False,
                                                        cache_dir="/hahomes/gabriel.santos/")
-        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
+        model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Loading dataset")
     if args.dataset.lower() == 'objectnet':
