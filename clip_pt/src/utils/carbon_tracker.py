@@ -1,14 +1,15 @@
 import torch
+import wandb
 from codecarbon import EmissionsTracker
 
 def carbon_tracker_init(tracking_mode, gpu_ids):
 	if float(torch.version.cuda) >= 12:
-	        tracker_code_carbon = EmissionsTracker(log_level = 'error', tracking_mode=tracking_mode, gpu_ids=gpu_ids)
-	        tracker_code_carbon.start()
+		tracker_code_carbon = EmissionsTracker(log_level = 'error', tracking_mode=tracking_mode, gpu_ids=gpu_ids)
+		tracker_code_carbon.start()
 	else:
-	        tracker_code_carbon = None
-	        print('Cuda Version: ' + str(torch.version.cuda))
-	        print('Carbon Tracke Disabled')
+		tracker_code_carbon = None
+		print('Cuda Version: ' + str(torch.version.cuda))
+		print('Carbon Tracke Disabled')
 	return tracker_code_carbon
 
 def carbon_tracker_end(tracker_code_carbon):
