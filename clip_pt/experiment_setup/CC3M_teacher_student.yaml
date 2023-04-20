@@ -10,7 +10,7 @@ datasets:
           path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00265..00266}.tar"
 model:
     teacher: "openai/clip-vit-base-patch32"
-    student: "neuralmind/bert-large-portuguese-cased"
+    student: "neuralmind/bert-base-portuguese-cased"
     text_padding_size: 95
 
 optimizer:
@@ -27,7 +27,7 @@ scheduler:
         warmup_lr: 800
 
 
-batch_size: 1816
+batch_size: 2816
 accumulate_grad_batches: 1
 
 trainer:
