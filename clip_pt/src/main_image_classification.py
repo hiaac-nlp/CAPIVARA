@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, CLIPFeatureExtractor
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from utils.dataset.load_datasets import load_datasets
 
-from codecarbon import EmissionsTracker
+from utils.carbon_tracker import carbon_tracker_init,carbon_tracker_end
 import wandb
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -49,8 +49,7 @@ def main() -> None:
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
     train_size = datasets["train_size"]
 
-    tracker_code_carbon = EmissionsTracker(log_level = 'error', tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
-    tracker_code_carbon.start()
+    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
 
     clip_pt = CLIPPTBRWrapperImageClassification(config, train_size,
                                                  val_labels=datasets["img_classif_labels"],
@@ -71,12 +70,7 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    our_emission = tracker_code_carbon.stop()
-    energy_in_kwh = tracker_code_carbon.final_emissions_data.energy_consumed
-
-    wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
-    wandb.log({"carbon/Final Emission": energy_in_kwh * config.carbon["brazil_carbon_intensity"]})
-    wandb.log({"carbon/Final Energy": energy_in_kwh})
+    carbon_tracker_end(tracker_code_carbon)
 
 if __name__ == "__main__":
     main()
