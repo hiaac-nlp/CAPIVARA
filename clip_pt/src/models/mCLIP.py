@@ -27,7 +27,7 @@ class mCLIP(torch.nn.Module):
 
 
        if config is not None:
-           xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-large")
+            xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-large")
             xlm_roberta_adapter.add_adapter(adapter_name, config=config)
             # Add projection layer to resemble the original mCLIP model
             xlm_roberta_adapter.add_module("LinearTransformation", nn.Linear(in_features=1024, out_features=512, bias=True))
@@ -55,10 +55,10 @@ class mCLIP(torch.nn.Module):
         return image_features, text_features
 
     def encode_text(self, text_input):
-        if list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "transformer":
-            embeddings = text_encoder.transformer(**text_input)[0]
-        elif list(xlm_roberta_adapter.state_dict().keys())[0].split(".")[0] == "roberta":
-            embeddings = text_encoder.roberta(**text_input)[0]
+        if list(self.text_encoder.state_dict().keys())[0].split(".")[0] == "transformer":
+            embeddings = self.text_encoder.transformer(**text_input)[0]
+        elif list(self.text_encoder.state_dict().keys())[0].split(".")[0] == "roberta":
+            embeddings = self.text_encoder.roberta(**text_input)[0]
 
         att = text_input['attention_mask']
         embeddings = (embeddings * att.unsqueeze(2)).sum(dim=1) / att.sum(dim=1)[:, None]

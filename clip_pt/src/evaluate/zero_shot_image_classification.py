@@ -1,3 +1,7 @@
+import sys
+sys.path.append("./")
+sys.path.append("../")
+
 import argparse
 
 import torch
@@ -9,6 +13,7 @@ from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageC
 from models.mCLIP import mCLIP
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 from utils.dataset.object_net import ObjectNetDataset
+from utils.dataset.imagenet_dataset import ImageNetDataset
 
 
 def parse_args():
@@ -49,36 +54,59 @@ if __name__ == "__main__":
 
     print(">>>>>>> Loading model")
     if args.model_path == "mCLIP":
-        text_tokenizer = AutoTokenizer.from_pretrained("M-CLIP/XLM-Roberta-Large-Vit-B-32",
-                                                       cache_dir="/hahomes/gabriel.santos/")
+        text_tokenizer = AutoTokenizer.from_pretrained(
+            "M-CLIP/XLM-Roberta-Large-Vit-B-32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
     elif args.model_path == "CLIP":
-        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32",
-                                          cache_dir="/hahomes/gabriel.santos/")
-        text_tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32",
-                                                       cache_dir="/hahomes/gabriel.santos/")
-        vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
-                                                                cache_dir="/hahomes/gabriel.santos/")
+        model = CLIPModel.from_pretrained(
+            "openai/clip-vit-base-patch32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
+        text_tokenizer = AutoTokenizer.from_pretrained(
+            "openai/clip-vit-base-patch32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
+        vision_processor = CLIPFeatureExtractor.from_pretrained(
+            "openai/clip-vit-base-patch32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
     else:
-        vision_processor = CLIPFeatureExtractor.from_pretrained("openai/clip-vit-base-patch32",
-                                                                cache_dir="/hahomes/gabriel.santos/")
-        text_tokenizer = AutoTokenizer.from_pretrained("neuralmind/bert-base-portuguese-cased",
-                                                       do_lower_case=False,
-                                                       cache_dir="/hahomes/gabriel.santos/")
+        vision_processor = CLIPFeatureExtractor.from_pretrained(
+            "openai/clip-vit-base-patch32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
+        text_tokenizer = AutoTokenizer.from_pretrained(
+            "neuralmind/bert-base-portuguese-cased",
+            do_lower_case=False,
+            cache_dir="/hahomes/gabriel.santos/"
+        )
         model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Loading dataset")
     if args.dataset.lower() == 'objectnet':
-        dataset = ObjectNetDataset(root_dir=args.dataset_path,
-                                   translation_path=args.translation_path,
-                                   vision_processor=vision_processor,
-                                   text_tokenizer=text_tokenizer)
+        dataset = ObjectNetDataset(
+            root_dir=args.dataset_path,
+            translation_path=args.translation_path,
+            vision_processor=vision_processor,
+            text_tokenizer=text_tokenizer
+        )
     elif args.dataset.lower() == 'grocerystore':
-        dataset = GroceryStoreDataset(dataset_path=args.dataset_path,
-                                      annotation_path=args.translation_path,
-                                      vision_processor=vision_processor,
-                                      text_tokenizer=text_tokenizer)
+        dataset = GroceryStoreDataset(
+            dataset_path=args.dataset_path,
+            annotation_path=args.translation_path,
+            vision_processor=vision_processor,
+            text_tokenizer=text_tokenizer
+        )
+    elif args.dataset.lower() == 'imagenet':
+        dataset = ImageNetDataset(
+            dataset_path=args.dataset_path,
+            annotation_path=args.translation_path,
+            vision_processor=vision_processor,
+            text_tokenizer=text_tokenizer
+        )
     else:
         raise NotImplementedError(f"{args.dataset} is not a supported dataset.")
 
