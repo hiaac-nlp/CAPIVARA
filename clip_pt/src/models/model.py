@@ -120,7 +120,7 @@ class CLIPTBRFinetuning(CLIPTBR):
         for param in self.image_encoder.parameters():
             param.requires_grad = False
 
-        self.text_encoder.gradient_checkpointing_enable()
+        self.text_encoder.student.gradient_checkpointing_enable()
 
         self.visual_projection = nn.Linear(
             self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
@@ -135,6 +135,12 @@ class CLIPTBRFinetuning(CLIPTBR):
         )
         # value extracted from original CLIP proposal
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+
+
+    def encode_text(self, text_inputs):
+        outputs = self.text_encoder(text_inputs)
+        return self.text_projection(outputs)
+
 
     def load_student(self, checkpoint):
         new_checkpoint = OrderedDict()
