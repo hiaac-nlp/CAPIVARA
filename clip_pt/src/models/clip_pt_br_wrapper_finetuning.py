@@ -6,12 +6,12 @@ from torch import nn
 from torch.optim import Adam
 from torchmetrics import Accuracy
 
-from models.model import CLIPTBR
+from models.model import CLIPTBR, CLIPTBRFinetuning
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR
 
 
-class CLIPPTBRWrapperImageClassification(pl.LightningModule):
+class CLIPPTBRWrapperFinetuning(pl.LightningModule):
     def __init__(
             self,
             config: DictConfig,
@@ -22,10 +22,9 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(config)
         self.automatic_optimization = False
-        self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
-                             text_encoder_version=config.model.text_encoder,
-                             pretraining=config.model.pretraining,
-                             adapter=config.model.get("adapter", None))
+        self.model = CLIPTBRFinetuning(vision_encoder_version=config.model.image_encoder,
+                                       text_encoder_path=config.model.text_encoder)
+
         self.config = config
         self.train_size = train_size
         self.val_labels = val_labels

@@ -1,12 +1,9 @@
-from collections import OrderedDict
-
 import numpy as np
 import torch
 import torch.nn as nn
 from transformers import AutoModel
 from transformers import CLIPVisionModel
-
-from models.teacher_student_model import Student
+from transformers import LoRAConfig, UniPELTConfig
 
 
 class CLIPTBR(nn.Module):
@@ -44,6 +41,20 @@ class CLIPTBR(nn.Module):
 
         # value extracted from original CLIP proposal
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+
+    def add_adapter(self, model, adapter_name):
+        config = None
+        if adapter_name is not None:
+            if adapter_name.lower() == "lora":
+                config = LoRAConfig()
+            elif adapter_name.lower() == "unipelt":
+                config = UniPELTConfig()
+
+        if config is not None:
+            model.add_adapter(adapter_name, config=config)
+            # models parameters except the ones from the adapters
+            model.train_adapter(adapter_name)
+        return model
 
     def encode_visual(self, visual_inputs):
         outputs = self.image_encoder(visual_inputs)
@@ -107,46 +118,3 @@ class CLIPTBR(nn.Module):
             for param in self.text_encoder.parameters():
                 param.requires_grad = True
 
-
-class CLIPTBRFinetuning(CLIPTBR):
-    def __init__(self,
-                 text_encoder_path: str = None,
-                 vision_encoder_version: str = "openai/clip-vit-base-patch32",
-                 projection_dim: int = 512):
-        super().__init__()
-        self.projection_dim = projection_dim
-        self.text_encoder = self.load_student(text_encoder_path)
-        self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
-                                                             cache_dir='/hahomes/gabriel.santos')
-        for param in self.image_encoder.parameters():
-            param.requires_grad = False
-
-        self.text_encoder.gradient_checkpointing_enable()
-
-        self.visual_projection = nn.Linear(
-            self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
-            self.projection_dim,
-            bias=False
-        )
-
-        self.text_projection = nn.Linear(
-            512,
-            self.projection_dim,
-            bias=False
-        )
-        # value extracted from original CLIP proposal
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
-
-    def load_student(self, text_encoder_path):
-        new_checkpoint = OrderedDict()
-        checkpoint = torch.load(text_encoder_path)
-        for k, v in checkpoint["state_dict"].items():
-            if "student" in k:
-                new_key = k[14:]
-                new_checkpoint[new_key] = checkpoint["state_dict"][k]
-
-        student_version = checkpoint["hyper_parameters"]["model"]["student"]
-        text_encoder = Student(student_version=student_version)
-        text_encoder.load_state_dict(new_checkpoint)
-
-        return text_encoder
