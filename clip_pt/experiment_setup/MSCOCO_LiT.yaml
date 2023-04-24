@@ -2,8 +2,12 @@ title: MSCOCO_LiT
 
 datasets:
     train:
-        - name: MSCOCO
+        - name: mscoco
           path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+
+    validation:
+        - name: pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
