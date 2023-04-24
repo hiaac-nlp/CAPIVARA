@@ -25,7 +25,6 @@ class CLIPTBR(nn.Module):
                                                              cache_dir='/hahomes/gabriel.santos')
         self.text_encoder = AutoModel.from_pretrained(text_encoder_version,
                                                       cache_dir='/hahomes/gabriel.santos')
-        self.add_adapter(self.text_encoder, adapter_name=adapter)
 
         self.image_encoder.gradient_checkpointing_enable()
         self.text_encoder.gradient_checkpointing_enable()
