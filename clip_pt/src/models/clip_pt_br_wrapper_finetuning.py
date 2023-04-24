@@ -15,6 +15,7 @@ class CLIPPTBRWrapperFinetuning(pl.LightningModule):
     def __init__(
             self,
             config: DictConfig,
+            text_encoder_checkpoint,
             train_size: int = 0,
             val_labels=None,
             carbon_tracker=None
@@ -23,7 +24,7 @@ class CLIPPTBRWrapperFinetuning(pl.LightningModule):
         self.save_hyperparameters(config)
         self.automatic_optimization = False
         self.model = CLIPTBRFinetuning(vision_encoder_version=config.model.image_encoder,
-                                       text_encoder_path=config.model.text_encoder)
+                                       text_encoder_checkpoint=text_encoder_checkpoint)
 
         self.config = config
         self.train_size = train_size

@@ -110,12 +110,12 @@ class CLIPTBR(nn.Module):
 
 class CLIPTBRFinetuning(CLIPTBR):
     def __init__(self,
-                 text_encoder_path: str = None,
+                 text_encoder_checkpoint=None,
                  vision_encoder_version: str = "openai/clip-vit-base-patch32",
                  projection_dim: int = 512):
         super().__init__()
         self.projection_dim = projection_dim
-        self.text_encoder = self.load_student(text_encoder_path)
+        self.text_encoder = self.load_student(text_encoder_checkpoint)
         self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
                                                              cache_dir='/hahomes/gabriel.santos')
         for param in self.image_encoder.parameters():
@@ -137,9 +137,8 @@ class CLIPTBRFinetuning(CLIPTBR):
         # value extracted from original CLIP proposal
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
-    def load_student(self, text_encoder_path):
+    def load_student(self, checkpoint):
         new_checkpoint = OrderedDict()
-        checkpoint = torch.load(text_encoder_path)
         for k, v in checkpoint["state_dict"].items():
             if "student" in k:
                 new_key = k[14:]

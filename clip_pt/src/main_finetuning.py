@@ -3,6 +3,7 @@ import logging
 import os
 
 import pytorch_lightning as pl
+import torch
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -33,9 +34,13 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
+    text_encoder_checkpoint = torch.load(config.model.text_encoder)
+
     vision_processor = CLIPFeatureExtractor.from_pretrained(config.model.image_encoder,
                                                             cache_dir='/hahomes/gabriel.santos/')
-    text_tokenizer = AutoTokenizer.from_pretrained(config.model.text_encoder,
+
+    text_encoder_version = text_encoder_checkpoint["hyper_parameters"]["model"]["student"]
+    text_tokenizer = AutoTokenizer.from_pretrained(text_encoder_version,
                                                    do_lower_case=False,
                                                    cache_dir='/hahomes/gabriel.santos/')
 
@@ -49,7 +54,9 @@ def main() -> None:
 
     tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
 
-    clip_pt = CLIPPTBRWrapperFinetuning(config, train_size,
+    clip_pt = CLIPPTBRWrapperFinetuning(config,
+                                        text_encoder_checkpoint=text_encoder_checkpoint,
+                                        train_size=train_size,
                                         val_labels=datasets["img_classif_labels"],
                                         carbon_tracker=tracker_code_carbon)
 
