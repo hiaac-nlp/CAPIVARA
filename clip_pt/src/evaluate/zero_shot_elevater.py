@@ -10,10 +10,9 @@ import tqdm
 import torch
 from models.mCLIP import mCLIP
 from omegaconf import OmegaConf
-from models.model import CLIPTBR
 import torch.nn.functional as F
 from elevater.metric import get_metric
-from models.clip_pt_br_wrapper import CLIPPTBRWrapper
+from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from elevater.feature_extractor import extract_feature
 from elevater.get_dataloader import construct_dataloader
 from transformers import CLIPFeatureExtractor, AutoTokenizer
@@ -124,8 +123,8 @@ def main():
             do_lower_case=False,
             cache_dir="/tmp"
         )
-        model = CLIPPTBRWrapper.load_from_checkpoint(args.model_path)
-        # model = CLIPTBR()
+        model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
+        model = model.model
     else:
         raise NotImplementedError(
             f"Model {args.model_name} not implemented"
