@@ -110,10 +110,8 @@ class CLIPTBR(nn.Module):
 class CLIPTBRFinetuning(CLIPTBR):
     def __init__(self,
                  text_encoder_checkpoint=None,
-                 vision_encoder_version: str = "openai/clip-vit-base-patch32",
-                 projection_dim: int = 512):
+                 vision_encoder_version: str = "openai/clip-vit-base-patch32"):
         super().__init__()
-        self.projection_dim = projection_dim
         self.text_encoder = self.load_student(text_encoder_checkpoint)
         self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
                                                              cache_dir='/hahomes/gabriel.santos')
@@ -122,15 +120,9 @@ class CLIPTBRFinetuning(CLIPTBR):
 
         self.text_encoder.student.gradient_checkpointing_enable()
 
-        self.visual_projection = nn.Linear(
-            self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
-            self.projection_dim,
-            bias=False
-        )
-
         self.text_projection = nn.Linear(
             512,
-            self.projection_dim,
+            self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
             bias=False
         )
         # value extracted from original CLIP proposal
@@ -140,6 +132,10 @@ class CLIPTBRFinetuning(CLIPTBR):
     def encode_text(self, text_inputs):
         outputs = self.text_encoder(text_inputs)
         return self.text_projection(outputs)
+
+    def encode_visual(self, visual_inputs):
+        outputs = self.image_encoder(visual_inputs)
+        return outputs.pooler_output
 
 
     def load_student(self, checkpoint):
