@@ -1,4 +1,4 @@
-title: WIT-PT
+title: WIT-PT_LiT
 
 datasets:
     train:
@@ -16,7 +16,7 @@ datasets:
 augment: AugMix
 
 model:
-    text_encoder: "neuralmind/bert-base-portuguese-cased"
+    text_encoder: "neuralmind/bert-large-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
     warmup_steps: 1e9 # keeps the image encoder for the whole training
@@ -51,10 +51,13 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/WIT-PT"
+    dirpath: "../checkpoints/clip_pt/pracegover_WIT-PT_LiT"
 
 early_stopping:
     verbose: true
     monitor: "val/classification_loss/dataloader_idx_1"
     patience: 100
 
+carbon:
+    brazil_carbon_intensity: 0.077
+    process: "process"
