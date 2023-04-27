@@ -1,13 +1,13 @@
-title: pracegover_teacher_student
+title: mscoco_teacher_student
 
 datasets:
     train:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train/{00000..00024}.tar"
+        - name: mscoco
+          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
 
     validation:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+        - name: mscoco
+          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_val/00000.tar"
 
 model:
     teacher: "openai/clip-vit-base-patch32"
@@ -43,7 +43,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/loss"
-    dirpath: "../checkpoints/clip_pt/pracegover_teacher_student"
+    dirpath: "../checkpoints/clip_pt/mscoco_teacher_student"
 
 carbon:
     brazil_carbon_intensity: 0.077
