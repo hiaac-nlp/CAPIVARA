@@ -19,4 +19,5 @@ def carbon_tracker_end(tracker_code_carbon):
         wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
         wandb.log({"carbon/Final Emission": energy_in_kwh * config.carbon["brazil_carbon_intensity"]})
         wandb.log({"carbon/Final Energy": energy_in_kwh})
-    	return our_emission, energy_in_kwh
+        return our_emission, energy_in_kwh
+    return None

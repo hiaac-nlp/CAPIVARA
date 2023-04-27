@@ -85,6 +85,12 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
                 T_max=self.train_size * self.trainer.max_epochs
             )
 
+        if self.config.scheduler.name.lower() == 'linearlr':
+            scheduler = torch.optim.lr_scheduler.LinearLR(
+                optimizer,
+                total_iters=self.config.scheduler.params["warmup_lr"]
+            )
+
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
