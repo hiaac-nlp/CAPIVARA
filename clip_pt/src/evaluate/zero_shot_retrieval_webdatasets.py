@@ -1,15 +1,14 @@
 import argparse
 import os
-
 import sys
-
-from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 
 import torch
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, AutoTokenizer, PreTrainedTokenizer, BatchFeature
+from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
+
+from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
 
 sys.path.append("./")
@@ -37,7 +36,6 @@ def tokenize(example, args):
         )
     else:
         image_input = vision_processor(example[0])
-
 
     text_input = None
     if len(example[1]["captions-pt"]) == 1:
@@ -69,7 +67,7 @@ def tokenize(example, args):
     return image_input, text_input
 
 
-def format_batch(batch, args):
+def format_batch(batch):
     pixel_values = []
     input_ids = []
     attention_mask = []
@@ -110,8 +108,6 @@ def feature_extraction(model, dataloader, device):
 
             text_input["input_ids"] = text_input["input_ids"].to(device)
             text_input["attention_mask"] = text_input["attention_mask"].to(device)
-            # text_input["token_type_ids"] = text_input["token_type_ids"].to(device)
-
             batch = image_input, text_input
 
             if isinstance(model, mCLIP):
@@ -146,9 +142,38 @@ def text_to_image_retrieval(image_features, text_features):
     return top_k_predictions
 
 
+def image_to_text_retrieval(image_features, text_features):
+    top_k = 10
+    top_k_predictions = []
+    for image_feature in tqdm.tqdm(image_features, desc="i2t retrieval"):
+        similarities = []
+        for text_feature in text_features:
+            scores = image_feature @ text_feature.t()  # shape: [batch_size, batch_size]
+            similarities.append(scores)
+
+        similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #texts]
+        top_k_pred = torch.argsort(similarities, descending=True)[:, : top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_predictions.append(top_k_pred)
+        # free memory
+        del similarities
+
+    top_k_predictions = torch.cat(top_k_predictions, dim=0)  # shape: [#texts, top_k]
+    return top_k_predictions
+
+
 def compute_recall_k(predictions, ground_truth, k, n_relevants):
     top_k_preds = predictions[:, :k]
-    corrects = (top_k_preds == ground_truth).any(dim=1)
+    prev_corrects = None
+    for col in range(ground_truth.shape[1]):
+      gt = ground_truth[:, col].reshape((-1, 1))
+      corrects = (top_k_preds == gt).any(dim=1)
+      if prev_corrects is None:
+          prev_corrects = corrects
+      else:
+          new_corrects = torch.logical_or(prev_corrects, corrects)
+          prev_corrects = corrects
+          corrects = new_corrects
+
     return sum(corrects) / n_relevants
 
 
@@ -161,7 +186,7 @@ def get_txt2img_ground_truth(args):
     # Check if the ground truth file already exists, if  so, load it from disk
     if os.path.isfile(filepath):
         gt = torch.load(filepath)
-        n_relevants = torch.unique(gt).shape[0]
+        n_relevants = gt.shape[0]
 
         return gt, n_relevants
 
@@ -174,14 +199,16 @@ def get_txt2img_ground_truth(args):
             .decode("torchrgb") \
             .to_tuple("jpg;png", "json")
     gt = []
+    n_relevants = 0
     for i, example in tqdm.tqdm(enumerate(dataset), desc="Computing ground truth"):
         n_captions = len(example[1]["captions-pt"])
         if n_captions > 1:
-            gt += [i] * (n_captions // 2)
+            gt += [i] * (n_captions // 2)  # two translations per caption
+            n_relevants += (n_captions // 2)
         else:
             gt.append(i)
+            n_relevants += 1
 
-    n_relevants = gt[-1] + 1
     gt = torch.Tensor(gt).reshape(-1, 1)
 
     os.makedirs("evaluate/ground_truth/text-to-image", exist_ok=True)
@@ -202,14 +229,14 @@ if __name__ == "__main__":
             .to_tuple("jpg;png", "json") \
             .map(lambda x: tokenize(x, args=args)) \
             .batched(args.batch) \
-            .map(lambda x: format_batch(x, args=args))
+            .map(lambda x: format_batch(x))
     else:
         dataset = wds.WebDataset(args.dataset_path) \
             .decode("torchrgb") \
             .to_tuple("jpg;png", "json") \
             .map(lambda x: tokenize(x, args=args)) \
             .batched(args.batch) \
-            .map(lambda x: format_batch(x, args=args))
+            .map(lambda x: format_batch(x))
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
     print(">>>>>>> Loading processors")
@@ -254,5 +281,4 @@ if __name__ == "__main__":
     print("Recall@5: ", recall_5.item())
     print("Recall@10: ", recall_10.item())
     print("Mean Recall: ", mr.item())
-
 
