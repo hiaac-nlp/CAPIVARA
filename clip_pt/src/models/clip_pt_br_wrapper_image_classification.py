@@ -22,10 +22,6 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(config)
         self.automatic_optimization = False
-        self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
-                             text_encoder_version=config.model.text_encoder,
-                             pretraining=config.model.pretraining,
-                             adapter=config.model.get("adapter", None))
         self.config = config
         self.train_size = train_size
         self.val_labels = val_labels
@@ -44,10 +40,17 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
 
         self.complete_training = False
         self.complete_validation = False
-        self.unfreeze = config.model["warmup_steps"] > 0
-        if self.unfreeze:
-            print("Freezing model!!")
-            self.model.freeze()
+
+        if self.__class__.__name__ == 'CLIPPTBRWrapperImageClassification':
+            self.model = CLIPTBR(vision_encoder_version=config.model.image_encoder,
+                                 text_encoder_version=config.model.text_encoder,
+                                 pretraining=config.model.pretraining,
+                                 adapter=config.model.get("adapter", None))
+
+            self.unfreeze = config.model["warmup_steps"] > 0
+            if self.unfreeze:
+                print("Freezing model!!")
+                self.model.freeze()
 
     def configure_optimizers(self):
         opt_params = self.config.optimizer["params"]
@@ -220,3 +223,4 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
             self.log('carbon/Carbon Emission',
                      self.config.carbon["brazil_carbon_intensity"] * our_energy)
             self.log('carbon/Spent energy', our_energy)
+
