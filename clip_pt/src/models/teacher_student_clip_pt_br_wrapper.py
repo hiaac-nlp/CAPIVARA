@@ -79,7 +79,7 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
         lr_scheduler = self.lr_schedulers()
 
         teacher_output, student_output = self.model(train_batch)
-        loss = self.loss(teacher_output, student_output)
+        loss = self.loss(input=student_output, target=teacher_output)
 
         optimizer.zero_grad()
         self.manual_backward(loss)
