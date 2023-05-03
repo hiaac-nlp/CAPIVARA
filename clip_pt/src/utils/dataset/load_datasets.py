@@ -165,8 +165,11 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
 
 
 def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_length):
+    n_captions = len(example[1]["captions-en"])
+    caption_index = random.randint(0, n_captions-1)
+
     teacher_input = teacher_tokenizer(
-        random.choice(example[1]["captions-en"]),  # take a random caption
+        example[1]["captions-en"][caption_index],  # take a random caption
         return_tensors="pt",
         padding="max_length",
         truncation=True,
@@ -174,7 +177,7 @@ def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_
     )
 
     student_input = student_tokenizer(
-        random.choice(example[1]["captions-pt"]),  # take a random caption
+        example[1]["captions-pt"][2 * caption_index],  # Google translation (w/ even indices)
         return_tensors="pt",
         padding="max_length",
         truncation=True,
