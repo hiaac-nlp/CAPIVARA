@@ -111,7 +111,6 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         val += list(braceexpand.braceexpand(dataset['path']))
 
     max_length = config.model.text_padding_size
-
     augment = config.get("augment", False)
     if config.model.image_encoder.lower() == "mclip":
         decode_format = "pil"
@@ -153,7 +152,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
             dataset_path=config.datasets.img_classification.path,
             annotation_path=config.datasets.img_classification.annotation_path,
             vision_processor=vision_processor,
-            text_tokenizer=text_tokenizer)
+            text_tokenizer=text_tokenizer,
+            max_length=max_length)
 
         img_classif_dataloader = DataLoader(img_classif_dataset, batch_size=config.batch_size,
                                             num_workers=10)
@@ -177,7 +177,7 @@ def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_
     )
 
     student_input = student_tokenizer(
-        example[1]["captions-pt"][2 * caption_index],  # Google translation (w/ even indices)
+        example[1]["captions-pt"][2 * caption_index + 1],  # Google translation (w/ even indices)
         return_tensors="pt",
         padding="max_length",
         truncation=True,
