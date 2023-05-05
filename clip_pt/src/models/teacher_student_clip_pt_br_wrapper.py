@@ -91,5 +91,5 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
 
     def validation_step(self, val_batch, batch_idx):
         teacher_output, student_output = self.model(val_batch)
-        loss = self.loss(teacher_output, student_output)
+        loss = self.loss(input=student_output, target=teacher_output)
         self.log("val/loss", loss)
