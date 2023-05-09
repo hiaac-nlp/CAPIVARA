@@ -1,30 +1,32 @@
-title: mCLIP_pracegover
+title: mscoco_finetuning
 
 datasets:
     train:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train/{00000..00024}.tar"
+        - name: mscoco
+          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
 
     validation:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+            #  - name: pracegover
+            #    path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val_old/{00000..00008}.tar"
+        - name: mscoco
+          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_val/00000.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-
 model:
-    text_encoder: "mCLIP"
-    image_encoder: "mCLIP"
-    text_padding_size: 95
-    warmup_steps: 1e9
+    text_encoder: "CLIP-PT/9wodbvpl/checkpoints/last.ckpt" # "CLIP-PT/9xdshjem/checkpoints/last.ckpt"
+    image_encoder: "openai/clip-vit-base-patch32"
+    text_padding_size: 77
+    warmup_steps: 1e9 # keeps the image encoder for the whole training
     pretraining: "LiT" #options: LiT / contrastive
+
 
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-5
+        learning_rate: 5e-5
         eps: 1e-6
         weight_decay: 0.001
         betas: [ 0.9, 0.98 ]
@@ -35,7 +37,7 @@ scheduler:
         warmup_lr: 800
 
 
-batch_size: 1816
+batch_size: 2816
 accumulate_grad_batches: 1
 
 trainer:
@@ -50,7 +52,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_with_mCLIP"
+    dirpath: "../checkpoints/clip_pt/pracegover_lit"
 
 early_stopping:
     verbose: true
@@ -60,3 +62,4 @@ early_stopping:
 carbon:
     brazil_carbon_intensity: 0.077
     process: "process"
+

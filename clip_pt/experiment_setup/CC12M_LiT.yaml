@@ -7,7 +7,7 @@ datasets:
 
     validation:
         - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val_old/{00000..00008}.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
