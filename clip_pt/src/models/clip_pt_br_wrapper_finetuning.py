@@ -18,9 +18,13 @@ class CLIPPTBRWrapperFinetuning(CLIPPTBRWrapperImageClassification):
                          carbon_tracker=carbon_tracker)
         if text_encoder_checkpoint is None:
             text_encoder_checkpoint = torch.load(config.model.text_encoder)
-
-        self.model = CLIPTBRFinetuning(vision_encoder_version=config.model.image_encoder,
-                                       text_encoder_checkpoint=text_encoder_checkpoint)
+            self.model = CLIPTBRFinetuning(vision_encoder_version=config.model.image_encoder,
+                                           text_encoder_checkpoint=text_encoder_checkpoint,
+                                           inference=True)
+        else:
+            self.model = CLIPTBRFinetuning(vision_encoder_version=config.model.image_encoder,
+                                           text_encoder_checkpoint=text_encoder_checkpoint,
+                                           inference=False)
 
         self.unfreeze = config.model["warmup_steps"] > 0
         if self.unfreeze:

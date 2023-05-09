@@ -112,10 +112,12 @@ class CLIPTBRFinetuning(CLIPTBR):
     def __init__(self,
                  text_encoder_checkpoint,
                  vision_encoder_version: str = "openai/clip-vit-base-patch32",
-                 projection_dim: int = 512):
+                 projection_dim: int = 512,
+                 inference: bool = False):
         super().__init__(projection_dim=projection_dim,
                          vision_encoder_version=vision_encoder_version)
         self.projection_dim = projection_dim
+        self.inference = inference
         self.text_encoder = self.load_student(text_encoder_checkpoint)
         self.text_projection = nn.Linear(
             512,
@@ -128,9 +130,7 @@ class CLIPTBRFinetuning(CLIPTBR):
         return self.text_projection(outputs)
 
     def load_student(self, checkpoint):
-        student_ckpt = checkpoint["hyper_parameters"]["model"]["text_encoder"]
-        if student_ckpt[-5:] == ".ckpt":
-            checkpoint = torch.load(student_ckpt)
+        if self.inference:
             student_ckpt = checkpoint["hyper_parameters"]["model"]["student"]
             print("Text encoder:", student_ckpt)
             text_encoder = AutoModel.from_pretrained(student_ckpt,
