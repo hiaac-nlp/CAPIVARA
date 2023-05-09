@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 from torch import nn
 from torch.optim import Adam
 
-from models.teacher_student_model import TeacherStudentCLIPTBR
+from models.teacher_student_model import TeacherStudentCLIPTBR, TeacherStudent_mCLIP
 from utils.scheduler import CosineWarmupLR
 
 
@@ -19,8 +19,12 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(config)
         self.automatic_optimization = False
-        self.model = TeacherStudentCLIPTBR(teacher_version=config.model.teacher,
-                                           student_version=config.model.student)
+        if config.model.get("strategy", None) == "mCLIP":
+            self.model = TeacherStudent_mCLIP(teacher_version=config.model.teacher,
+                                               student_version=config.model.student)
+        else:
+            self.model = TeacherStudentCLIPTBR(teacher_version=config.model.teacher,
+                                               student_version=config.model.student)
         self.config = config
         self.train_size = train_size
         self.carbon_tracker = carbon_tracker
