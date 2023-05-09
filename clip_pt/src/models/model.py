@@ -130,23 +130,16 @@ class CLIPTBRFinetuning(CLIPTBR):
         return self.text_projection(outputs)
 
     def load_student(self, checkpoint):
-        if self.inference:
-            student_ckpt = checkpoint["hyper_parameters"]["model"]["student"]
-            print("Text encoder:", student_ckpt)
-            text_encoder = AutoModel.from_pretrained(student_ckpt,
-                                                     cache_dir='/hahomes/gabriel.santos')
-        else:
-            new_checkpoint = OrderedDict()
-            for k, v in checkpoint["state_dict"].items():
-                if "student" in k:
-                    new_key = k[14:]
-                    new_checkpoint[new_key] = checkpoint["state_dict"][k]
+        new_checkpoint = OrderedDict()
+        for k, v in checkpoint["state_dict"].items():
+            if "student" in k:
+                new_key = k[14:]
+                new_checkpoint[new_key] = checkpoint["state_dict"][k]
 
-            student_version = checkpoint["hyper_parameters"]["model"]["student"]
-            print("Text encoder:", student_version)
-            text_encoder = Student(student_version=student_version)
+        student_version = checkpoint["hyper_parameters"]["model"]["student"]
+        print("Text encoder:", student_version)
+        text_encoder = Student(student_version=student_version)
+        if not self.inference:
             text_encoder.load_state_dict(new_checkpoint)
 
         return text_encoder
-
-

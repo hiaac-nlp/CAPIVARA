@@ -11,6 +11,8 @@ class Student(nn.Module):
         self.student = AutoModel.from_pretrained(student_version,
                                                  cache_dir='/hahomes/gabriel.santos')
         self.student.gradient_checkpointing_enable()
+        self.pre_LN = nn.LayerNorm(self.student.pooler.dense.in_features, eps=1e-8)
+        self.pooler = lambda x: x[:, 0]
 
         self.transform = nn.Linear(
             self.student.pooler.dense.in_features,
@@ -19,9 +21,10 @@ class Student(nn.Module):
         )
 
     def forward(self, batch):
-        features = self.student(**batch)
-        eos = features.pooler_output  # pooled (EOS token) states
-        return self.transform(eos)
+        output = self.student(**batch)
+        sequence_output = self.pre_LN(output.last_hidden_state)
+        pooled_output = self.pooler(sequence_output)
+        return self.transform(pooled_output)
 
 
 class TeacherStudentCLIPTBR(nn.Module):
