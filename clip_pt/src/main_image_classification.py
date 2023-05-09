@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, CLIPFeatureExtractor
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from utils.dataset.load_datasets import load_datasets
 
-from utils.carbon_tracker import carbon_tracker_init,carbon_tracker_end
+from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
@@ -48,7 +48,8 @@ def main() -> None:
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
     train_size = datasets["train_size"]
 
-    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
+    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"],
+                                              gpu_ids=[args.gpu])
 
     clip_pt = CLIPPTBRWrapperImageClassification(config, train_size,
                                                  val_labels=datasets["img_classif_labels"],
@@ -71,6 +72,6 @@ def main() -> None:
 
     carbon_tracker_end(tracker_code_carbon)
 
+
 if __name__ == "__main__":
     main()
-

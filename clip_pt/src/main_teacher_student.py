@@ -3,8 +3,7 @@ import logging
 import os
 
 import pytorch_lightning as pl
-import wandb
-from codecarbon import EmissionsTracker
+# from codecarbon import EmissionsTracker
 from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -12,6 +11,7 @@ from pytorch_lightning.loggers import WandbLogger
 from transformers import AutoTokenizer, CLIPTokenizerFast
 
 from models.teacher_student_clip_pt_br_wrapper import TeacherStudentCLIPPTBRWrapper
+from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 from utils.dataset.load_datasets import load_datasets_teacher_student
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -48,10 +48,8 @@ def main() -> None:
     val_dataloader = datasets["val_dataloader"]
     train_size = datasets["train_size"]
 
-    # tracker_code_carbon = EmissionsTracker(log_level='error',
-    #                                        tracking_mode=config.carbon["process"],
-    #                                        gpu_ids=[args.gpu])
-    # tracker_code_carbon.start()
+    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"],
+                                              gpu_ids=[args.gpu])
 
     clip_pt = TeacherStudentCLIPPTBRWrapper(config, train_size,
                                             carbon_tracker=None)
@@ -71,13 +69,7 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    # our_emission = tracker_code_carbon.flush()
-    # our_energy = tracker_code_carbon._total_energy.__float__()
-    # tracker_code_carbon.stop()
-
-    # wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
-    # wandb.log({"carbon/Final Emission": our_energy * config.carbon["brazil_carbon_intensity"]})
-    # wandb.log({"carbon/Final Energy": our_energy})
+    carbon_tracker_end(tracker_code_carbon)
 
 
 if __name__ == "__main__":
