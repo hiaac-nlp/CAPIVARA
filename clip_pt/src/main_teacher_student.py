@@ -48,13 +48,13 @@ def main() -> None:
     val_dataloader = datasets["val_dataloader"]
     train_size = datasets["train_size"]
 
-    tracker_code_carbon = EmissionsTracker(log_level='error',
-                                           tracking_mode=config.carbon["process"],
-                                           gpu_ids=[args.gpu])
-    tracker_code_carbon.start()
+    # tracker_code_carbon = EmissionsTracker(log_level='error',
+    #                                        tracking_mode=config.carbon["process"],
+    #                                        gpu_ids=[args.gpu])
+    # tracker_code_carbon.start()
 
     clip_pt = TeacherStudentCLIPPTBRWrapper(config, train_size,
-                                            carbon_tracker=tracker_code_carbon)
+                                            carbon_tracker=None)
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
     config["model_checkpoint"].pop("dirpath")
@@ -71,13 +71,13 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    our_emission = tracker_code_carbon.flush()
-    our_energy = tracker_code_carbon._total_energy.__float__()
-    tracker_code_carbon.stop()
+    # our_emission = tracker_code_carbon.flush()
+    # our_energy = tracker_code_carbon._total_energy.__float__()
+    # tracker_code_carbon.stop()
 
-    wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
-    wandb.log({"carbon/Final Emission": our_energy * config.carbon["brazil_carbon_intensity"]})
-    wandb.log({"carbon/Final Energy": our_energy})
+    # wandb.log({"carbon/Final Emission (CodeCarbon)": our_emission})
+    # wandb.log({"carbon/Final Emission": our_energy * config.carbon["brazil_carbon_intensity"]})
+    # wandb.log({"carbon/Final Energy": our_energy})
 
 
 if __name__ == "__main__":

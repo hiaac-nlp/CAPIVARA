@@ -131,7 +131,7 @@ class MCLIPWrapperImageClassification(pl.LightningModule):
 
             self.complete_training = True
 
-    def on_train_epoch_end(self, batch_parts):
+    def on_train_epoch_end(self):
         self.image_feature_list = []
         self.text_feature_list = []
 
@@ -147,12 +147,13 @@ class MCLIPWrapperImageClassification(pl.LightningModule):
             self.image_train_acc.reset()
             self.text_train_acc.reset()
 
-            if self.carbon_tracker != None:
-                our_emission = self.carbon_tracker.flush()
-                our_energy = self.carbon_tracker._total_energy.__float__()
-                self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
-                self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
-                self.log('carbon/Spent energy', our_energy)
+            """
+            our_emission = self.carbon_tracker.flush()
+            our_energy = self.carbon_tracker._total_energy.__float__()
+            self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+            self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+            self.log('carbon/Spent energy', our_energy)
+            """
 
     def validation_step(self, val_batch, batch_idx, dataset_idx):
         if dataset_idx == 0:
@@ -190,7 +191,7 @@ class MCLIPWrapperImageClassification(pl.LightningModule):
         self.log("val/batch_classification_acc", image_accuracy)
         self.log("val/classification_loss", loss)
 
-    def on_validation_epoch_end(self, batch_parts):
+    def on_validation_epoch_end(self):
         epoch_retrieval_acc = self.retrieval_val_acc.compute()
         epoch_classification_acc = self.classification_val_acc.compute()
 
@@ -200,11 +201,12 @@ class MCLIPWrapperImageClassification(pl.LightningModule):
         self.retrieval_val_acc.reset()
         self.classification_val_acc.reset()
 
-        if self.carbon_tracker != None:
-            our_emission = self.carbon_tracker.flush()
-            our_energy = self.carbon_tracker._total_energy.__float__()
-            self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
-            self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
-            self.log('carbon/Spent energy', our_energy)
+        """
+        our_emission = self.carbon_tracker.flush()
+        our_energy = self.carbon_tracker._total_energy.__float__()
+        self.log('carbon/Carbon Emission(CodeCarbon)', our_emission)
+        self.log('carbon/Carbon Emission', self.config.carbon["brazil_carbon_intensity"] * our_energy)
+        self.log('carbon/Spent energy', our_energy)
+        """
 
 
