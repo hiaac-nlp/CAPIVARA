@@ -5,7 +5,7 @@ from transformers import AutoModel, CLIPTextModel
 class Student(nn.Module):
     def __init__(
             self,
-            student_version: str = "xlm-roberta-large",
+            student_version: str = "neuralmind/bert-base-portuguese-cased",
     ):
         super().__init__()
         self.student = AutoModel.from_pretrained(student_version,

@@ -8,6 +8,7 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
 
+from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
 
@@ -18,6 +19,7 @@ sys.path.append("../")
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", help="Path to model checkpoint", )
+    parser.add_argument("--distill", default=False, type=bool, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
@@ -259,7 +261,11 @@ if __name__ == "__main__":
             do_lower_case=False,
             cache_dir="/hahomes/gabriel.santos/"
         )
-        model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
+
+        if args.distill:
+            model = CLIPPTBRWrapperFinetuning.load_from_checkpoint(args.model_path)
+        else:
+            model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
     image_features, text_features = feature_extraction(model, dataloader, device)

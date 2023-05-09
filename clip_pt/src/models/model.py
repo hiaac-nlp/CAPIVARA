@@ -110,9 +110,9 @@ class CLIPTBR(nn.Module):
 
 class CLIPTBRFinetuning(CLIPTBR):
     def __init__(self,
-                 projection_dim: int = 512,
-                 text_encoder_checkpoint=None,
-                 vision_encoder_version: str = "openai/clip-vit-base-patch32"):
+                 text_encoder_checkpoint,
+                 vision_encoder_version: str = "openai/clip-vit-base-patch32",
+                 projection_dim: int = 512):
         super().__init__(projection_dim=projection_dim,
                          vision_encoder_version=vision_encoder_version)
         self.projection_dim = projection_dim
@@ -128,16 +128,24 @@ class CLIPTBRFinetuning(CLIPTBR):
         return self.text_projection(outputs)
 
     def load_student(self, checkpoint):
-        new_checkpoint = OrderedDict()
-        for k, v in checkpoint["state_dict"].items():
-            if "student" in k:
-                new_key = k[14:]
-                new_checkpoint[new_key] = checkpoint["state_dict"][k]
+        student_ckpt = checkpoint["hyper_parameters"]["model"]["text_encoder"]
+        if student_ckpt[-5:] == ".ckpt":
+            checkpoint = torch.load(student_ckpt)
+            student_ckpt = checkpoint["hyper_parameters"]["model"]["student"]
+            print("Text encoder:", student_ckpt)
+            text_encoder = AutoModel.from_pretrained(student_ckpt,
+                                                     cache_dir='/hahomes/gabriel.santos')
+        else:
+            new_checkpoint = OrderedDict()
+            for k, v in checkpoint["state_dict"].items():
+                if "student" in k:
+                    new_key = k[14:]
+                    new_checkpoint[new_key] = checkpoint["state_dict"][k]
 
-        student_version = checkpoint["hyper_parameters"]["model"]["student"]
-        print("Text encoder:", student_version)
-        text_encoder = Student(student_version=student_version)
-        text_encoder.load_state_dict(new_checkpoint)
+            student_version = checkpoint["hyper_parameters"]["model"]["student"]
+            print("Text encoder:", student_version)
+            text_encoder = Student(student_version=student_version)
+            text_encoder.load_state_dict(new_checkpoint)
 
         return text_encoder
 
