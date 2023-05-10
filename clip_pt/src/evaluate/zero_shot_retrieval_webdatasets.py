@@ -20,7 +20,7 @@ sys.path.append("../")
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", help="Path to model checkpoint", )
-    parser.add_argument("--distill", default=False, type=bool, help="From knowledge distillation", )
+    parser.add_argument("--distill", default=None, type=str, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
@@ -115,6 +115,8 @@ def feature_extraction(model, dataloader, device):
 
             if isinstance(model, mCLIP):
                 img_features, txt_features = model.encode(batch)
+            elif isinstance(model, CLIPTBRZeroshot):
+                img_features, txt_features = model(batch)
             else:
                 img_features, txt_features = model.model(batch)
 

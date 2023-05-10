@@ -166,8 +166,7 @@ class CLIPTBRZeroshot(nn.Module):
         student_version = checkpoint["hyper_parameters"]["model"]["student"]
         print("Text encoder:", student_version)
         text_encoder = Student(student_version=student_version)
-        if not self.inference:
-            text_encoder.load_state_dict(new_checkpoint)
+        text_encoder.load_state_dict(new_checkpoint)
 
         return text_encoder
 
@@ -185,19 +184,3 @@ class CLIPTBRZeroshot(nn.Module):
         text_features = self.encode_text(text_input)
 
         return image_features, text_features
-
-    def compute_logits(
-            self,
-            image_features,
-            text_features,
-            fixed_logit: bool = False
-    ):
-        # normalized features
-        image_features = image_features / image_features.norm(dim=1, keepdim=True)
-        text_features = text_features / text_features.norm(dim=1, keepdim=True)
-
-        logits_per_image = image_features @ text_features.t()
-        logits_per_text = logits_per_image.t()
-
-        # shape: [batch_size, batch_size]
-        return logits_per_image, logits_per_text
