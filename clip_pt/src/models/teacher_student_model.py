@@ -74,7 +74,7 @@ class TeacherStudent_mCLIP(nn.Module):
         teacher_input, student_input = data
 
         target_features = self.teacher(**teacher_input)
-        teacher_output = target_features.pooler_output
+        teacher_output = target_features.text_embeds
 
         student_output = self.student(student_input)
 
