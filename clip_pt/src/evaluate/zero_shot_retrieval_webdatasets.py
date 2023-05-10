@@ -11,6 +11,7 @@ from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
 from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
+from models.model import CLIPTBRZeroshot
 
 sys.path.append("./")
 sys.path.append("../")
@@ -262,8 +263,10 @@ if __name__ == "__main__":
             cache_dir="/hahomes/gabriel.santos/"
         )
 
-        if args.distill:
+        if args.distill == "default":
             model = CLIPPTBRWrapperFinetuning.load_from_checkpoint(args.model_path)
+        elif args.distill == "mCLIP":
+            model = CLIPTBRZeroshot(args.model_path)
         else:
             model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 

@@ -13,8 +13,8 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
     def __init__(
             self,
             config: DictConfig,
-            train_size: int,
-            carbon_tracker
+            train_size: int = 0,
+            carbon_tracker=None
     ):
         super().__init__()
         self.save_hyperparameters(config)
