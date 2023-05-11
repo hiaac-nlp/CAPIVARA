@@ -155,6 +155,8 @@ class CLIPTBRZeroshot(nn.Module):
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(vision_encoder_version,
                                                              cache_dir='/hahomes/gabriel.santos')
         self.text_encoder = self.load_student(model_checkpoint)
+        # value extracted from original CLIP proposal
+        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
     def load_student(self, checkpoint):
         new_checkpoint = OrderedDict()
@@ -174,7 +176,6 @@ class CLIPTBRZeroshot(nn.Module):
         outputs = self.image_encoder(visual_inputs)
         return outputs.image_embeds
 
-
     def encode_text(self, text_inputs):
         return self.text_encoder(text_inputs)
 
@@ -184,3 +185,30 @@ class CLIPTBRZeroshot(nn.Module):
         text_features = self.encode_text(text_input)
 
         return image_features, text_features
+
+    def compute_logits(
+            self,
+            image_features,
+            text_features,
+            fixed_logit: bool = False
+    ):
+        # normalized features
+        image_features = image_features / image_features.norm(dim=1, keepdim=True)
+        text_features = text_features / text_features.norm(dim=1, keepdim=True)
+
+        # cosine similarity as logits
+        if fixed_logit:
+            logit_scale = 20
+        else:
+            logit_scale = self.logit_scale.exp()
+
+        logits_per_image = logit_scale * image_features @ text_features.t()
+        logits_per_text = logits_per_image.t()
+
+        # shape: [batch_size, batch_size]
+        return logits_per_image, logits_per_text
+
+    def freeze(self):
+        for param in self.image_encoder.parameters():
+            param.requires_grad = False        
+
