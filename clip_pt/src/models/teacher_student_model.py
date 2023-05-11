@@ -11,7 +11,7 @@ class Student(nn.Module):
         self.student = AutoModel.from_pretrained(student_version,
                                                  cache_dir='/hahomes/gabriel.santos')
         self.student.gradient_checkpointing_enable()
-        self.pre_LN = nn.LayerNorm(self.student.pooler.dense.in_features, eps=1e-8)
+        self.pre_LN = nn.LayerNorm(self.student.pooler.dense.in_features, eps=1e-6)
         self.pooler = lambda x: x[:, 0]
 
         self.transform = nn.Linear(

@@ -83,8 +83,6 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
         lr_scheduler = self.lr_schedulers()
 
         teacher_output, student_output = self.model(train_batch)
-        teacher_output = teacher_output / teacher_output.norm(dim=1, keepdim=True)
-        student_output = student_output / student_output.norm(dim=1, keepdim=True)
         loss = self.loss(input=student_output, target=teacher_output)
 
         optimizer.zero_grad()
@@ -97,8 +95,5 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
 
     def validation_step(self, val_batch, batch_idx):
         teacher_output, student_output = self.model(val_batch)
-        teacher_output = teacher_output / teacher_output.norm(dim=1, keepdim=True)
-        student_output = student_output / student_output.norm(dim=1, keepdim=True)
-
         loss = self.loss(input=student_output, target=teacher_output)
         self.log("val/loss", loss)
