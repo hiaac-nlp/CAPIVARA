@@ -260,7 +260,8 @@ if __name__ == "__main__":
         vision_processor = model.image_preprocessor
     else:
         text_tokenizer = AutoTokenizer.from_pretrained(
-            "neuralmind/bert-base-portuguese-cased",
+            #"neuralmind/bert-base-portuguese-cased",
+            "xlm-roberta-large",
             do_lower_case=False,
             cache_dir="/hahomes/gabriel.santos/"
         )

@@ -5,7 +5,8 @@ from omegaconf import DictConfig
 from torch import nn
 from torch.optim import Adam
 
-from models.teacher_student_model import TeacherStudentCLIPTBR, TeacherStudent_mCLIP
+from models.teacher_student_model import TeacherStudentCLIPTBR, TeacherStudent_mCLIP, \
+    TeacherStudent_MeanPooling
 from utils.scheduler import CosineWarmupLR
 
 
@@ -21,7 +22,10 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
         self.automatic_optimization = False
         if config.model.get("strategy", None) == "mCLIP":
             self.model = TeacherStudent_mCLIP(teacher_version=config.model.teacher,
-                                               student_version=config.model.student)
+                                              student_version=config.model.student)
+        elif config.model.get("strategy", None) == "mean_pooling":
+            self.model = TeacherStudent_MeanPooling(teacher_version=config.model.teacher,
+                                                    student_version=config.model.student)            
         else:
             self.model = TeacherStudentCLIPTBR(teacher_version=config.model.teacher,
                                                student_version=config.model.student)
@@ -97,3 +101,4 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
         teacher_output, student_output = self.model(val_batch)
         loss = self.loss(input=student_output, target=teacher_output)
         self.log("val/loss", loss)
+
