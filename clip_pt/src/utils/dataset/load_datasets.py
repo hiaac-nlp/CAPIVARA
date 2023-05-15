@@ -164,7 +164,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
     return output
 
 
-def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_length):
+def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_length, lang="pt"):
     n_captions = len(example[1]["captions-en"])
     caption_index = random.randint(0, n_captions-1)
 
@@ -176,8 +176,14 @@ def tokenize_teacher_student(example, teacher_tokenizer, student_tokenizer, max_
         max_length=77
     )
 
+    if lang == "en":
+        sample = example[1]["captions-en"][caption_index]
+    else:
+        # Google translation (w/ even indices)
+        sample = example[1]["captions-pt"][2 * caption_index + 1]
+
     student_input = student_tokenizer(
-        example[1]["captions-pt"][2 * caption_index + 1],  # Google translation (w/ even indices)
+        sample,
         return_tensors="pt",
         padding="max_length",
         truncation=True,
@@ -234,12 +240,13 @@ def load_datasets_teacher_student(config, teacher_tokenizer, student_tokenizer) 
         val += list(braceexpand.braceexpand(dataset['path']))
 
     max_length = config.model.text_padding_size
+    lang = config.datasets.get("lang", "pt")
 
     train_dataset = wds.WebDataset(train, shardshuffle=True) \
         .shuffle(10000) \
         .decode("torchrgb") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length)) \
+        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length, lang=lang)) \
         .batched(config.batch_size) \
         .map(format_batch_teacher_student)
 
@@ -247,7 +254,7 @@ def load_datasets_teacher_student(config, teacher_tokenizer, student_tokenizer) 
         .shuffle(10000) \
         .decode("torchrgb") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length)) \
+        .map(lambda x: tokenize_teacher_student(x, teacher_tokenizer, student_tokenizer, max_length, lang=lang)) \
         .batched(config.batch_size) \
         .map(format_batch_teacher_student)
 
