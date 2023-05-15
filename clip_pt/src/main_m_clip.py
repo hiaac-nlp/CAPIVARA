@@ -49,7 +49,7 @@ def main() -> None:
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
     train_size = datasets["train_size"]
 
-    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
+    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu],carbon_checker=config.carbon["carbon_checker"])
 
     clip_pt = MCLIPWrapperImageClassification(config, train_size,
                                               val_labels=datasets["img_classif_labels"],
@@ -70,7 +70,7 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    carbon_tracker_end(tracker_code_carbon)
+    carbon_tracker_end(tracker_code_carbon,config.carbon["brazil_carbon_intensity"])
 
 if __name__ == "__main__":
     main()
