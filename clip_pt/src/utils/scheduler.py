@@ -82,7 +82,7 @@ class LinearLR(lr_scheduler._LRScheduler):
         self.start_factor = start_factor
         self.end_factor = end_factor
         self.total_iters = total_iters
-        # super().__init__(optimizer, last_epoch, verbose)
+        self.lr = optimizer.param_groups[0]['lr']
         super().__init__(optimizer, -1)
 
     def get_lr(self):

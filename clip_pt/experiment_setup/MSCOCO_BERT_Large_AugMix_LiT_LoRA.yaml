@@ -1,4 +1,4 @@
-title: MSCOCO_BERT_Large_AugMix_LiT_LoRA_lr-1e-3_linear_400steps
+title: MSCOCO_BERT_Large_AugMix_LiT_LoRA_lr-1e-3_linear_1000steps
 
 datasets:
     train:
@@ -36,7 +36,7 @@ scheduler:
     params:
         start_factor: 1.0
         end_factor: 0.1
-        total_iters: 400
+        total_iters: 1000
 
 batch_size: 1816
 accumulate_grad_batches: 1
