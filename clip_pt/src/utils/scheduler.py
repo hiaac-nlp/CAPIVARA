@@ -97,10 +97,8 @@ class LinearLR(lr_scheduler._LRScheduler):
             else:
                 return [self.lr[0]]
 
-        self.lr = [group['lr'] * (1. + (self.end_factor - self.start_factor) /
-                (self.total_iters * self.start_factor + (self.last_epoch - 1) * (self.end_factor - self.start_factor)))
-                for group in self.optimizer.param_groups]
-
+        self.lr = [self.lr[0] * (1. + (self.end_factor - self.start_factor) /
+                (self.total_iters * self.start_factor + (self.last_epoch - 1) * (self.end_factor - self.start_factor)))]
         if isinstance(self.lr[0], torch.Tensor):
             return [self.lr[0].item()]
         else:
