@@ -8,7 +8,7 @@ from torchmetrics import Accuracy
 
 from models.model import CLIPTBR
 from utils.loss import clip_loss
-from utils.scheduler import CosineWarmupLR
+from utils.scheduler import CosineWarmupLR, LinearLR
 
 
 class CLIPPTBRWrapperImageClassification(pl.LightningModule):
@@ -85,10 +85,24 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
                 T_max=self.train_size * self.trainer.max_epochs
             )
 
+        # if self.config.scheduler.name.lower() == 'linearlr':
+        #     scheduler = torch.optim.lr_scheduler.LinearLR(
+        #         optimizer, 
+        #         start_factor=1.0, 
+        #         end_factor=0.1, 
+        #         total_iters=5, 
+        #         last_epoch=-1, 
+        #         verbose=False
+        #     )
+
         if self.config.scheduler.name.lower() == 'linearlr':
-            scheduler = torch.optim.lr_scheduler.LinearLR(
-                optimizer,
-                total_iters=self.config.scheduler.params["warmup_lr"]
+            scheduler = LinearLR(
+                optimizer, 
+                start_factor=1.0, 
+                end_factor=0.1, 
+                total_iters=5, 
+                last_epoch=-1, 
+                verbose=False
             )
 
         return {
