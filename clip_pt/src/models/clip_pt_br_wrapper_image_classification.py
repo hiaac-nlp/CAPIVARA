@@ -88,9 +88,9 @@ class CLIPPTBRWrapperImageClassification(pl.LightningModule):
         if self.config.scheduler.name.lower() == 'linearlr':
             scheduler = LinearLR(
                 optimizer, 
-                start_factor=1.0, 
-                end_factor=0.1, 
-                total_iters=5, 
+                start_factor=self.config.scheduler.params["start_factor"], 
+                end_factor=self.config.scheduler.params["end_factor"], 
+                total_iters=self.config.scheduler.params["total_iters"], 
                 last_epoch=-1, 
                 verbose=False
             )

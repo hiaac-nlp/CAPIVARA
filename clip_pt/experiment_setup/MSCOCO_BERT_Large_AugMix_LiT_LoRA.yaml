@@ -20,7 +20,7 @@ model:
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
     warmup_steps: 1e9 # keeps the image encoder for the whole training
-    pretraining: "LiT" #options: LiT / contrastive
+    pretraining: "LiT" #options: LiT / contrascurtive
     adapter: "LoRA"
 
 optimizer:
