@@ -8,10 +8,11 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
 
+from models.OpenCLIP import OpenCLIP
 from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
-from models.model import CLIPTBRZeroshot
+from models.model import CLIPTBRZeroshot, CLIPTBRZeroshotMeanPooling
 
 sys.path.append("./")
 sys.path.append("../")
@@ -40,37 +41,35 @@ def tokenize(example, args):
     else:
         image_input = vision_processor(example[0])
 
-    text_input = None
+    captions = None
     if len(example[1]["captions-pt"]) == 1:
+        captions = example[1]["captions-pt"][0]
+    else:
+        if args.translation == "marian":
+            captions = example[1]["captions-pt"][1::2]
+        elif args.translation == "google":
+            captions = example[1]["captions-en"]#[0::2]
+
+    if args.model_path == "OpenCLIP":
+        text_input = text_tokenizer(captions)
+    else:
         text_input = text_tokenizer(
-            example[1]["captions-pt"][0],
+            captions,
             return_tensors="pt",
             padding="max_length",
             truncation=True,
             max_length=95
         )
-    else:
-        if args.translation == "marian":
-            text_input = text_tokenizer(
-                example[1]["captions-pt"][1::2],
-                return_tensors="pt",
-                padding="max_length",
-                truncation=True,
-                max_length=95
-            )
-        elif args.translation == "google":
-            text_input = text_tokenizer(
-                example[1]["captions-pt"][0::2],
-                return_tensors="pt",
-                padding="max_length",
-                truncation=True,
-                max_length=95
-            )
 
     return image_input, text_input
 
 
 def format_batch(batch):
+    if args.model_path == "OpenCLIP":
+        image_input = batch[0]
+        text_input = batch[1].reshape((-1, 77))
+        return image_input, text_input
+
     pixel_values = []
     input_ids = []
     attention_mask = []
@@ -119,6 +118,28 @@ def feature_extraction(model, dataloader, device):
                 img_features, txt_features = model(batch)
             else:
                 img_features, txt_features = model.model(batch)
+
+            norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
+            norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
+            image_features.append(norm_img_features)
+            text_features.append(norm_txt_features)
+
+    return image_features, text_features
+
+def feature_extraction_open_clip(model, dataloader, device):
+    image_features = []
+    text_features = []
+
+    model.to(device)
+    model.eval()
+    with torch.no_grad():
+        for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
+            image_input, text_input = batch
+            image_input = image_input.to(device)
+            text_input = text_input.to(device)
+            batch = image_input, text_input
+
+            img_features, txt_features = model(batch)
 
             norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
             norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
@@ -228,7 +249,7 @@ if __name__ == "__main__":
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
-    if args.model_path == "mCLIP":
+    if args.model_path == "mCLIP" or args.model_path == "OpenCLIP":
         dataset = wds.WebDataset(args.dataset_path) \
             .decode("pil") \
             .to_tuple("jpg;png", "json") \
@@ -244,12 +265,6 @@ if __name__ == "__main__":
             .map(lambda x: format_batch(x))
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
-    print(">>>>>>> Loading processors")
-    vision_processor = CLIPFeatureExtractor.from_pretrained(
-        "openai/clip-vit-base-patch32",
-        cache_dir="/hahomes/gabriel.santos/"
-    )
-
     print(">>>>>>> Loading model")
     if args.model_path == "mCLIP":
         text_tokenizer = AutoTokenizer.from_pretrained(
@@ -258,7 +273,15 @@ if __name__ == "__main__":
         )
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
+    if args.model_path == "OpenCLIP":
+        model = OpenCLIP(device=device)
+        vision_processor = model.image_preprocessor
+        text_tokenizer = model.text_tokenizer
     else:
+        vision_processor = CLIPFeatureExtractor.from_pretrained(
+            "openai/clip-vit-base-patch32",
+            cache_dir="/hahomes/gabriel.santos/"
+        )
         text_tokenizer = AutoTokenizer.from_pretrained(
             #"neuralmind/bert-base-portuguese-cased",
             "xlm-roberta-large",
@@ -270,11 +293,16 @@ if __name__ == "__main__":
             model = CLIPPTBRWrapperFinetuning.load_from_checkpoint(args.model_path)
         elif args.distill == "mCLIP":
             model = CLIPTBRZeroshot(args.model_path)
+        elif args.distill == "mean_pooling":
+            model = CLIPTBRZeroshotMeanPooling(args.model_path)
         else:
             model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
-    image_features, text_features = feature_extraction(model, dataloader, device)
+    if args.model_path == "OpenCLIP":
+        image_features, text_features = feature_extraction_open_clip(model, dataloader, device)
+    else:
+        image_features, text_features = feature_extraction(model, dataloader, device)
 
     # free memory
     del model
@@ -293,4 +321,5 @@ if __name__ == "__main__":
     print("Recall@5: ", recall_5.item())
     print("Recall@10: ", recall_10.item())
     print("Mean Recall: ", mr.item())
+
 
