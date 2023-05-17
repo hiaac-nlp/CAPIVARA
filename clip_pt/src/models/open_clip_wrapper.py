@@ -34,7 +34,7 @@ class OpenCLIPWrapper(pl.LightningModule):
 
         self.retrieval_val_acc = Accuracy(task="multiclass", num_classes=self.config["batch_size"])
         self.classification_val_acc = None if val_labels is None \
-            else Accuracy(task="multiclass", num_classes=val_labels['input_ids'].shape[0])
+            else Accuracy(task="multiclass", num_classes=val_labels.shape[0])
 
         self.image_feature_list = []
         self.text_feature_list = []

@@ -85,7 +85,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
             annotation_path=config.datasets.img_classification.annotation_path,
             vision_processor=vision_processor,
             text_tokenizer=text_tokenizer,
-            max_length=77)
+            max_length=77,
+            open_clip=True)
 
         img_classif_dataloader = DataLoader(img_classif_dataset, batch_size=config.batch_size,
                                             num_workers=10)
@@ -94,4 +95,5 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         output["img_classif_labels"] = img_classif_dataset.get_labels()
 
     return output
+
 
