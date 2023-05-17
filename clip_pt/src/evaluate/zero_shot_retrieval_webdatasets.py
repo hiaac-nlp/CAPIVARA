@@ -12,7 +12,7 @@ from models.OpenCLIP import OpenCLIP
 from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
-from models.model import CLIPTBRZeroshot, CLIPTBRZeroshotMeanPooling
+from models.model import CLIPTBRZeroshot
 
 sys.path.append("./")
 sys.path.append("../")
@@ -283,8 +283,8 @@ if __name__ == "__main__":
             cache_dir="/hahomes/gabriel.santos/"
         )
         text_tokenizer = AutoTokenizer.from_pretrained(
-            #"neuralmind/bert-base-portuguese-cased",
-            "xlm-roberta-large",
+            "neuralmind/bert-base-portuguese-cased",
+            #"xlm-roberta-large",
             do_lower_case=False,
             cache_dir="/hahomes/gabriel.santos/"
         )
@@ -293,8 +293,6 @@ if __name__ == "__main__":
             model = CLIPPTBRWrapperFinetuning.load_from_checkpoint(args.model_path)
         elif args.distill == "mCLIP":
             model = CLIPTBRZeroshot(args.model_path)
-        elif args.distill == "mean_pooling":
-            model = CLIPTBRZeroshotMeanPooling(args.model_path)
         else:
             model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
@@ -321,5 +319,6 @@ if __name__ == "__main__":
     print("Recall@5: ", recall_5.item())
     print("Recall@10: ", recall_10.item())
     print("Mean Recall: ", mr.item())
+
 
 
