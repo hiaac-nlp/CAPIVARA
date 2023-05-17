@@ -21,6 +21,12 @@ class OpenCLIP(torch.nn.Module):
 
         return image_features, text_features
 
+    def encode_visual(self, visual_inputs):
+        return self.model.encode_image(visual_inputs)
+
+    def encode_text(self, text_inputs):
+        return self.model.encode_text(text_inputs)
+
     def compute_logits(
             self,
             image_features,

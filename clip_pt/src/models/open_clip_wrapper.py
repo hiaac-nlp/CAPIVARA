@@ -36,9 +36,6 @@ class OpenCLIPWrapper(pl.LightningModule):
         self.classification_val_acc = None if val_labels is None \
             else Accuracy(task="multiclass", num_classes=val_labels.shape[0])
 
-        self.image_feature_list = []
-        self.text_feature_list = []
-
         self.complete_training = False
         self.complete_validation = False
 
@@ -93,58 +90,38 @@ class OpenCLIPWrapper(pl.LightningModule):
         optimizer = self.optimizers()
         lr_scheduler = self.lr_schedulers()
 
-        mb_image_features, mb_text_features = self.model.encode(train_batch)
+        image_features, text_features = self.model.encode(train_batch)
+        logits_per_image, logits_per_text = self.model.compute_logits(image_features,
+                                                                      text_features,
+                                                                      fixed_logit=False)
+        loss = clip_loss(logits_per_text)
+        optimizer.zero_grad()
+        self.manual_backward(loss)
+        optimizer.step()
+        if lr_scheduler:
+            lr_scheduler.step(loss)
 
-        self.image_feature_list.append(mb_image_features)
-        self.text_feature_list.append(mb_text_features)
+        preds_image = logits_per_image.argmax(dim=1)
+        preds_text = logits_per_text.argmax(dim=1)
+        ground_truth = torch.arange(len(logits_per_image), dtype=torch.long,
+                                    device=logits_per_image.device)
 
-        if (batch_idx + 1) % self.config["accumulate_grad_batches"] == 0:
-            image_features = torch.concat(self.image_feature_list, dim=0)
-            text_features = torch.concat(self.text_feature_list, dim=0)
-            logits_per_image, logits_per_text = self.model.compute_logits(image_features,
-                                                                          text_features,
-                                                                          fixed_logit=False)
-            loss = clip_loss(logits_per_text)
-            optimizer.zero_grad()
-            self.manual_backward(loss)
-            optimizer.step()
-            if lr_scheduler:
-                lr_scheduler.step(loss)
+        batch_image_accuracy = self.image_train_acc(preds_image, ground_truth)
+        batch_text_accuracy = self.text_train_acc(preds_text, ground_truth)
 
-            preds_image = logits_per_image.argmax(dim=1)
-            preds_text = logits_per_text.argmax(dim=1)
-            ground_truth = torch.arange(len(logits_per_image), dtype=torch.long,
-                                        device=logits_per_image.device)
-
-            batch_image_accuracy = self.image_train_acc(preds_image, ground_truth)
-            batch_text_accuracy = self.text_train_acc(preds_text, ground_truth)
-            batch_text_image = (batch_image_accuracy + batch_text_accuracy) / 2.0
-
-            self.log("train/loss", loss)
-            self.log("train/batch_image_accuracy", batch_image_accuracy)
-            self.log("train/batch_text_accuracy", batch_text_accuracy)
-            self.log("train/batch_text_image_accuracy", batch_text_image)
-
-            self.image_feature_list = []
-            self.text_feature_list = []
-
-            self.complete_training = True
+        self.log("train/loss", loss)
+        self.log("train/batch_image_accuracy", batch_image_accuracy)
+        self.log("train/batch_text_accuracy", batch_text_accuracy)
 
     def on_train_epoch_end(self):
-        self.image_feature_list = []
-        self.text_feature_list = []
+        epoch_image_accuracy = self.image_train_acc.compute()
+        epoch_text_accuracy = self.text_train_acc.compute()
 
-        if self.complete_training:
-            epoch_image_accuracy = self.image_train_acc.compute()
-            epoch_text_accuracy = self.text_train_acc.compute()
-            epoch_text_image_accuracy = (epoch_image_accuracy + epoch_text_accuracy) / 2.0
+        self.log("train/epoch_image_accuracy", epoch_image_accuracy)
+        self.log("train/epoch_text_accuracy", epoch_text_accuracy)
 
-            self.log("train/epoch_image_accuracy", epoch_image_accuracy)
-            self.log("train/epoch_text_accuracy", epoch_text_accuracy)
-            self.log("train/epoch_text_image_accuracy", epoch_text_image_accuracy)
-
-            self.image_train_acc.reset()
-            self.text_train_acc.reset()
+        self.image_train_acc.reset()
+        self.text_train_acc.reset()
 
 
     def validation_step(self, val_batch, batch_idx, dataset_idx):
