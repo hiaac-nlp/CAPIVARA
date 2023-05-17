@@ -10,6 +10,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from models.open_CLIP import OpenCLIP
 from models.open_clip_wrapper import OpenCLIPWrapper
+from models.self_distill_clip_wrapper import SelfDistillCLIPWrapper
 from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 from utils.dataset.load_datasets_open_clip import load_datasets
 
@@ -49,11 +50,16 @@ def main() -> None:
 
     tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"],
                                               gpu_ids=[args.gpu])
-
-    clip_pt = OpenCLIPWrapper(config, train_size,
-                              val_labels=datasets["img_classif_labels"],
-                              model=model,
-                              carbon_tracker=None)
+    if config.get("self_distill", False):
+        clip_pt = SelfDistillCLIPWrapper(config, train_size,
+                                  val_labels=datasets["img_classif_labels"],
+                                  model=model,
+                                  carbon_tracker=None)
+    else:
+        clip_pt = OpenCLIPWrapper(config, train_size,
+                                  val_labels=datasets["img_classif_labels"],
+                                  model=model,
+                                  carbon_tracker=None)
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
 
