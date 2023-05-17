@@ -81,9 +81,9 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.self_distill)) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
         .batched(config.batch_size) \
-        .map(lambda x: format_batch(x, self_distill=config.self_distill))
+        .map(lambda x: format_batch(x))
 
     # dataset size correctly according to the number of batches
     train_size = math.ceil(train_size // config.batch_size)

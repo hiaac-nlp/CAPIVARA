@@ -18,7 +18,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         super().__init__(config, train_size, val_labels, model, carbon_tracker)
         self.mse = nn.MSELoss()
         self.alpha = config.alpha
-        assert 0 >= self.alpha >= 1, "alpha must be in the range [0,1]"
+        assert 0 <= self.alpha <= 1, "alpha must be in the range [0,1]"
 
     def training_step(self, train_batch, batch_idx):
         optimizer = self.optimizers()
