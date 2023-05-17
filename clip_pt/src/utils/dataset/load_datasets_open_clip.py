@@ -11,19 +11,37 @@ from torch.utils.data import DataLoader
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
-def tokenize(example, vision_processor, text_tokenizer):
+def tokenize(example, vision_processor, text_tokenizer, self_distill=False):
     img = example[0]
     image_input = vision_processor(img)
 
-    # take a random caption
-    text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
-    return image_input, text_input
+    if self_distill:
+        n_captions = len(example[1]["captions-en"])
+        caption_index = random.randint(0, n_captions - 1)
+
+        # Google translation (w/ even indices)
+        sample_pt = example[1]["captions-pt"][2 * caption_index + 1]
+        sample_en = example[1]["captions-en"][caption_index]
+
+        text_pt_input = text_tokenizer(sample_pt)
+        text_en_input = text_tokenizer(sample_en)
+        return image_input, text_pt_input, text_en_input
+    else:
+        # take a random caption
+        text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
+        return image_input, text_input
 
 
-def format_batch(batch):
+def format_batch(batch, self_distill=False):
     image_input = batch[0]
-    text_input = batch[1].reshape((-1, 77))
-    return image_input, text_input
+    if self_distill:
+        text_pt_input = batch[1].reshape((-1, 77))
+        text_en_input = batch[2].reshape((-1, 77))
+
+        return image_input, text_pt_input, text_en_input
+    else:
+        text_input = batch[1].reshape((-1, 77))
+        return image_input, text_input
 
 
 def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
@@ -55,17 +73,17 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.self_distill)) \
         .batched(config.batch_size) \
-        .map(format_batch)
+        .map(lambda x: format_batch(x, self_distill=config.self_distill))
 
     val_dataset = wds.WebDataset(val, shardshuffle=True) \
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.self_distill)) \
         .batched(config.batch_size) \
-        .map(format_batch)
+        .map(lambda x: format_batch(x, self_distill=config.self_distill))
 
     # dataset size correctly according to the number of batches
     train_size = math.ceil(train_size // config.batch_size)
