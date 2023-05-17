@@ -48,7 +48,7 @@ def tokenize(example, args):
         if args.translation == "marian":
             captions = example[1]["captions-pt"][1::2]
         elif args.translation == "google":
-            captions = example[1]["captions-en"]#[0::2]
+            captions = example[1]["captions-pt"][0::2]
 
     if args.model_path == "OpenCLIP":
         text_input = text_tokenizer(captions)
