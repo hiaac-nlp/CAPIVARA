@@ -70,12 +70,17 @@ class OpenCLIPWrapper(pl.LightningModule):
             )
 
         if self.config.scheduler.name.lower() == "cosinewarmuplr":
+            if not self.config.get("max_iter", False):
+                T_max = self.train_size * self.trainer.max_epochs
+            else:
+                T_max = self.config.max_iter
+
             scheduler = CosineWarmupLR(
                 optimizer,
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=self.train_size * self.trainer.max_epochs
+                T_max=T_max
             )
 
         return {
