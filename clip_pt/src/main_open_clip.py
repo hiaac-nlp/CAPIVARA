@@ -62,6 +62,7 @@ def main() -> None:
                                   carbon_tracker=None)
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
+    config["model_checkpoint"].pop("dirpath")
 
     trainer = pl.Trainer(
         **config["trainer"],
