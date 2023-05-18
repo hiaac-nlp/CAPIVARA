@@ -8,11 +8,12 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
 
-from models.OpenCLIP import OpenCLIP
 from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
 from models.mCLIP import mCLIP
 from models.model import CLIPTBRZeroshot
+from models.open_CLIP import OpenCLIP
+from models.open_clip_wrapper import OpenCLIPWrapper
 
 sys.path.append("./")
 sys.path.append("../")
@@ -25,6 +26,7 @@ def parse_args():
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
+    parser.add_argument("--open-clip", type=bool, default=False)
     parser.add_argument("--gpu", help="GPU", )
 
     return parser.parse_args()
@@ -50,7 +52,7 @@ def tokenize(example, args):
         elif args.translation == "google":
             captions = example[1]["captions-pt"][0::2]
 
-    if args.model_path == "OpenCLIP":
+    if args.model_path == "OpenCLIP" or args.open_clip:
         text_input = text_tokenizer(captions)
     else:
         text_input = text_tokenizer(
@@ -65,7 +67,7 @@ def tokenize(example, args):
 
 
 def format_batch(batch):
-    if args.model_path == "OpenCLIP":
+    if args.model_path == "OpenCLIP" or args.open_clip:
         image_input = batch[0]
         text_input = batch[1].reshape((-1, 77))
         return image_input, text_input
@@ -249,7 +251,7 @@ if __name__ == "__main__":
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
-    if args.model_path == "mCLIP" or args.model_path == "OpenCLIP":
+    if args.model_path == "mCLIP" or args.model_path == "OpenCLIP" or args.open_clip:
         dataset = wds.WebDataset(args.dataset_path) \
             .decode("pil") \
             .to_tuple("jpg;png", "json") \
@@ -274,7 +276,11 @@ if __name__ == "__main__":
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
     if args.model_path == "OpenCLIP":
-        model = OpenCLIP(device=device)
+        if args.open_clip:
+            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path).model
+        else:
+            model = OpenCLIP()
+
         vision_processor = model.image_preprocessor
         text_tokenizer = model.text_tokenizer
     else:
@@ -297,7 +303,7 @@ if __name__ == "__main__":
             model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
 
     print(">>>>>>> Extracting features")
-    if args.model_path == "OpenCLIP":
+    if args.model_path == "OpenCLIP" or args.open_clip:
         image_features, text_features = feature_extraction_open_clip(model, dataloader, device)
     else:
         image_features, text_features = feature_extraction(model, dataloader, device)

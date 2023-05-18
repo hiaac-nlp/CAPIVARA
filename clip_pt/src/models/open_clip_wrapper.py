@@ -5,6 +5,7 @@ from torch import nn
 from torch.optim import Adam
 from torchmetrics import Accuracy
 
+from models.open_CLIP import OpenCLIP
 from utils import utils
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR
@@ -16,13 +17,17 @@ class OpenCLIPWrapper(pl.LightningModule):
             config: DictConfig,
             train_size: int,
             val_labels,
-            model,
-            carbon_tracker
+            carbon_tracker,
+            model=None
     ):
         super().__init__()
         self.save_hyperparameters(config)
         self.automatic_optimization = False
-        self.model = model
+        if model is None:
+            self.model = OpenCLIP()
+        else:
+            self.model = model
+
         self.carbon_tracker = carbon_tracker
 
         self.config = config
