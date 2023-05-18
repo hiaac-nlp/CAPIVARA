@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import random
 from typing import Dict
@@ -84,10 +83,6 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x))
-
-    # dataset size correctly according to the number of batches
-    train_size = math.ceil(train_size / config.batch_size)
-    val_size = val_size // config.batch_size
 
     train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
