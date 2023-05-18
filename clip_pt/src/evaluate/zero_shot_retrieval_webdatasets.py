@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
-    parser.add_argument("--open-clip", type=bool, default=False)
+    parser.add_argument("--open-clip", type=bool, default=False, required=False)
     parser.add_argument("--gpu", help="GPU", )
 
     return parser.parse_args()
@@ -275,7 +275,7 @@ if __name__ == "__main__":
         )
         model = mCLIP(device=device)
         vision_processor = model.image_preprocessor
-    if args.model_path == "OpenCLIP":
+    if args.model_path == "OpenCLIP" or args.open_clip:
         if args.open_clip:
             model = OpenCLIPWrapper.load_from_checkpoint(args.model_path).model
         else:
