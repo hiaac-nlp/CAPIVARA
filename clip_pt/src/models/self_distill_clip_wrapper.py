@@ -18,7 +18,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
         self.mse = nn.MSELoss()
-        if isinstance(config.alpha, dict):
+        if isinstance(config.alpha, DictConfig):
             self.alpha_constant = False
             self.max_alpha = config.max_alpha
             self.min_alpha = config.min_alpha
