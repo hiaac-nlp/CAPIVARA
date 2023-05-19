@@ -15,7 +15,8 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
             carbon_tracker=None,
             model=None
     ):
-        super().__init__(config, train_size, val_labels, model, carbon_tracker)
+        super().__init__(config, train_size=train_size, val_labels=val_labels, carbon_tracker=model,
+                         model=carbon_tracker)
         self.mse = nn.MSELoss()
         self.alpha = config.alpha
         assert 0 <= self.alpha <= 1, "alpha must be in the range [0,1]"
