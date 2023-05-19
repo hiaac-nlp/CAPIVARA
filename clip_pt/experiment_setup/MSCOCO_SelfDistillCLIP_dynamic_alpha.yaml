@@ -1,4 +1,4 @@
-title: MSCOCO_self_distill_alpha_1e-2
+title: MSCOCO_self_distill_dynamic_alpha
 
 datasets:
     train:

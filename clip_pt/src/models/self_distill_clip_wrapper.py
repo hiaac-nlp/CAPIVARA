@@ -67,6 +67,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         batch_text_accuracy = self.text_train_acc(preds_text, ground_truth)
 
         self.log("train/loss", loss)
+        self.log("train/alpha", alpha)
         self.log("train/infoNCE", contrastive_loss)
         self.log("train/mse_loss", mse_loss)
         self.log("train/batch_image_accuracy", batch_image_accuracy)
