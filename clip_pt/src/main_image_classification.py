@@ -34,15 +34,21 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    vision_processor = CLIPFeatureExtractor.from_pretrained(config.model.image_encoder,
-                                                            cache_dir='/hahomes/gabriel.santos/')
-    text_tokenizer = AutoTokenizer.from_pretrained(config.model.text_encoder,
-                                                   do_lower_case=False,
-                                                   cache_dir='/hahomes/gabriel.santos/')
+    vision_processor = CLIPFeatureExtractor.from_pretrained(
+        config.model.image_encoder,
+        cache_dir='/hahomes/gabriel.santos/'
+    )
+    text_tokenizer = AutoTokenizer.from_pretrained(
+        config.model.text_encoder,
+        do_lower_case=False,
+        cache_dir='/hahomes/gabriel.santos/'
+    )
 
-    datasets = load_datasets(config=config,
-                             vision_processor=vision_processor,
-                             text_tokenizer=text_tokenizer)
+    datasets = load_datasets(
+        config=config,
+        vision_processor=vision_processor,
+        text_tokenizer=text_tokenizer
+    )
 
     train_dataloader = datasets["train_dataloader"]
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
@@ -50,9 +56,11 @@ def main() -> None:
 
     tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"], gpu_ids=[args.gpu])
 
-    clip_pt = CLIPPTBRWrapperImageClassification(config, train_size,
-                                                 val_labels=datasets["img_classif_labels"],
-                                                 carbon_tracker=tracker_code_carbon)
+    clip_pt = CLIPPTBRWrapperImageClassification(
+        config, train_size,
+        val_labels=datasets["img_classif_labels"],
+        carbon_tracker=tracker_code_carbon
+    )
 
     logger = WandbLogger(project="CLIP-PT", name=config.title)
     config["model_checkpoint"].pop("dirpath")

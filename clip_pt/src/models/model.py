@@ -18,20 +18,39 @@ class CLIPTBR(nn.Module):
         super().__init__()
         self.pretraining = pretraining
         self.projection_dim = projection_dim
-        self.image_encoder = CLIPVisionModel.from_pretrained(vision_encoder_version,
-                                                             cache_dir='/hahomes/gabriel.santos')
-        self.text_encoder = AutoModel.from_pretrained(text_encoder_version,
-                                                      cache_dir='/hahomes/gabriel.santos')
+
+        if vision_encoder_version.startswith("openai"):
+            self.image_encoder = CLIPVisionModel.from_pretrained(
+                vision_encoder_version,
+                cache_dir='/hahomes/gabriel.santos'
+            )
+        else:
+            self.image_encoder = AutoModel.from_pretrained(
+                vision_encoder_version,
+                # add_pooling_layer=False,
+                cache_dir='/hahomes/gabriel.santos'
+            )
+        self.text_encoder = AutoModel.from_pretrained(
+            text_encoder_version,
+            cache_dir='/hahomes/gabriel.santos'
+        )
         self.add_adapter(self.text_encoder, adapter_name=adapter)
 
         self.image_encoder.gradient_checkpointing_enable()
         self.text_encoder.gradient_checkpointing_enable()
 
-        self.visual_projection = nn.Linear(
-            self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
-            self.projection_dim,
-            bias=False
-        )
+        if vision_encoder_version.startswith("openai"):
+            self.visual_projection = nn.Linear(
+                self.image_encoder.vision_model.post_layernorm.normalized_shape[0],
+                self.projection_dim,
+                bias=False
+            )
+        else:
+            self.visual_projection = nn.Linear(
+                self.image_encoder.layernorm.normalized_shape[0],
+                self.projection_dim,
+                bias=False
+            )
 
         self.text_projection = nn.Linear(
             self.text_encoder.pooler.dense.in_features,
