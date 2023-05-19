@@ -18,8 +18,16 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
         self.mse = nn.MSELoss()
-        self.alpha = config.alpha
-        assert 0 <= self.alpha <= 1, "alpha must be in the range [0,1]"
+        if isinstance(config.alpha, dict):
+            self.alpha_constant = False
+            self.max_alpha = config.max_alpha
+            self.min_alpha = config.min_alpha
+            self.warmup_start = config.warmup_start
+            self.warmup_end = config.warmup_end
+        else:
+            self.alpha_constant = True
+            self.alpha = config.alpha
+            assert 0 <= self.alpha <= 1, "alpha must be in the range [0,1]"
 
     def training_step(self, train_batch, batch_idx):
         optimizer = self.optimizers()
@@ -36,7 +44,13 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
 
         contrastive_loss = clip_loss(logits_per_text)
         mse_loss = self.mse(input=text_pt_features, target=text_en_features)
-        loss = self.alpha * contrastive_loss + (1 - self.alpha) * mse_loss
+
+        if self.alpha_constant:
+            alpha = self.alpha
+        else:
+            alpha = self.compute_alpha()
+
+        loss = alpha * contrastive_loss + (1 - alpha) * mse_loss
 
         optimizer.zero_grad()
         self.manual_backward(loss)
@@ -57,3 +71,13 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         self.log("train/mse_loss", mse_loss)
         self.log("train/batch_image_accuracy", batch_image_accuracy)
         self.log("train/batch_text_accuracy", batch_text_accuracy)
+
+    def compute_alpha(self):
+        if self.trainer.global_step <= self.warmup_start:
+            return self.min_alpha
+
+        if self.warmup_start < self.trainer.global_step < self.warmup_end:
+            return self.min_alpha + (self.trainer.global_step - self.warmup_start) * \
+                (self.max_alpha - self.min_alpha) / (self.warmup_end - self.warmup_start)
+
+        return self.max_alpha
