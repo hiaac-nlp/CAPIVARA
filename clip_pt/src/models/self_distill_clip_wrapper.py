@@ -20,10 +20,10 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         self.mse = nn.MSELoss()
         if isinstance(config.alpha, DictConfig):
             self.alpha_constant = False
-            self.max_alpha = config.max_alpha
-            self.min_alpha = config.min_alpha
-            self.warmup_start = config.warmup_start
-            self.warmup_end = config.warmup_end
+            self.max_alpha = config.alpha.max_alpha
+            self.min_alpha = config.alpha.min_alpha
+            self.warmup_start = config.alpha.warmup_start
+            self.warmup_end = config.alpha.warmup_end
         else:
             self.alpha_constant = True
             self.alpha = config.alpha
