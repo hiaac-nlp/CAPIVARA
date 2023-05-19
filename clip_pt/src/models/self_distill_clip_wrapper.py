@@ -10,10 +10,10 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
     def __init__(
             self,
             config: DictConfig,
-            train_size: int,
-            val_labels,
-            model,
-            carbon_tracker,
+            train_size: int = 0,
+            val_labels=None,
+            carbon_tracker=None,
+            model=None
     ):
         super().__init__(config, train_size, val_labels, model, carbon_tracker)
         self.mse = nn.MSELoss()
