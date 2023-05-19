@@ -46,7 +46,7 @@ class CLIPTBR(nn.Module):
         config = None
         if adapter_name is not None:
             if adapter_name.lower() == "lora":
-                config = LoRAConfig()
+                config = LoRAConfig(alpha=16)
             elif adapter_name.lower() == "unipelt":
                 config = UniPELTConfig()
 
@@ -116,4 +116,14 @@ class CLIPTBR(nn.Module):
 
         if self.pretraining.lower() != "lit":
             for param in self.text_encoder.parameters():
+                param.requires_grad = True
+
+    def partial_unfreeze(self,layer_to_unfreeze):
+        params_to_train=[f'text_encoder.encoder.layer.{layer_to_unfreeze}.attention.self.query.loras.LoRA.lora_A',
+                        f'text_encoder.encoder.layer.{layer_to_unfreeze}.attention.self.query.loras.LoRA.lora_B',
+                        f'text_encoder.encoder.layer.{layer_to_unfreeze}.attention.self.value.loras.LoRA.lora_A',
+                        f'text_encoder.encoder.layer.{layer_to_unfreeze}.attention.self.value.loras.LoRA.lora_B']
+        
+        for name, param in self.named_parameters():
+            if name in params_to_train: 
                 param.requires_grad = True

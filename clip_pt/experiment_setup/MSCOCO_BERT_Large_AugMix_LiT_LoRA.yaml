@@ -1,4 +1,4 @@
-title: MSCOCO_BERT_Large_AugMix_LiT_LoRA_lr-1e-3_linear_1000steps
+title: MSCOCO_BERT_Large_AugMix_LiT_LoRA_linear_1000steps_alpha-16_progressive
 
 datasets:
     train:
@@ -19,9 +19,11 @@ model:
     text_encoder: "neuralmind/bert-large-portuguese-cased"
     image_encoder: "openai/clip-vit-base-patch32"
     text_padding_size: 95
+    number_layers: 24
     warmup_steps: 1e9 # keeps the image encoder for the whole training
     pretraining: "LiT" #options: LiT / contrascurtive
     adapter: "LoRA"
+    progressive_adapter: 20
 
 optimizer:
     name: "Adam"

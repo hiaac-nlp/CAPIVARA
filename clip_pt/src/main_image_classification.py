@@ -13,6 +13,7 @@ from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageC
 from utils.dataset.load_datasets import load_datasets
 
 from utils.carbon_tracker import carbon_tracker_init,carbon_tracker_end
+from utils.callbacks import AdaptersActivation
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
@@ -62,7 +63,8 @@ def main() -> None:
         logger=logger,
         callbacks=[
             ModelCheckpoint(**config["model_checkpoint"]),
-            LearningRateMonitor("step")
+            LearningRateMonitor("step"),
+            AdaptersActivation(config.model.number_layers,config.model.progressive_adapter),
         ],
         devices=[args.gpu],
         default_root_dir=os.path.join("../checkpoints/clip_pt", config["title"])
