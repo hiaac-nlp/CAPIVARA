@@ -277,7 +277,7 @@ if __name__ == "__main__":
         vision_processor = model.image_preprocessor
     if args.model_path == "OpenCLIP" or args.open_clip:
         if args.open_clip:
-            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path).model
+            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
         else:
             model = OpenCLIP()
 
