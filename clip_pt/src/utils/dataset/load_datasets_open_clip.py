@@ -72,9 +72,9 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.self_distill)) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.get("self_distill", False))) \
         .batched(config.batch_size) \
-        .map(lambda x: format_batch(x, self_distill=config.self_distill))
+        .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
 
     val_dataset = wds.WebDataset(val, shardshuffle=True) \
         .shuffle(10000) \
