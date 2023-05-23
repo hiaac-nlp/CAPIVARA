@@ -7,6 +7,7 @@ from torch.optim import Adam
 
 from models.teacher_student_model import TeacherStudentCLIPTBR, TeacherStudent_mCLIP, \
     TeacherStudent_MeanPooling
+from utils import utils
 from utils.scheduler import CosineWarmupLR
 
 
@@ -67,7 +68,7 @@ class TeacherStudentCLIPPTBRWrapper(pl.LightningModule):
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=self.train_size * self.trainer.max_epochs
+                T_max=utils.compute_n_batches(self.train_size, self.config.batch_size) * self.trainer.max_epochs
             )
 
         return {

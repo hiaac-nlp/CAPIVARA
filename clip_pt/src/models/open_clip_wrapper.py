@@ -81,7 +81,7 @@ class OpenCLIPWrapper(pl.LightningModule):
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=utils.compute_n_batches(self.train_size, self.config.batch_size)
+                T_max=utils.compute_n_batches(self.train_size, self.config.batch_size) * self.trainer.max_epochs
             )
 
         return {
