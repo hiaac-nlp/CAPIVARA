@@ -16,7 +16,7 @@ datasets:
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-5
+        learning_rate: 5e-5
         eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
@@ -24,7 +24,7 @@ optimizer:
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 800
+        warmup_lr: 500
 
 
 batch_size: 2816
@@ -32,7 +32,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_epochs: 10  #
+    max_steps: 2000
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -42,7 +42,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/pracegover_lit"
+    dirpath: "../checkpoints/clip_pt/MSCOCO_LiT"
 
 early_stopping:
     verbose: true
