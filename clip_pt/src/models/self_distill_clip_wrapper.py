@@ -77,6 +77,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
 
             mse_loss = self.mse(input=text_pt_features, target=text_en_features)
             loss = alpha * contrastive_loss + (1 - alpha) * mse_loss
+            self.log("train/mse_loss", mse_loss)
 
         optimizer.zero_grad()
         self.manual_backward(loss)
@@ -95,7 +96,6 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         self.log("train/loss", loss)
         self.log("train/alpha", alpha)
         self.log("train/infoNCE", contrastive_loss)
-        self.log("train/mse_loss", mse_loss)
         self.log("train/batch_image_accuracy", batch_image_accuracy)
         self.log("train/batch_text_accuracy", batch_text_accuracy)
 
