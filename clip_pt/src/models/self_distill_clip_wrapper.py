@@ -146,7 +146,7 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
         else:
             alpha = self.compute_alpha()
 
-        if self.config.self_distill == "kl":
+        if self.config.self_distill == "teacher-kl":
             with torch.no_grad():
                 text_en_features = self.teacher(text_en_input)
 
@@ -160,7 +160,7 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
             loss = alpha * contrastive_loss + (1 - alpha) * distillation_loss
             self.log("train/KL pt-en", distillation_loss)
         else:
-            if self.config.self_distill == "complete":
+            if self.config.self_distill == "teacher-complete":
                 text_en_features = self.teacher(text_en_input)
                 _, logits_per_text_en = self.model.compute_logits(image_features,
                                                                   text_en_features,
