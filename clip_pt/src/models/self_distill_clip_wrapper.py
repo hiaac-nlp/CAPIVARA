@@ -1,7 +1,7 @@
 import torch
 from omegaconf import DictConfig
 from torch import nn
-
+import torch.nn.functional as F
 from models.open_clip_wrapper import OpenCLIPWrapper
 from utils.loss import clip_loss
 
@@ -18,6 +18,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
         self.mse = nn.MSELoss()
+        self.kl = nn.KLDivLoss()
         if isinstance(config.alpha, DictConfig):
             self.alpha_constant = False
             self.max_alpha = config.alpha.max_alpha
@@ -40,28 +41,42 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
                                                                       text_pt_features,
                                                                       fixed_logit=False)
         contrastive_loss = clip_loss(logits_per_text_pt)
-        if self.config.self_distill == "complete":
-            text_en_features = self.model.encode_text(text_en_input)
-            _, logits_per_text_en = self.model.compute_logits(image_features,
-                                                              text_en_features,
-                                                              fixed_logit=False)
-            contrastive_loss_en = clip_loss(logits_per_text_en)
-            self.log("train/infoNCE_en", contrastive_loss_en)
-            self.log("train/infoNCE_pt", contrastive_loss)
-
-            contrastive_loss += contrastive_loss_en
-        else:
-            with torch.no_grad():
-                text_en_features = self.model.encode_text(text_en_input)
-
-        mse_loss = self.mse(input=text_pt_features, target=text_en_features)
 
         if self.alpha_constant:
             alpha = self.alpha
         else:
             alpha = self.compute_alpha()
 
-        loss = alpha * contrastive_loss + (1 - alpha) * mse_loss
+        if self.config.self_distill == "kl":
+            with torch.no_grad():
+                text_en_features = self.model.encode_text(text_en_input)
+
+            _, logits_per_text_en = self.model.compute_logits(image_features,
+                                                              text_en_features,
+                                                              fixed_logit=False)
+
+            distillation_loss = self.kl(input=F.softmax(logits_per_text_pt / 3.0, dim=1),
+                                        target=F.softmax(logits_per_text_en / 3.0, dim=1))
+
+            loss = alpha * contrastive_loss + (1 - alpha) * distillation_loss
+            self.log("train/KL pt-en", distillation_loss)
+        else:
+            if self.config.self_distill == "complete":
+                text_en_features = self.model.encode_text(text_en_input)
+                _, logits_per_text_en = self.model.compute_logits(image_features,
+                                                                  text_en_features,
+                                                                  fixed_logit=False)
+                contrastive_loss_en = clip_loss(logits_per_text_en)
+                self.log("train/infoNCE_en", contrastive_loss_en)
+                self.log("train/infoNCE_pt", contrastive_loss)
+
+                contrastive_loss = (contrastive_loss_en + contrastive_loss) / 2
+            else:
+                with torch.no_grad():
+                    text_en_features = self.model.encode_text(text_en_input)
+
+            mse_loss = self.mse(input=text_pt_features, target=text_en_features)
+            loss = alpha * contrastive_loss + (1 - alpha) * mse_loss
 
         optimizer.zero_grad()
         self.manual_backward(loss)
