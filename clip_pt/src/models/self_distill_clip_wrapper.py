@@ -125,7 +125,7 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
     ):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
-        self.teacher = copy.deepcopy(self.model.text)
+        self.teacher = copy.deepcopy(self.model.model.text)
         for param in self.teacher.parameters():
             param.requires_grad = False
 
