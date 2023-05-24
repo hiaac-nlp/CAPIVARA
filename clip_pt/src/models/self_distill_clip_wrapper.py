@@ -36,13 +36,24 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         image_input, text_pt_input, text_en_input = train_batch
 
         image_features, text_pt_features = self.model.encode((image_input, text_pt_input))
-        logits_per_image, logits_per_text = self.model.compute_logits(image_features,
+        logits_per_image_pt, logits_per_text_pt = self.model.compute_logits(image_features,
                                                                       text_pt_features,
                                                                       fixed_logit=False)
-        with torch.no_grad():
+        contrastive_loss = clip_loss(logits_per_text_pt)
+        if self.config.self_distill == "complete":
             text_en_features = self.model.encode_text(text_en_input)
+            _, logits_per_text_en = self.model.compute_logits(image_features,
+                                                              text_en_features,
+                                                              fixed_logit=False)
+            contrastive_loss_en = clip_loss(logits_per_text_en)
+            self.log("train/infoNCE_en", contrastive_loss_en)
+            self.log("train/infoNCE_pt", contrastive_loss)
 
-        contrastive_loss = clip_loss(logits_per_text)
+            contrastive_loss += contrastive_loss_en
+        else:
+            with torch.no_grad():
+                text_en_features = self.model.encode_text(text_en_input)
+
         mse_loss = self.mse(input=text_pt_features, target=text_en_features)
 
         if self.alpha_constant:
@@ -58,10 +69,10 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         if lr_scheduler:
             lr_scheduler.step(loss)
 
-        preds_image = logits_per_image.argmax(dim=1)
-        preds_text = logits_per_text.argmax(dim=1)
-        ground_truth = torch.arange(len(logits_per_image), dtype=torch.long,
-                                    device=logits_per_image.device)
+        preds_image = logits_per_image_pt.argmax(dim=1)
+        preds_text = logits_per_text_pt.argmax(dim=1)
+        ground_truth = torch.arange(len(logits_per_image_pt), dtype=torch.long,
+                                    device=logits_per_image_pt.device)
 
         batch_image_accuracy = self.image_train_acc(preds_image, ground_truth)
         batch_text_accuracy = self.text_train_acc(preds_text, ground_truth)
