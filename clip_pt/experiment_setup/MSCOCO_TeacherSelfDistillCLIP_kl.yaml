@@ -1,4 +1,4 @@
-title: MSCOCO_self_distill_kl_alpha_1e-2
+title: MSCOCO_teacher_self_distill_kl_alpha_1e-2
 
 datasets:
     train:
