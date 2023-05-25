@@ -20,7 +20,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
         self.mse = nn.MSELoss()
-        self.kl = nn.KLDivLoss(log_target=True)
+        self.kl = nn.KLDivLoss(log_target=True, reduction="batchmean")
         if isinstance(config.alpha, DictConfig):
             self.alpha_constant = False
             self.max_alpha = config.alpha.max_alpha
