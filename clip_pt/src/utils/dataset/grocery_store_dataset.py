@@ -10,9 +10,10 @@ from utils.dataset.evaluation_dataset import EvaluationDataset
 class GroceryStoreDataset(EvaluationDataset):
 
     def __init__(self, dataset_path, annotation_path, vision_processor, text_tokenizer,
-                 template="Uma foto de [CLASS].", lang="pt", max_length=95):
+                 template="Uma foto de [CLASS].", lang="pt", max_length=95, open_clip=False):
         self.template = template
         self.max_length = max_length
+        self.open_clip = open_clip
         self.root_dir = os.path.dirname(dataset_path)
         self.df_dataset = pd.read_csv(dataset_path, names=["filepath", "fine_id", "coarse_id"])
 
@@ -53,6 +54,10 @@ class GroceryStoreDataset(EvaluationDataset):
         # replace the occurrences of [CLASS] to the translated label
         texts = [self.template.replace("[CLASS]", label) for label in self.labels]
         print(texts)
+
+        if self.open_clip:
+            return self.text_tokenizer(texts)
+
         return self.text_tokenizer(
             texts,
             return_tensors="pt",
@@ -60,4 +65,3 @@ class GroceryStoreDataset(EvaluationDataset):
             truncation=True,
             max_length=self.max_length
         )
-
