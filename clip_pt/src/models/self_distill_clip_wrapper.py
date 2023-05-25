@@ -36,10 +36,10 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         optimizer = self.optimizers()
         lr_scheduler = self.lr_schedulers()
 
-        image_features, text_en_features, text_pt_features = self.extract_features(train_batch)
-        loss, logits_per_image_pt, logits_per_text_pt = self.compute_loss(image_features,
-                                                                          text_pt_features,
-                                                                          text_en_features)
+        image_features, text_pt_features, text_en_features = self.extract_features(train_batch)
+        loss, logits_per_image_pt, logits_per_text_pt = self.compute_loss(image_features=image_features,
+                                                                          text_pt_features=text_pt_features,
+                                                                          text_en_features=text_en_features)
 
         optimizer.zero_grad()
         self.manual_backward(loss)
@@ -67,7 +67,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         else:
             with torch.no_grad():
                 text_en_features = self.model.encode_text(text_en_input)
-        return image_features, text_en_features, text_pt_features
+        return image_features, text_pt_features, text_en_features
 
     def compute_alpha(self):
         if self.alpha_constant:
@@ -118,7 +118,7 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         self.log("train/alpha", alpha)
         self.log("train/infoNCE", contrastive_loss)
 
-        return loss
+        return loss, logits_per_image_pt, logits_per_text_pt
 
 
 class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
@@ -148,4 +148,4 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
         else:
             with torch.no_grad():
                 text_en_features = self.teacher(text_en_input)
-        return image_features, text_en_features, text_pt_features
+        return image_features, text_pt_features, text_en_features
