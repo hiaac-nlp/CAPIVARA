@@ -86,25 +86,38 @@ class SelfDistillCLIPWrapper(OpenCLIPWrapper):
         logits_per_image_pt, logits_per_text_pt = self.model.compute_logits(image_features,
                                                                             text_pt_features,
                                                                             fixed_logit=False)
+        _, logits_per_text_en = self.model.compute_logits(image_features,
+                                                          text_en_features,
+                                                          fixed_logit=False)
         contrastive_loss = clip_loss(logits_per_text_pt)
 
         alpha = self.compute_alpha()
 
         if self.config.self_distill == "kl":
-            _, logits_per_text_en = self.model.compute_logits(image_features,
-                                                              text_en_features,
-                                                              fixed_logit=False)
-
             distillation_loss = self.kl(input=F.log_softmax(logits_per_text_pt / 3.0, dim=1),
                                         target=F.log_softmax(logits_per_text_en / 3.0, dim=1))
 
             loss = alpha * contrastive_loss + (1 - alpha) * distillation_loss * 10
             self.log("train/KL pt-en", distillation_loss)
+        elif self.config.self_distill == "complete-kl":
+            contrastive_loss_en = clip_loss(logits_per_text_en)
+            self.log("train/infoNCE_en", contrastive_loss_en)
+            self.log("train/infoNCE_pt", contrastive_loss)
+
+            contrastive_loss = (contrastive_loss_en + contrastive_loss) / 2
+
+            mse_loss = self.mse(input=text_pt_features, target=text_en_features)
+            self.log("train/mse_loss", mse_loss)
+            mse_loss = mse_loss * 1e4
+
+            distillation_loss = self.kl(input=F.log_softmax(logits_per_text_pt / 3.0, dim=1),
+                                        target=F.log_softmax(logits_per_text_en / 3.0, dim=1))
+            self.log("train/KL pt-en", distillation_loss)
+            distillation_loss = distillation_loss * 10
+
+            loss = alpha * contrastive_loss + (1 - alpha) * (mse_loss + distillation_loss) * 0.5
         else:
             if self.config.self_distill == "complete":
-                _, logits_per_text_en = self.model.compute_logits(image_features,
-                                                                  text_en_features,
-                                                                  fixed_logit=False)
                 contrastive_loss_en = clip_loss(logits_per_text_en)
                 self.log("train/infoNCE_en", contrastive_loss_en)
                 self.log("train/infoNCE_pt", contrastive_loss)
