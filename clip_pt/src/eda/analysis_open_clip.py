@@ -16,10 +16,11 @@ sys.path.append("../")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", help="Path to model checkpoint", )
+    parser.add_argument("--model-path", help="Path to model checkpoint", default="OpenCLIP")
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
+    parser.add_argument("--batched", type=bool, help="execute search in batch", default=False)
     parser.add_argument("--gpu", help="GPU", )
 
     return parser.parse_args()
@@ -28,15 +29,16 @@ def parse_args():
 def tokenize(example, lang, args):
     captions = None
     if lang.lower() == 'en':
-        captions = example[1]["captions-en"]
+        captions = example[1]["captions-en"][:5]
     else:
         if len(example[1]["captions-pt"]) == 1:
             captions = example[1]["captions-pt"][0]
         else:
+            n = len(example[1]["captions-en"])
             if args.translation == "marian":
                 captions = example[1]["captions-pt"][:5]
             elif args.translation == "google":
-                captions = example[1]["captions-pt"][5:]
+                captions = example[1]["captions-pt"][n: n + 5]
 
     text_input = text_tokenizer(captions)
     image_input = vision_processor(example[0])
@@ -82,8 +84,7 @@ def text_to_image_retrieval(image_features, text_features, top_k=10):
             similarities.append(scores)
 
         similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #images]
-        top_k_pred = torch.argsort(similarities, descending=True)[:,
-                     : top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_pred = torch.argsort(similarities, descending=True)[:, : top_k].cpu()  # shape: [batch_size, top_k]
         top_k_predictions.append(top_k_pred)
         # free memory
         del similarities
@@ -112,10 +113,10 @@ def get_txt2img_ground_truth(args):
     gt = []
     n_relevants = 0
     for i, example in tqdm.tqdm(enumerate(dataset), desc="Computing ground truth"):
-        n_captions = len(example[1]["captions-pt"])
+        n_captions = min(5, len(example[1]["captions-pt"]) // 2)
         if n_captions > 1:
-            gt += [i] * (n_captions // 2)  # two translations per caption
-            n_relevants += (n_captions // 2)
+            gt += [i] * n_captions  # two translations per caption
+            n_relevants += n_captions
         else:
             gt.append(i)
             n_relevants += 1
@@ -127,6 +128,24 @@ def get_txt2img_ground_truth(args):
     return gt, n_relevants
 
 
+def text_to_image_retrieval_in_batch(image_features, text_features, top_k=10):
+    top_k_predictions = []
+    ground_truth = []
+    for text_feature, image_feature in tqdm.tqdm(zip(text_features, image_features), desc="t2i retrieval"):
+        scores = text_feature @ image_feature.t()  # shape: [batch_size, batch_size]
+        top_k_pred = torch.argsort(scores, descending=True)[:, : top_k].cpu() # shape: [batch_size, top_k]
+        gt = torch.arange(scores.shape[1])
+        n = scores.shape[0] // scores.shape[1]
+        gt = gt.repeat_interleave(n)
+
+        top_k_predictions.append(top_k_pred)
+        ground_truth.append(gt)
+
+    top_k_predictions = torch.cat(top_k_predictions, dim=0)  # shape: [#texts, top_k]
+    ground_truth = torch.cat(ground_truth, dim=0)  # shape: [#texts, top_k]
+
+    return top_k_predictions, ground_truth
+
 def compute_stats(preds_pt, preds_en, ground_truth, percent=True):
     top_1_pred_pt = preds_pt[:, :1]
     top_1_pred_en = preds_en[:, :1]
@@ -137,7 +156,7 @@ def compute_stats(preds_pt, preds_en, ground_truth, percent=True):
                   "en": 0,  # model predicted correctly labels for EN but not for PT captions
                   "none": 0}  # model didn't predict correctly any label
 
-    for pred_en, pred_pt, label in zip(top_1_pred_pt, top_1_pred_en, ground_truth):
+    for pred_pt, pred_en, label in zip(top_1_pred_pt, top_1_pred_en, ground_truth):
         if pred_pt == pred_en == label:
             count_hits["pt-en"] += 1
         elif pred_pt == label:
@@ -156,7 +175,7 @@ def compute_stats(preds_pt, preds_en, ground_truth, percent=True):
     return count_hits
 
 
-def predict(lang):
+def predict(lang, args):
     dataset = wds.WebDataset(args.dataset_path) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
@@ -169,6 +188,9 @@ def predict(lang):
     image_features, text_features = feature_extraction(model, dataloader, device)
 
     print(">>>>>>> Text-to-Image retrieval features")
+    if args.batched:
+        return text_to_image_retrieval_in_batch(image_features, text_features)
+
     return text_to_image_retrieval(image_features, text_features)
 
 
@@ -180,21 +202,22 @@ if __name__ == "__main__":
     print("Device: ", device)
 
     print(">>>>>>> Loading model")
-    if args.open_clip:
-        model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
-    else:
+    if args.model_path == "OpenCLIP":
         model = OpenCLIP()
+    else:
+        model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
 
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer
 
-    preds_pt = predict(lang="pt")
-    preds_en = predict(lang="en")
-    ground_truth, _ = get_txt2img_ground_truth(args)
+    if args.batched:
+        preds_pt, ground_truth = predict(lang="pt", args=args)
+        preds_en, _ = predict(lang="en", args=args)
+    else:
+        preds_pt = predict(lang="pt", args=args)
+        preds_en = predict(lang="en", args=args)
+        ground_truth, _ = get_txt2img_ground_truth(args)
 
-    stats = compute_stats(preds_pt, preds_en, ground_truth)
-    print(stats)
-
-
-
-
+    stats = compute_stats(preds_pt=preds_pt, preds_en=preds_en, ground_truth=ground_truth)
+    for k, v in stats.items():
+        print(f"hit {k}: {100*v: .2f}%")
