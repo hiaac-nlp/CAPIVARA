@@ -24,7 +24,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         self.save_hyperparameters(config)
         self.automatic_optimization = False
         if model is None:
-            self.model = OpenCLIP()
+            self.model = OpenCLIP(adapter=config.model.get("adapter", None))
         else:
             self.model = model
 

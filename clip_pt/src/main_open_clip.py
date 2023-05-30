@@ -21,7 +21,6 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
 load_dotenv()
 
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -37,7 +36,7 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    model = OpenCLIP()
+    model = OpenCLIP(adapter=config.model.get("adapter", None))
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer
 
@@ -82,7 +81,6 @@ def main() -> None:
         default_root_dir=os.path.join("../checkpoints/open_clip_pt", config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
-
     carbon_tracker_end(tracker_code_carbon,config.carbon["brazil_carbon_intensity"])
 
 
