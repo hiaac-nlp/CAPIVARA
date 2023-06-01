@@ -53,7 +53,7 @@ class OpenCLIP(torch.nn.Module):
             xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
             del model.text
 
-            return xlm_roberta_adapter 
+            return xlm_roberta_adapter.to(device)
        return model.text
 
     def forward(self, batch):

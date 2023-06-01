@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import wandb
 
 import pytorch_lightning as pl
 from dotenv import load_dotenv
@@ -67,9 +68,10 @@ def main() -> None:
                                   model=model,
                                   carbon_tracker=tracker_code_carbon)
 
+    wandb.init(project='CLIP-PT',name=config.title)
     logger = WandbLogger(project="CLIP-PT", name=config.title)
     config["model_checkpoint"].pop("dirpath")
-
+    
     trainer = pl.Trainer(
         **config["trainer"],
         logger=logger,
@@ -81,6 +83,10 @@ def main() -> None:
         default_root_dir=os.path.join("../checkpoints/open_clip_pt", config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
+    
+    print('saving the adapters')
+    clip_pt.model.text_encoder.save_all_adapters('CLIP-PT/adapter_checkpoints/'+str(wandb.run.id))
+
     carbon_tracker_end(tracker_code_carbon,config.carbon["brazil_carbon_intensity"])
 
 
