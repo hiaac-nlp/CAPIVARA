@@ -24,7 +24,7 @@ def parse_args():
     parser.add_argument("--model-path", help="Path to model checkpoint", )
     parser.add_argument("--distill", default=None, type=str, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
-    parser.add_argument("--translation", choices=["marian", "google"], required=False)
+    parser.add_argument("--translation", choices=["english", "marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
     parser.add_argument("--open-clip", type=bool, default=False, required=False)
     parser.add_argument("--gpu", help="GPU", )
@@ -44,13 +44,16 @@ def tokenize(example, args):
         image_input = vision_processor(example[0])
 
     captions = None
-    if len(example[1]["captions-pt"]) == 1:
-        captions = example[1]["captions-pt"][0]
+    if args.translation.lower() == "english":
+        captions = example[1]["captions-en"]
     else:
-        if args.translation == "marian":
-            captions = example[1]["captions-pt"][1::2]
-        elif args.translation == "google":
-            captions = example[1]["captions-pt"][0::2]
+        if len(example[1]["captions-pt"]) == 1:
+            captions = example[1]["captions-pt"][0]
+        else:
+            if args.translation == "marian":
+                captions = example[1]["captions-pt"][1::2]
+            elif args.translation == "google":
+                captions = example[1]["captions-pt"][0::2]
 
     if args.model_path == "OpenCLIP" or args.open_clip:
         text_input = text_tokenizer(captions)
