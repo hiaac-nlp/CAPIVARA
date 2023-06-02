@@ -4,9 +4,12 @@
     "WIT-PT": 173377,
     "WIT-EN": 1707297,
     "CC3M": 2660172,
+    "CC3M-filtered": 1249739,
     "CC12M":9809052,
     "flickr30k": 29000,
-    "mscoco": 118287
+    "mscoco": 118287,
+    "mscoco-filtered": 43786,
+    "mscoco-filtered-positive": 74500
   },
   "validation": {
     "pracegover": 70728,

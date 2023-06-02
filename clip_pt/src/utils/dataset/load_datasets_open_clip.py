@@ -87,6 +87,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
     train_dataloader = DataLoader(train_dataset, batch_size=None, num_workers=10)
     val_dataloader = DataLoader(val_dataset, batch_size=None, num_workers=10)
 
+    print("train_size:", train_size)
+
     output = {"train_dataloader": train_dataloader,
               "train_size": train_size,
               "val_dataloader": val_dataloader,
