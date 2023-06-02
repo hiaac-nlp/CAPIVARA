@@ -1,9 +1,9 @@
-title: MSCOCO_self_distill_kl_alpha_09
+title: CC3M_self_distill_complete_alpha_09
 
 datasets:
     train:
-        - name: mscoco
-          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+        - name: CC3M
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
 
     validation:
         - name: pracegover
@@ -13,12 +13,12 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-self_distill: "kl"
+self_distill: "complete"
 alpha: 0.9
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-5
+        learning_rate: 2e-6
         eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
@@ -38,17 +38,18 @@ trainer:
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
+    val_check_interval: 100
 
 model_checkpoint:
     mode: "min"
     save_last: true
     save_weights_only: true
-    monitor: "val/classification_loss/dataloader_idx_1"
+    monitor: "val/retrieval_loss/dataloader_idx_0"
     dirpath: "../checkpoints/clip_pt/MSCOCO_LiT"
 
 early_stopping:
     verbose: true
-    monitor: "val/classification_loss/dataloader_idx_1"
+    monitor: "val/retrieval_loss/dataloader_idx_0"
     patience: 100
 
 carbon:

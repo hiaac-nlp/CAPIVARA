@@ -1,4 +1,4 @@
-title: MSCOCO_self_distill_kl_dynamic_alpha_1e-2
+title: MSCOCO_self_distill_kl_dynamic_alpha_09
 
 datasets:
     train:
@@ -15,7 +15,7 @@ datasets:
 
 self_distill: "kl"
 alpha:
-    max_alpha: 1.0e-2
+    max_alpha: 0.9
     min_alpha: 0.0
     warmup_start: 50
     warmup_end: 200

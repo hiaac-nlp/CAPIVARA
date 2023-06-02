@@ -1,4 +1,4 @@
-title: MSCOCO_self_distill_kl_alpha_09
+title: MSCOCO_self_distill_complete_kl_alpha_09
 
 datasets:
     train:
@@ -13,7 +13,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-self_distill: "kl"
+self_distill: "complete-kl"
 alpha: 0.9
 optimizer:
     name: "Adam"

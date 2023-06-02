@@ -1,4 +1,4 @@
-title: MSCOCO_teacher_self_distill_complete_alpha_1e-2
+title: MSCOCO_teacher_self_distill_complete_alpha_075
 
 datasets:
     train:
@@ -14,7 +14,7 @@ datasets:
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
 self_distill: "teacher-complete"
-alpha: 1.0e-2
+alpha: 0.75
 optimizer:
     name: "Adam"
     params:
