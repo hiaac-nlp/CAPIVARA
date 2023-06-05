@@ -5,13 +5,14 @@ import torch.nn as nn
 from transformers import AutoConfig
 from transformers import LoRAConfig, UniPELTConfig
 from transformers.adapters import XLMRobertaAdapterModel
-
+import gc
 
 
 class OpenCLIP(torch.nn.Module):
     def __init__(
             self,
-            adapter: str = None
+            adapter: str = None,
+            devices = None
     ):
         super().__init__()
         self.model, _, self.image_preprocessor = open_clip.create_model_and_transforms('xlm-roberta-base-ViT-B-32',
@@ -20,11 +21,15 @@ class OpenCLIP(torch.nn.Module):
         self.model.text.set_grad_checkpointing(True)
         self.xlm_config = AutoConfig.from_pretrained("xlm-roberta-base")
         self.pooler_xlm = MeanPooler()
-        
+        self.devices = devices
         self.text_encoder = self.add_adapter(self.model, adapter_name=adapter)
     
     def add_adapter(self, model, adapter_name):
+       device = torch.device(f"cuda:{self.devices}" if torch.cuda.is_available() else "cpu")
        open_clip_model_state = model.text.state_dict()
+       del model.text
+       gc.collect()
+
        config = None
        
        if adapter_name.lower() == "lora":
@@ -51,8 +56,7 @@ class OpenCLIP(torch.nn.Module):
                 # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
                 open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
             xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
-            del model.text
-
+            print(self.devices)
             return xlm_roberta_adapter.to(device)
        return model.text
 
@@ -75,7 +79,7 @@ class OpenCLIP(torch.nn.Module):
     
     def encode_text_adapters(self, text_input, config, normalize=True):
         attn_mask = (text_input != config.pad_token_id).long()
-        text_latent = self.text_encoder(text_input)
+        text_latent = self.text_encoder(text_input, attn_mask)
         text_latent = self.pooler_xlm(text_latent, attn_mask)
         text_latent = self.text_encoder.proj(text_latent)
         text_latent = F.normalize(text_latent, dim=-1) if normalize else text_latent

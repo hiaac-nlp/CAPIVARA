@@ -37,7 +37,7 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    model = OpenCLIP(adapter=config.model.get("adapter", None))
+    model = OpenCLIP(adapter=config.model.get("adapter", None),devices=args.gpu)
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer
 

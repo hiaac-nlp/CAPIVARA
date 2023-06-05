@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature
+from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature, XLMRobertaModel
 
 from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
 from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
@@ -264,15 +264,16 @@ def get_txt2img_ground_truth(args):
 def add_adapter(model):
         open_clip_model_state = model.text.state_dict()
         xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-        xlm_roberta_adapter.load_adapter('./CLIP-PT/adapter_checkpoints/'+str(args.adapter)+'/LoRA')
-        xlm_roberta_adapter.set_active_adapters("LoRA")
-            
+        # xlm_roberta_adapter = XLMRobertaModel.from_pretrained("xlm-roberta-base")
+        # xlm_roberta_adapter.load_adapter('./CLIP-PT/adapter_checkpoints/'+str(args.adapter)+'/LoRA')
+        # xlm_roberta_adapter.set_active_adapters("LoRA")
+
         xlm_roberta_adapter.add_module("proj", nn.Sequential(
             nn.Linear(768, 640, bias=False),
             nn.GELU(),
             nn.Linear(640, 512, bias=False),
         ))
-            
+
         #freeze the Linear layer
         for name, param in xlm_roberta_adapter.named_parameters():
             if name in ['proj.0.weight','proj.2.weight']:
@@ -281,14 +282,16 @@ def add_adapter(model):
         for key in list(open_clip_model_state.keys()):
             # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
             open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
-        xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
+            # open_clip_model_state[key.replace('transformer.encoder', 'encoder').replace('transformer.embeddings','embeddings')] = open_clip_model_state.pop(key)
+        m,u = xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
+
         del model.text
 
         return xlm_roberta_adapter.to(device)
 
 def encode_text_adapters(text_input, config, text_encoder, pooler_xlm, normalize=True):
         attn_mask = (text_input != config.pad_token_id).long()
-        text_latent = text_encoder(text_input)
+        text_latent = text_encoder(text_input, attn_mask)
         text_latent = pooler_xlm(text_latent, attn_mask)
         text_latent = text_encoder.proj(text_latent)
         text_latent = F.normalize(text_latent, dim=-1) if normalize else text_latent
