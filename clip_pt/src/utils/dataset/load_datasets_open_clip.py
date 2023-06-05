@@ -12,8 +12,7 @@ from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
 def image_augmentation(image):
-    augmentation = [transforms.ToTensor(),
-                    transforms.Resize(250),
+    augmentation = [transforms.Resize(250),
                     transforms.RandomResizedCrop(224, scale=(0.9, 1.0)),
                     transforms.AugMix(severity=2),
                     transforms.ToPILImage()]
@@ -85,7 +84,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
 
     train_dataset = wds.WebDataset(train, shardshuffle=True) \
         .shuffle(10000) \
-        .decode("pil") \
+        .decode("torchrgb8") \
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
                                 augment=config.get("augment", False),
