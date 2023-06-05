@@ -12,7 +12,8 @@ from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
 def image_augmentation(image):
-    augmentation = [transforms.Resize(250),
+    augmentation = [transforms.ToTensor(),
+                    transforms.Resize(250),
                     transforms.RandomResizedCrop(224, scale=(0.9, 1.0)),
                     transforms.AugMix(severity=2),
                     transforms.ToPILImage()]
