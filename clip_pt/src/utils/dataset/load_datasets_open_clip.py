@@ -6,12 +6,26 @@ from typing import Dict
 import braceexpand
 import webdataset as wds
 from torch.utils.data import DataLoader
+from torchvision import transforms
 
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
 
 
-def tokenize(example, vision_processor, text_tokenizer, self_distill=False):
+def image_augmentation(image):
+    augmentation = [transforms.Resize(250),
+                    transforms.RandomResizedCrop(224, scale=(0.9, 1.0)),
+                    transforms.AugMix(severity=2),
+                    transforms.ToPILImage()]
+
+    augmentation = transforms.Compose(augmentation)
+    return augmentation(image)
+
+
+def tokenize(example, vision_processor, text_tokenizer, augment=False, self_distill=False):
     img = example[0]
+    if augment:
+        img = image_augmentation(img)
+
     image_input = vision_processor(img)
 
     if self_distill:
@@ -72,7 +86,9 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, self_distill=config.get("self_distill", False))) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
+                                augment=config.get("augment", False),
+                                self_distill=config.get("self_distill", False))) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
 
