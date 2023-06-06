@@ -5,7 +5,6 @@ import torch.nn as nn
 from transformers import AutoConfig
 from transformers import LoRAConfig, UniPELTConfig
 from transformers.adapters import XLMRobertaAdapterModel
-import gc
 
 
 class OpenCLIP(torch.nn.Module):
@@ -28,7 +27,6 @@ class OpenCLIP(torch.nn.Module):
        device = torch.device(f"cuda:{self.devices}" if torch.cuda.is_available() else "cpu")
        open_clip_model_state = model.text.state_dict()
        del model.text
-       gc.collect()
 
        config = None
        
@@ -56,7 +54,6 @@ class OpenCLIP(torch.nn.Module):
                 # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
                 open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
             xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
-            print(self.devices)
             return xlm_roberta_adapter.to(device)
        return model.text
 
