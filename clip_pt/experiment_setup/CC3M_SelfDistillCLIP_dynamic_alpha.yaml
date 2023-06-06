@@ -1,25 +1,32 @@
-title: MSCOCO_OpenCLIP
+title: CC3M_self_distill_dynamic_alpha_1e-4
 
 datasets:
     train:
-        - name: mscoco
-          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+        #- name: mscoco
+        #  path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+        - name: CC3M
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
 
     validation:
-          #        - name: pracegover
-          #          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar"
-        - name: flickr30k
-          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
+        - name: pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
+self_distill: True
+alpha:
+    max_alpha: 1.0e-4
+    min_alpha: 0.0
+    warmup_start: 200
+    warmup_end: 500
+
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-5
-        eps: 1e-8
+        learning_rate: 5e-6
+        eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
 
@@ -52,6 +59,5 @@ early_stopping:
     patience: 100
 
 carbon:
-    carbon_checker: "false"
     brazil_carbon_intensity: 0.077
     process: "process"

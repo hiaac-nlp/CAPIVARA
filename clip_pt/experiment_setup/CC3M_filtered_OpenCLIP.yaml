@@ -1,33 +1,25 @@
-title: WIT-PT
+title: CC3M_filtered_OpenCLIP_augument_500_steps
 
 datasets:
     train:
-        - name: WIT-PT
-          path: "/hadatasets/clip_pt/final_webdatasets/WIT_PT_TRAIN/{00000..00017}.tar"
+        - name: CC3M-filtered
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition_filtered/{00000..00124}.tar"
 
     validation:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00008}.tar"
+        - name: flickr30k # pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"  
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
 augment: True
-
-model:
-    text_encoder: "neuralmind/bert-base-portuguese-cased"
-    image_encoder: "openai/clip-vit-base-patch32"
-    text_padding_size: 95
-    warmup_steps: 1000
-    pretraining: "LiT" #options: LiT / contrastive
-
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 5e-5
+        learning_rate: 2e-6
         eps: 1e-6
-        weight_decay: 0.001
+        weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
 
 scheduler:
@@ -41,20 +33,24 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_epochs: 20  #
+    max_steps: 500
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
+    val_check_interval: 100
 
 model_checkpoint:
     mode: "min"
     save_last: true
     save_weights_only: true
-    monitor: "val/classification_loss/dataloader_idx_1"
-    dirpath: "../checkpoints/clip_pt/WIT-PT"
+    monitor: "val/retrieval_loss/dataloader_idx_0"
+    dirpath: "../checkpoints/clip_pt/MSCOCO_LiT"
 
 early_stopping:
     verbose: true
-    monitor: "val/classification_loss/dataloader_idx_1"
+    monitor: "val/retrieval_loss/dataloader_idx_0"
     patience: 100
 
+carbon:
+    brazil_carbon_intensity: 0.077
+    process: "process"
