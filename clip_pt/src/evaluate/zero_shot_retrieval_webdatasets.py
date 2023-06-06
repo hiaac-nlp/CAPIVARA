@@ -6,7 +6,6 @@ import torch
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, BatchFeature
 
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
@@ -52,32 +51,8 @@ def tokenize(example, args):
 
 
 def format_batch(batch):
-    if args.model_path == "OpenCLIP" or args.open_clip:
-        image_input = batch[0]
-        text_input = batch[1].reshape((-1, 77))
-        return image_input, text_input
-
-    pixel_values = []
-    input_ids = []
-    attention_mask = []
-
-    for img, txt in zip(batch[0], batch[1]):
-        if (isinstance(img, dict) or isinstance(img, BatchFeature)) and "pixel_values" in img:
-            pixel_values.append(img["pixel_values"])
-        else:
-            pixel_values.append(img)
-
-        input_ids.append(txt["input_ids"])
-        attention_mask.append(txt["attention_mask"])
-
-    if (isinstance(img, dict) or isinstance(img, BatchFeature)) and "pixel_values" in img:
-        image_input = {"pixel_values": torch.cat(pixel_values, dim=0)}
-    else:
-        image_input = torch.stack(pixel_values, dim=0)
-
-    text_input = {"input_ids": torch.cat(input_ids, dim=0),
-                  "attention_mask": torch.cat(attention_mask, dim=0)}
-
+    image_input = batch[0]
+    text_input = batch[1].reshape((-1, 77))
     return image_input, text_input
 
 
@@ -114,7 +89,8 @@ def text_to_image_retrieval(image_features, text_features):
             similarities.append(scores)
 
         similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #images]
-        top_k_pred = torch.argsort(similarities, descending=True)[:,: top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_pred = torch.argsort(similarities, descending=True)[:,
+                     : top_k].cpu()  # shape: [batch_size, top_k]
         top_k_predictions.append(top_k_pred)
         # free memory
         del similarities
@@ -133,7 +109,8 @@ def image_to_text_retrieval(image_features, text_features):
             similarities.append(scores)
 
         similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #texts]
-        top_k_pred = torch.argsort(similarities, descending=True)[:,: top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_pred = torch.argsort(similarities, descending=True)[:,
+                     : top_k].cpu()  # shape: [batch_size, top_k]
         top_k_predictions.append(top_k_pred)
         # free memory
         del similarities
