@@ -37,8 +37,8 @@ def main() -> None:
 
     config = OmegaConf.load(args.config_path)
 
-    # model doesn't have adapters
-    if config.get("model", None) is not None:
+    if config.get("model", None) is None:
+        # model doesn't have adapters
         model = OpenCLIP()
     else:
         # model has adapters
@@ -91,7 +91,7 @@ def main() -> None:
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
-    if config.get("model", None) is None:
+    if config.get("model", None) is not None:
         # model has adapters
         print('saving the adapters')
         clip_pt.model.text_encoder.save_all_adapters(f"CLIP-PT/adapter_checkpoints/{wandb.run.id}")
