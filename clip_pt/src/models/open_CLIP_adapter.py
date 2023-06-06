@@ -91,7 +91,7 @@ class OpenCLIPAdapter(OpenCLIP):
         print("Unexpected keys:")
         print(u)
 
-        return xlm_roberta.to(self.device)
+        return xlm_roberta.to(self.devices)
 
 
 
