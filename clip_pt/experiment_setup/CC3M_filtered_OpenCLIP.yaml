@@ -1,4 +1,4 @@
-title: CC3M_filtered_OpenCLIP
+title: CC3M_filtered_OpenCLIP_augument_500_steps
 
 datasets:
     train:
@@ -7,12 +7,13 @@ datasets:
 
     validation:
         - name: flickr30k # pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar" # "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar" 
+          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"  
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
+augment: True
 optimizer:
     name: "Adam"
     params:
@@ -32,7 +33,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 1000
+    max_steps: 500
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
