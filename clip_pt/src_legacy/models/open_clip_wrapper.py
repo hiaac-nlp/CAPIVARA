@@ -6,7 +6,6 @@ from torch.optim import Adam
 from torchmetrics import Accuracy
 
 from models.open_CLIP import OpenCLIP
-from models.open_CLIP_adapter import OpenCLIPAdapter
 from utils import utils
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR
@@ -25,12 +24,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         self.save_hyperparameters(config)
         self.automatic_optimization = False
         if model is None:
-            # model doesn't have adapters
-            if config.get("model", None) is not None:
-                self.model = OpenCLIP()
-            else:
-                # model has adapters
-                self.model = OpenCLIPAdapter(adapter=config.model.adapter)
+            self.model = OpenCLIP(adapter=config.model.get("adapter", None))
         else:
             self.model = model
 
@@ -87,8 +81,7 @@ class OpenCLIPWrapper(pl.LightningModule):
                 lr_min=1.0e-6,
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
-                T_max=utils.compute_n_batches(self.train_size,
-                                              self.config.batch_size) * self.trainer.max_epochs
+                T_max=utils.compute_n_batches(self.train_size, self.config.batch_size) * self.trainer.max_epochs
             )
 
         return {
@@ -135,6 +128,7 @@ class OpenCLIPWrapper(pl.LightningModule):
 
         self.image_train_acc.reset()
         self.text_train_acc.reset()
+
 
     def validation_step(self, val_batch, batch_idx, dataset_idx, dataloader_idx=0):
         if dataset_idx == 0:
