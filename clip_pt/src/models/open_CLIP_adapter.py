@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoConfig, XLMRobertaAdapterModel, LoRAConfig, UniPELTConfig
 
-from clip_pt.src.models.open_CLIP import OpenCLIP
+from models.open_CLIP import OpenCLIP
 
 
 class OpenCLIPAdapter(OpenCLIP):
