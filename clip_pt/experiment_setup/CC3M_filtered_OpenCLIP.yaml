@@ -7,7 +7,7 @@ datasets:
 
     validation:
         - name: flickr30k # pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"  
+          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
