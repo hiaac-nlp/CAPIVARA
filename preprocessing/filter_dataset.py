@@ -1,8 +1,10 @@
 import argparse
+import os
 import sys
 from pathlib import Path
 
 import torch
+import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
 
@@ -96,13 +98,16 @@ if __name__ == "__main__":
 
     path = Path(args.dataset_path)
     parent_dir = path.parent
-    dir_path = parent_dir.with_name(parent_dir.name + "_filtered") / "%05d.tar"
+    dir_path = parent_dir.with_name(parent_dir.name + "_filtered_positive")
+    os.makedirs(dir_path, exist_ok=True)
+    dir_path = dir_path / "%05d.tar"    
+    
     sink = wds.ShardWriter(str(dir_path), maxcount=10000)
 
     model.to(device)
     model.eval()
     with torch.no_grad():
-        for batch in dataloader:
+        for batch in tqdm.tqdm(dataloader, desc="filtering"):
             image_features, text_pt_features, text_en_features, examples = \
                                                                 feature_extraction(batch, device)
 
@@ -117,7 +122,7 @@ if __name__ == "__main__":
 
             for pred_pt, pred_en, label, example in zip(predictions_pt, predictions_en, ground_truth, examples):
                 # select only the examples that the model mis-retrieved from Portuguese caption
-                if pred_pt != label:
+                if pred_pt == label:
                     sample = {
                         "__key__": "sample%05d" % index,
                         "png": example[0],
@@ -125,3 +130,4 @@ if __name__ == "__main__":
                     }
                     sink.write(sample)
                     index += 1
+
