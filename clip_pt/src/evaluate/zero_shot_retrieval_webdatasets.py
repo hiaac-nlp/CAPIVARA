@@ -2,35 +2,29 @@ import argparse
 import os
 import sys
 
-sys.path.append("./")
-sys.path.append("../")
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
-from transformers import CLIPFeatureExtractor, AutoTokenizer, BatchFeature, XLMRobertaModel
+from transformers import CLIPFeatureExtractor, BatchFeature
 
-from models.clip_pt_br_wrapper_finetuning import CLIPPTBRWrapperFinetuning
-from models.clip_pt_br_wrapper_image_classification import CLIPPTBRWrapperImageClassification
-from models.mCLIP import mCLIP
-from models.model import CLIPTBRZeroshot
 from models.open_CLIP import OpenCLIP
+from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
-from transformers import AutoConfig
-import open_clip
-from transformers.adapters import XLMRobertaAdapterModel
+
+sys.path.append("./")
+sys.path.append("../")
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", help="Path to model checkpoint", )
     parser.add_argument("--distill", default=None, type=str, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
-    parser.add_argument("--translation", choices=["marian", "google"], required=False)
+    parser.add_argument("--translation", choices=["english", "marian", "google"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
-    parser.add_argument("--open-clip", type=bool, default=False, required=False)
+    parser.add_argument("--open-clip", type=bool, default=False, required=False,
+                        help="Indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--adapter", default=None, required=False, help="Load the adapter weights")
 
@@ -49,13 +43,16 @@ def tokenize(example, args):
         image_input = vision_processor(example[0])
 
     captions = None
-    if len(example[1]["captions-pt"]) == 1:
-        captions = example[1]["captions-pt"][0]
+    if args.translation.lower() == "english":
+        captions = example[1]["captions-en"]
     else:
-        if args.translation == "marian":
-            captions = example[1]["captions-pt"][1::2]
-        elif args.translation == "google":
-            captions = example[1]["captions-pt"][0::2]
+        if len(example[1]["captions-pt"]) == 1:
+            captions = example[1]["captions-pt"][0]
+        else:
+            if args.translation == "marian":
+                captions = example[1]["captions-pt"][1::2]
+            elif args.translation == "google":
+                captions = example[1]["captions-pt"][0::2]
 
     if args.model_path == "OpenCLIP" or args.open_clip:
         text_input = text_tokenizer(captions)
@@ -110,62 +107,17 @@ def feature_extraction(model, dataloader, device):
     with torch.no_grad():
         for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
             image_input, text_input = batch
-            if isinstance(image_input, dict) and "pixel_values" in image_input:
-                image_input["pixel_values"] = image_input["pixel_values"].to(device)
-            else:
-                image_input = image_input.to(device)
-
-            text_input["input_ids"] = text_input["input_ids"].to(device)
-            text_input["attention_mask"] = text_input["attention_mask"].to(device)
+            image_input = image_input.to(device)
+            text_input = text_input.to(device)
             batch = image_input, text_input
 
-            if isinstance(model, mCLIP):
-                img_features, txt_features = model.encode(batch)
-            elif isinstance(model, CLIPTBRZeroshot):
-                img_features, txt_features = model(batch)
-            else:
-                img_features, txt_features = model.model(batch)
+            img_features, txt_features = model(batch)
 
             norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
             norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
             image_features.append(norm_img_features)
             text_features.append(norm_txt_features)
 
-    return image_features, text_features
-
-def feature_extraction_open_clip(model, dataloader, device, xlm_config=None, text_adapter=None, pooler_xlm=None):
-    image_features = []
-    text_features = []
-
-    model.to(device)
-    model.eval()
-    with torch.no_grad():
-        if text_adapter == None:
-            for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
-                image_input, text_input = batch
-                image_input = image_input.to(device)
-                text_input = text_input.to(device)
-                batch = image_input, text_input
-
-                img_features, txt_features = model(batch)
-
-                norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
-                norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
-                image_features.append(norm_img_features)
-                text_features.append(norm_txt_features)
-        else:
-            for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
-                image_input, text_input = batch
-                image_input = image_input.to(device)
-                text_input = text_input.to(device)
-
-                img_features = model.encode_image(image_input)
-                txt_features = encode_text_adapters(text_input,xlm_config,text_adapter,pooler_xlm) 
-                
-                norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
-                norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
-                image_features.append(norm_img_features)
-                text_features.append(norm_txt_features)
     return image_features, text_features
 
 
@@ -179,7 +131,7 @@ def text_to_image_retrieval(image_features, text_features):
             similarities.append(scores)
 
         similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #images]
-        top_k_pred = torch.argsort(similarities, descending=True)[:, : top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_pred = torch.argsort(similarities, descending=True)[:,: top_k].cpu()  # shape: [batch_size, top_k]
         top_k_predictions.append(top_k_pred)
         # free memory
         del similarities
@@ -198,7 +150,7 @@ def image_to_text_retrieval(image_features, text_features):
             similarities.append(scores)
 
         similarities = torch.cat(similarities, dim=1)  # shape: [batch_size, #texts]
-        top_k_pred = torch.argsort(similarities, descending=True)[:, : top_k].cpu()  # shape: [batch_size, top_k]
+        top_k_pred = torch.argsort(similarities, descending=True)[:,: top_k].cpu()  # shape: [batch_size, top_k]
         top_k_predictions.append(top_k_pred)
         # free memory
         del similarities
@@ -211,14 +163,14 @@ def compute_recall_k(predictions, ground_truth, k, n_relevants):
     top_k_preds = predictions[:, :k]
     prev_corrects = None
     for col in range(ground_truth.shape[1]):
-      gt = ground_truth[:, col].reshape((-1, 1))
-      corrects = (top_k_preds == gt).any(dim=1)
-      if prev_corrects is None:
-          prev_corrects = corrects
-      else:
-          new_corrects = torch.logical_or(prev_corrects, corrects)
-          prev_corrects = corrects
-          corrects = new_corrects
+        gt = ground_truth[:, col].reshape((-1, 1))
+        corrects = (top_k_preds == gt).any(dim=1)
+        if prev_corrects is None:
+            prev_corrects = corrects
+        else:
+            new_corrects = torch.logical_or(prev_corrects, corrects)
+            prev_corrects = corrects
+            corrects = new_corrects
 
     return sum(corrects) / n_relevants
 
@@ -261,48 +213,6 @@ def get_txt2img_ground_truth(args):
     torch.save(gt, filepath)
     return gt, n_relevants
 
-def add_adapter(model):
-        open_clip_model_state = model.text.state_dict()
-        xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-        xlm_roberta_adapter.load_adapter('./CLIP-PT/adapter_checkpoints/'+str(args.adapter)+'/LoRA')
-        xlm_roberta_adapter.set_active_adapters("LoRA")
-
-        xlm_roberta_adapter.add_module("proj", nn.Sequential(
-            nn.Linear(768, 640, bias=False),
-            nn.GELU(),
-            nn.Linear(640, 512, bias=False),
-        ))
-
-        #freeze the Linear layer
-        for name, param in xlm_roberta_adapter.named_parameters():
-            if name in ['proj.0.weight','proj.2.weight']:
-                param.requires_grad = False
-
-        for key in list(open_clip_model_state.keys()):
-            # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
-            open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
-            # open_clip_model_state[key.replace('transformer.encoder', 'encoder').replace('transformer.embeddings','embeddings')] = open_clip_model_state.pop(key)
-        m,u = xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
-
-        del model.text
-
-        return xlm_roberta_adapter.to(device)
-
-def encode_text_adapters(text_input, config, text_encoder, pooler_xlm, normalize=True):
-        attn_mask = (text_input != config.pad_token_id).long()
-        text_latent = text_encoder(text_input, attn_mask)
-        text_latent = pooler_xlm(text_latent, attn_mask)
-        text_latent = text_encoder.proj(text_latent)
-        text_latent = F.normalize(text_latent, dim=-1) if normalize else text_latent
-
-        return text_latent
-
-class MeanPooler(nn.Module):
-    """Mean pooling"""
-
-    def forward(self, x, attention_mask):
-        masked_output = x.last_hidden_state * attention_mask.unsqueeze(-1)
-        return masked_output.sum(dim=1) / attention_mask.sum(-1, keepdim=True)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -311,74 +221,30 @@ if __name__ == "__main__":
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
 
-    if args.model_path == "mCLIP" or args.model_path == "OpenCLIP" or args.open_clip:
-        dataset = wds.WebDataset(args.dataset_path) \
-            .decode("pil") \
-            .to_tuple("jpg;png", "json") \
-            .map(lambda x: tokenize(x, args=args)) \
-            .batched(args.batch) \
-            .map(lambda x: format_batch(x))
-    else:
-        dataset = wds.WebDataset(args.dataset_path) \
-            .decode("torchrgb") \
-            .to_tuple("jpg;png", "json") \
-            .map(lambda x: tokenize(x, args=args)) \
-            .batched(args.batch) \
-            .map(lambda x: format_batch(x))
+    dataset = wds.WebDataset(args.dataset_path) \
+        .decode("pil") \
+        .to_tuple("jpg;png", "json") \
+        .map(lambda x: tokenize(x, args=args)) \
+        .batched(args.batch) \
+        .map(lambda x: format_batch(x))
+
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
     print(">>>>>>> Loading model")
-    if args.model_path == "mCLIP":
-        text_tokenizer = AutoTokenizer.from_pretrained(
-            "M-CLIP/XLM-Roberta-Large-Vit-B-32",
-            cache_dir="/hahomes/gabriel.santos/"
-        )
-        model = mCLIP(device=device)
-        vision_processor = model.image_preprocessor
-    if args.model_path == "OpenCLIP" or args.open_clip:
-        if args.open_clip and args.adapter == None:
+    if args.open_clip:
+        if args.adapter is None:
             model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
-        elif args.open_clip and args.adapter != None:
-            model, _, image_preprocessor = open_clip.create_model_and_transforms('xlm-roberta-base-ViT-B-32',
-                                                                                       pretrained='laion5b_s13b_b90k')
-            text_tokenizer = open_clip.get_tokenizer('xlm-roberta-base-ViT-B-32')
-            xlm_config = AutoConfig.from_pretrained("xlm-roberta-base")
-            pooler_xlm = MeanPooler()
-
-            text_encoder = add_adapter(model)
-            vision_processor = image_preprocessor
         else:
-            model = OpenCLIP()
-            vision_processor = model.image_preprocessor
-        if args.adapter == None:
-            text_tokenizer = model.text_tokenizer
+            model = OpenCLIPAdapter(inference=True, devices=device)
+            model.load_adapters(pretrained_adapter=args.adapter)
     else:
-        vision_processor = CLIPFeatureExtractor.from_pretrained(
-            "openai/clip-vit-base-patch32",
-            cache_dir="/hahomes/gabriel.santos/"
-        )
-        text_tokenizer = AutoTokenizer.from_pretrained(
-            "neuralmind/bert-base-portuguese-cased",
-            #"xlm-roberta-large",
-            do_lower_case=False,
-            cache_dir="/hahomes/gabriel.santos/"
-        )
+        model = OpenCLIP()
 
-        if args.distill == "default":
-            model = CLIPPTBRWrapperFinetuning.load_from_checkpoint(args.model_path)
-        elif args.distill == "mCLIP":
-            model = CLIPTBRZeroshot(args.model_path)
-        else:
-            model = CLIPPTBRWrapperImageClassification.load_from_checkpoint(args.model_path)
+    vision_processor = model.image_preprocessor
+    text_tokenizer = model.text_tokenizer
 
     print(">>>>>>> Extracting features")
-    if args.model_path == "OpenCLIP" or args.open_clip:
-        if args.adapter == None:
-            image_features, text_features = feature_extraction_open_clip(model, dataloader, device)
-        else:
-            image_features, text_features = feature_extraction_open_clip(model, dataloader, device, xlm_config=xlm_config, text_adapter=text_encoder, pooler_xlm=pooler_xlm)
-    else:
-        image_features, text_features = feature_extraction(model, dataloader, device)
+    image_features, text_features = feature_extraction(model, dataloader, device)
 
     # free memory
     del model
