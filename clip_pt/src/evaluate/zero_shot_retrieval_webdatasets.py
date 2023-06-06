@@ -32,15 +32,7 @@ def parse_args():
 
 
 def tokenize(example, args):
-    if isinstance(vision_processor, CLIPFeatureExtractor):
-        image_input = vision_processor(
-            images=example[0],
-            return_tensors="pt",
-            padding=True,
-            truncation=True
-        )
-    else:
-        image_input = vision_processor(example[0])
+    image_input = vision_processor(example[0])
 
     captions = None
     if args.translation.lower() == "english":
