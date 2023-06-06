@@ -54,5 +54,6 @@ early_stopping:
     patience: 100
 
 carbon:
+    carbon_checker: "false"
     brazil_carbon_intensity: 0.077
     process: "process"
