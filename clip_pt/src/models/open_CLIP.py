@@ -21,51 +21,53 @@ class OpenCLIP(torch.nn.Module):
         self.xlm_config = AutoConfig.from_pretrained("xlm-roberta-base")
         self.pooler_xlm = MeanPooler()
         self.devices = devices
+        self.adapter = adapter
         self.text_encoder = self.add_adapter(self.model, adapter_name=adapter)
     
     def add_adapter(self, model, adapter_name):
-       device = torch.device(f"cuda:{self.devices}" if torch.cuda.is_available() else "cpu")
-       open_clip_model_state = model.text.state_dict()
-       del model.text
+        device = torch.device(f"cuda:{self.devices}" if torch.cuda.is_available() else "cpu")
+        open_clip_model_state = model.text.state_dict()
+        del model.text
 
-       config = None
-       
-       if adapter_name.lower() == "lora":
-           config = LoRAConfig()
-       elif adapter_name.lower() == "unipelt":
-           config = UniPELTConfig()
-       if config is not None:
-            xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-            xlm_roberta_adapter.add_adapter(adapter_name, config=config)
-            xlm_roberta_adapter.train_adapter(adapter_name)
-            xlm_roberta_adapter.set_active_adapters(adapter_name)
-            xlm_roberta_adapter.add_module("proj", nn.Sequential(
-                nn.Linear(768, 640, bias=False),
-                nn.GELU(),
-                nn.Linear(640, 512, bias=False),
-            ))
-            
-            #freeze the Linear layer
-            for name, param in xlm_roberta_adapter.named_parameters():
-                if name in ['proj.0.weight','proj.2.weight']:
-                    param.requires_grad = False
+        config = None
+        if self.adapter is not None:
+            if adapter_name.lower() == "lora":
+                config = LoRAConfig()
+            elif adapter_name.lower() == "unipelt":
+                config = UniPELTConfig()
+            if config is not None:
+                    xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
+                    xlm_roberta_adapter.add_adapter(adapter_name, config=config)
+                    xlm_roberta_adapter.train_adapter(adapter_name)
+                    xlm_roberta_adapter.set_active_adapters(adapter_name)
+                    xlm_roberta_adapter.add_module("proj", nn.Sequential(
+                        nn.Linear(768, 640, bias=False),
+                        nn.GELU(),
+                        nn.Linear(640, 512, bias=False),
+                    ))
+                    
+                    #freeze the Linear layer
+                    for name, param in xlm_roberta_adapter.named_parameters():
+                        if name in ['proj.0.weight','proj.2.weight']:
+                            param.requires_grad = False
 
-            for key in list(open_clip_model_state.keys()):
-                # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
-                open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
-            xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
-            return xlm_roberta_adapter.to(device)
-       return model.text
+                    for key in list(open_clip_model_state.keys()):
+                        # There is a difference in key names between the original mCLIP model and the XLM-Roberta model
+                        open_clip_model_state[key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
+                    xlm_roberta_adapter.load_state_dict(open_clip_model_state, strict=False)
+                    return xlm_roberta_adapter.to(device)
+        return model.text
 
     def forward(self, batch):
         return self.encode(batch)
 
     def encode(self, batch):
         image_input, text_input = batch
-
         image_features = self.model.encode_image(image_input)
-        #text_features = self.model.encode_text(text_input)
-        text_features = self.encode_text_adapters(text_input,self.xlm_config)
+        if self.adapter is not None:
+            text_features = self.encode_text_adapters(text_input,self.xlm_config)
+        else:
+            text_features = self.model.encode_text(text_input)
         return image_features, text_features
 
     def encode_visual(self, visual_inputs):

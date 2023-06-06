@@ -264,7 +264,6 @@ def get_txt2img_ground_truth(args):
 def add_adapter(model):
         open_clip_model_state = model.text.state_dict()
         xlm_roberta_adapter = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-        # xlm_roberta_adapter = XLMRobertaModel.from_pretrained("xlm-roberta-base")
         xlm_roberta_adapter.load_adapter('./CLIP-PT/adapter_checkpoints/'+str(args.adapter)+'/LoRA')
         xlm_roberta_adapter.set_active_adapters("LoRA")
 
