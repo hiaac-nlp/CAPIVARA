@@ -1,7 +1,9 @@
 from pytorch_lightning.callbacks.callback import Callback
 
+
 class AdaptersActivation(Callback):
     """
+    Progressive unfreezing
     """
 
     def __init__(self, num_layers, activation_finish):

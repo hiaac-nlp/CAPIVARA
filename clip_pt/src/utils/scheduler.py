@@ -1,6 +1,7 @@
 from torch.optim import lr_scheduler
 import numpy as np
-import torch 
+import torch
+
 
 class CosineWarmupLR(lr_scheduler._LRScheduler):
     def __init__(self, optimizer, lr_min, lr_max, warmup=0, T_max=10):
@@ -42,10 +43,11 @@ class CosineWarmupLR(lr_scheduler._LRScheduler):
         self.cur += 1
 
         return [lr for _ in self.base_lrs]
-    
+
 
 class LinearLR(lr_scheduler._LRScheduler):
-    def __init__(self, optimizer, start_factor=1.0 / 3, end_factor=1.0, total_iters=5, last_epoch=-1, verbose=False):
+    def __init__(self, optimizer, start_factor=1.0 / 3, end_factor=1.0, total_iters=5,
+                 last_epoch=-1, verbose=False):
         """Decays the learning rate of each parameter group by linearly changing small
         multiplicative factor until the number of epoch reaches a pre-defined milestone: total_iters.
         Notice that such decay can happen simultaneously with other changes to the learning rate
@@ -93,9 +95,10 @@ class LinearLR(lr_scheduler._LRScheduler):
             self.lr = [group['lr'] for group in self.optimizer.param_groups]
         else:
             self.lr = [group['lr'] * (1. + (self.end_factor - self.start_factor) /
-                    (self.total_iters * self.start_factor + (self.cur - 1) * (self.end_factor - self.start_factor)))
-                    for group in self.optimizer.param_groups]
-        self.cur += 1 
+                                      (self.total_iters * self.start_factor + (self.cur - 1) * (
+                                                  self.end_factor - self.start_factor)))
+                       for group in self.optimizer.param_groups]
+        self.cur += 1
         if isinstance(self.lr[0], torch.Tensor):
             return [self.lr[0].item() for _ in self.base_lrs]
         else:
