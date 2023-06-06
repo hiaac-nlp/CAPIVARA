@@ -87,7 +87,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .decode("torchrgb8") \
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
-                                augment=config.get("augment", False),
+                                augment=config.get("augment", True),
                                 self_distill=config.get("self_distill", False))) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
