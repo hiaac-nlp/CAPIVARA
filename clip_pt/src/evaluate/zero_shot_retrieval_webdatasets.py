@@ -46,16 +46,7 @@ def tokenize(example, args):
             elif args.translation == "google":
                 captions = example[1]["captions-pt"][0::2]
 
-    if args.model_path == "OpenCLIP" or args.open_clip:
-        text_input = text_tokenizer(captions)
-    else:
-        text_input = text_tokenizer(
-            captions,
-            return_tensors="pt",
-            padding="max_length",
-            truncation=True,
-            max_length=95
-        )
+    text_input = text_tokenizer(captions)
 
     return image_input, text_input
 
