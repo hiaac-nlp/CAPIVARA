@@ -31,6 +31,8 @@ scheduler:
 
 batch_size: 2816
 accumulate_grad_batches: 1
+tags:
+    - Fine tuning
 
 trainer:
     accelerator: "gpu"
