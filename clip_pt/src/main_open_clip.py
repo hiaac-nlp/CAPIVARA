@@ -43,9 +43,7 @@ def main() -> None:
                         tags:\n\
                             - <your tag>")
 
-
-
-if config.get("model", None) is None:
+    if config.get("model", None) is None:
         # model doesn't have adapters
         model = OpenCLIP()
     else:
@@ -83,12 +81,11 @@ if config.get("model", None) is None:
                                   model=model,
                                   carbon_tracker=tracker_code_carbon)
 
-    wandb.init(project="CLIP-PT", name=config.title)
     tags = ["open_clip"]
     tags += [dataset["name"] for dataset in config.datasets.train]  # add training datasets as tags
     tags += config.tags  # add tags defined for experiments
-
-    logger = WandbLogger(project="CLIP-PT", name=config.title, tags=["open_clip"])
+    wandb.init(project="CLIP-PT", name=config.title, tags=tags)
+    logger = WandbLogger(project="CLIP-PT", name=config.title, tags=tags)
     config["model_checkpoint"].pop("dirpath")
 
     trainer = pl.Trainer(
