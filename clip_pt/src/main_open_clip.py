@@ -27,7 +27,6 @@ def main() -> None:
     parser.add_argument(
         "-c",
         "--config_path",
-        default=os.path.join("../", "experiment_setup", "warmup_finetuning.yaml"),
         type=str,
         help="YAML file with configurations"
     )
@@ -36,6 +35,9 @@ def main() -> None:
     args = parser.parse_args()
 
     config = OmegaConf.load(args.config_path)
+
+    if "tags" not in config or len(config.tags) == 0:
+        raise Exception(f"You must add attribute ``tags`` in your experiment setup file {args.config_path}.")
 
     if config.get("model", None) is None:
         # model doesn't have adapters
@@ -76,6 +78,10 @@ def main() -> None:
                                   carbon_tracker=tracker_code_carbon)
 
     wandb.init(project="CLIP-PT", name=config.title)
+    tags = ["open_clip"]
+    tags += [dataset["name"] for dataset in config.datasets.train]  # add training datasets as tags
+    tags += config.tags  # add tags defined for experiments
+
     logger = WandbLogger(project="CLIP-PT", name=config.title, tags=["open_clip"])
     config["model_checkpoint"].pop("dirpath")
 
