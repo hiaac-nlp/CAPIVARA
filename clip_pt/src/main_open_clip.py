@@ -37,7 +37,7 @@ def main() -> None:
     config = OmegaConf.load(args.config_path)
 
     if "tags" not in config or config.tags is None:
-        raise Exception(f"You must add attribute ``tags`` in your experiment setup file {args.config_path}.")
+        raise Exception(f"You must add a list of tags in attribute ``tags`` in your experiment setup file {args.config_path}.")
 
     if config.get("model", None) is None:
         # model doesn't have adapters
