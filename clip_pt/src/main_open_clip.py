@@ -76,7 +76,7 @@ def main() -> None:
                                   carbon_tracker=tracker_code_carbon)
 
     wandb.init(project="CLIP-PT", name=config.title)
-    logger = WandbLogger(project="CLIP-PT", name=config.title)
+    logger = WandbLogger(project="CLIP-PT", name=config.title, tags=["open_clip"])
     config["model_checkpoint"].pop("dirpath")
 
     trainer = pl.Trainer(
