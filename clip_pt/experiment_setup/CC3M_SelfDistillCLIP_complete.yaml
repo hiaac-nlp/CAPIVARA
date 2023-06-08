@@ -28,7 +28,7 @@ optimizer:
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 800
+        warmup_lr: 250
 
 
 batch_size: 2816
@@ -36,7 +36,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 500  #
+    max_steps: 2500  #
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
