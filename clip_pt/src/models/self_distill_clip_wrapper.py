@@ -146,12 +146,9 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
         super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
                          carbon_tracker=carbon_tracker)
         self.teacher = copy.deepcopy(self.model.model.text)
+        self.config.self_distill = self.config.self_distill.replace("teacher-", "")
         for param in self.teacher.parameters():
             param.requires_grad = False
-
-    def training_step(self, train_batch, batch_idx):
-        self.config.self_distill = self.config.self_distill.replace("teacher-", "")
-        super().training_step(train_batch, batch_idx)
 
     def extract_features(self, train_batch):
         image_input, text_pt_input, text_en_input = train_batch
@@ -162,3 +159,49 @@ class TeacherStudentSelfDistillCLIPWrapper(SelfDistillCLIPWrapper):
             with torch.no_grad():
                 text_en_features = self.teacher(text_en_input)
         return image_features, text_pt_features, text_en_features
+
+
+class PreserveKnowledgeCLIPWrapper(SelfDistillCLIPWrapper):
+    def __init__(
+            self,
+            config: DictConfig,
+            train_size: int = 0,
+            val_labels=None,
+            carbon_tracker=None,
+            model=None
+    ):
+        super().__init__(config, train_size=train_size, val_labels=val_labels, model=model,
+                         carbon_tracker=carbon_tracker)
+        self.teacher = copy.deepcopy(self.model.model.text)
+        for param in self.teacher.parameters():
+            param.requires_grad = False
+
+    def extract_features(self, train_batch):
+        image_input, text_pt_input, text_en_input = train_batch
+        image_features, text_pt_features = self.model.encode((image_input, text_pt_input))
+
+        text_en_features_teacher = self.teacher(text_en_input)
+        text_en_features_student = self.model.encode_text(text_en_input)
+
+        return image_features, text_pt_features, (text_en_features_teacher, text_en_features_student)
+
+    def compute_loss(self, image_features, text_pt_features, text_en_features):
+        text_en_features_teacher, text_en_features_student = text_en_features
+        logits_per_image_pt, logits_per_text_pt = self.model.compute_logits(image_features,
+                                                          text_pt_features,
+                                                          fixed_logit=False)
+
+        contrastive_loss = clip_loss(logits_per_text_pt)
+        preserving_loss = self.mse(input=text_en_features_student, target=text_en_features_teacher)
+        distill_loss = self.mse(input=text_pt_features, target=text_en_features_student.detach())
+
+        alpha = self.compute_alpha()
+
+        loss = alpha * contrastive_loss + (1 - alpha) * (preserving_loss + distill_loss) * 1e4
+
+        self.log("train/alpha", alpha)
+        self.log("train/infoNCE", contrastive_loss)
+        self.log("train/preserving_loss", preserving_loss)
+        self.log("train/distill_loss", distill_loss)
+        self.log("train/loss", distill_loss)
+        return loss, logits_per_image_pt, logits_per_text_pt
