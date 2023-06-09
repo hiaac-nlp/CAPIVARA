@@ -1,4 +1,4 @@
-title: CC3M_self_distill_preserving_knowledge_alpha_09
+title: CC3M_self_distill_complete_alpha_09
 tags:
     - Knowledge Distill
 
@@ -15,7 +15,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-self_distill: "preserving-knowledge"
+self_distill: "complete-kl"
 alpha: 0.9
 optimizer:
     name: "Adam"
