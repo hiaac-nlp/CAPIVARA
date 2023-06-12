@@ -15,7 +15,7 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-self_distill: "complete-kl"
+self_distill: "complete"
 alpha: 0.9
 optimizer:
     name: "Adam"

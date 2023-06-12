@@ -1,4 +1,4 @@
-title: CC3M_self_distill_alpha_09
+title: CC3M_self_distill_alpha_05
 tags:
     - Knowledge Distill
 
@@ -16,7 +16,7 @@ datasets:
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
 self_distill: True
-alpha: 0.9
+alpha: 0.5
 optimizer:
     name: "Adam"
     params:
