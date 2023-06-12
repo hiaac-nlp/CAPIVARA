@@ -195,8 +195,11 @@ if __name__ == "__main__":
         if args.adapter is None:
             model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
         else:
+            print('--------------------------------------------------------------')
             model = OpenCLIPAdapter(inference=True, devices=device)
+            print(sum(p.numel() for p in model.parameters() if p.requires_grad))
             model.load_adapters(pretrained_adapter=args.adapter)
+            print(sum(p.numel() for p in model.parameters() if p.requires_grad))
     else:
         model = OpenCLIP()
 

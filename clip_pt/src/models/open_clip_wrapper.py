@@ -9,7 +9,7 @@ from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from utils import utils
 from utils.loss import clip_loss
-from utils.scheduler import CosineWarmupLR
+from utils.scheduler import CosineWarmupLR, LinearLR
 
 
 class OpenCLIPWrapper(pl.LightningModule):
@@ -89,6 +89,16 @@ class OpenCLIPWrapper(pl.LightningModule):
                 warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=utils.compute_n_batches(self.train_size,
                                               self.config.batch_size) * self.trainer.max_epochs
+            )
+        
+        if self.config.scheduler.name.lower() == 'linearlr':
+            scheduler = LinearLR(
+                optimizer, 
+                start_factor=self.config.scheduler.params["start_factor"], 
+                end_factor=self.config.scheduler.params["end_factor"], 
+                total_iters=self.config.scheduler.params["total_iters"], 
+                last_epoch=-1, 
+                verbose=False
             )
 
         return {

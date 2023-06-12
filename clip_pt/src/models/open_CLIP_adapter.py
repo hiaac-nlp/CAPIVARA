@@ -18,12 +18,11 @@ class OpenCLIPAdapter(OpenCLIP):
         self.adapter = adapter
 
         if not inference:
-            self.text_encoder = self.add_adapter(self.model, adapter_name=adapter)
+            self.model.text = self.add_adapter(self.model, adapter_name=adapter)
 
     def add_adapter(self, model, adapter_name):
         # get the state from OpenCLIP
         open_clip_model_state = model.text.state_dict()
-        del model.text
 
         if adapter_name.lower() == "lora":
             config = LoRAConfig()
@@ -40,20 +39,19 @@ class OpenCLIPAdapter(OpenCLIP):
 
     def load_adapters(self, pretrained_adapter, adapter_name="LoRA"):
         open_clip_model_state = self.model.text.state_dict()
-        del self.model.text
         xlm_roberta = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
         model_path = f"./CLIP-PT/adapter_checkpoints/{pretrained_adapter}/{adapter_name}"
         xlm_roberta.load_adapter(model_path)
-        self.text_encoder = self.transfer_weights(adapter_name, open_clip_model_state, xlm_roberta)
+        self.model.text = self.transfer_weights(adapter_name, open_clip_model_state, xlm_roberta)
 
     def encode_visual(self, visual_inputs):
         return self.model.encode_image(visual_inputs).float()
 
     def encode_text(self, text_inputs):
         attn_mask = (text_inputs != self.xlm_config.pad_token_id).long()
-        text_latent = self.text_encoder(text_inputs, attn_mask)
+        text_latent = self.model.text(text_inputs, attn_mask)
         text_latent = self.pooler_xlm(text_latent, attn_mask)
-        text_latent = self.text_encoder.proj(text_latent)
+        text_latent = self.model.text.proj(text_latent)
         return F.normalize(text_latent, dim=-1)
 
     def transfer_weights(self, adapter_name, open_clip_model_state, xlm_roberta):
@@ -92,7 +90,6 @@ class OpenCLIPAdapter(OpenCLIP):
         print(u)
 
         return xlm_roberta.to(self.devices)
-
 
 
 class MeanPooler(torch.nn.Module):

@@ -16,6 +16,7 @@ from models.self_distill_clip_wrapper import SelfDistillCLIPWrapper, \
     TeacherStudentSelfDistillCLIPWrapper
 from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 from utils.dataset.load_datasets_open_clip import load_datasets
+from utils.callbacks import AdaptersActivation
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
@@ -84,7 +85,8 @@ def main() -> None:
         logger=logger,
         callbacks=[
             ModelCheckpoint(**config["model_checkpoint"]),
-            LearningRateMonitor("step")
+            LearningRateMonitor("step"),
+            AdaptersActivation(config.model.number_layers,config.model.progressive_adapter),
         ],
         devices=[args.gpu],
         default_root_dir=os.path.join("../checkpoints/open_clip_pt", config["title"])
@@ -94,7 +96,7 @@ def main() -> None:
     if config.get("model", None) is not None:
         # model has adapters
         print('saving the adapters')
-        clip_pt.model.text_encoder.save_all_adapters(f"CLIP-PT/adapter_checkpoints/{wandb.run.id}")
+        clip_pt.model.model.text.save_all_adapters(f"CLIP-PT/adapter_checkpoints/{wandb.run.id}")
 
     carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"])
 

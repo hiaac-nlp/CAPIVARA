@@ -1,9 +1,9 @@
-title: MSCOCO_OpenCLIP_Adapters_lr-1e-3_linear_ProgressiveAd
+title: CC3M_OpenCLIP_Adapters
 
 datasets:
     train:
-        - name: mscoco
-          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+        - name: CC3M
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
 
     validation:
         - name: pracegover
@@ -32,8 +32,7 @@ scheduler:
         warmup_lr: 800
 
 
-batch_size: 2816
-# batch_size: 1000
+batch_size: 1000
 accumulate_grad_batches: 1
 
 trainer:
