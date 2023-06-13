@@ -9,6 +9,7 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 
 from models.open_CLIP import OpenCLIP
+from utils.open_clip_utils import format_batch, tokenize, compute_similarity
 
 sys.path.append("./")
 sys.path.append("../")
@@ -28,56 +29,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def tokenize(example, lang="pt"):
-    if lang == "pt":
-        caption = example[1]["captions-pt"][0]
-    else:
-        caption = example[1]["captions-en"][0]
-
-    text_input = text_tokenizer(caption)
-    image_input = vision_processor(example[0])
-
-    return image_input, text_input, example
-
-
-def format_batch(batch):
-    image_input = batch[0]
-    text_input = batch[1].reshape((-1, 77))
-    return image_input, text_input, batch[2]
-
-
-def compute_similarity(model, batch, device, plot_figs, threshold):
-    image_input, text_input, examples = batch
-    image_input = image_input.to(device)
-    text_input = text_input.to(device)
-    batch = image_input, text_input
-
-    img_features, txt_features = model(batch)
-
-    norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
-    norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
-
-    sim = norm_txt_features @ norm_img_features.T
-    if plot_figs:
-        for s, example in zip(sim.diag(), examples):
-            if s < threshold:
-                caption_pt = example[1]['captions-pt'][0]
-                code = hash(caption_pt)
-
-                fig, ax = plt.subplots()
-                ax.imshow(example[0])
-                text = f"Portuguese: {textwrap.fill(caption_pt)}\n\n"
-                if len(example[1]['captions-en']) > 0:
-                    text += f"English: {textwrap.fill(example[1]['captions-en'][0])}\n\n"
-                print(code, ":", text)
-                print("-"*100)
-                plt.text(0,0, text)
-                ax.axis("off")
-                plt.savefig(f"imgs/{code}_{s:.2f}.png", bbox_inches='tight')
-
-    return sim.diag()  # similarity between corresponding texts and images
-
-
 if __name__ == "__main__":
     args = parse_args()
     device = torch.device(f"cuda:{args.gpu}" if torch.cuda.is_available() else "cpu")
@@ -91,7 +42,8 @@ if __name__ == "__main__":
     dataset = wds.WebDataset(args.dataset_path) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, lang=args.lang)) \
+        .map(lambda x: tokenize(x, lang=args.lang, text_tokenizer=text_tokenizer,
+                                vision_processor=vision_processor)) \
         .batched(args.batch) \
         .map(lambda x: format_batch(x))
 
@@ -104,12 +56,29 @@ if __name__ == "__main__":
     similarities = []
     with torch.no_grad():
         for batch in tqdm.tqdm(dataloader, desc="Extracting features"):
-            similarities.append(compute_similarity(model, batch, device, args.plot_figs,
-                                                   threshold=args.threshold))
+            sim = compute_similarity(model, batch, device)
+            if args.plot_figs:
+                examples = batch[-1]
+                for s, example in zip(sim, examples):
+                    if s < args.threshold:
+                        caption_pt = example[1]['captions-pt'][0]
+                        code = hash(caption_pt)
 
-    similarities = torch.concat(similarities).cpu().numpy()
+                        fig, ax = plt.subplots()
+                        ax.imshow(example[0])
+                        text = f"Portuguese: {textwrap.fill(caption_pt)}\n\n"
+                        if len(example[1]['captions-en']) > 0:
+                            text += f"English: {textwrap.fill(example[1]['captions-en'][0])}\n\n"
+                        print(code, ":", text)
+                        print("-" * 100)
+                        plt.text(0, 0, text)
+                        ax.axis("off")
+                        plt.savefig(f"imgs/{code}_{s:.2f}.png", bbox_inches='tight')
+
+            similarities.append(sim)
 
     if not args.plot_figs:
+        similarities = torch.concat(similarities).cpu().numpy()
         count = sum(similarities < float(args.threshold))
         print("Low sim:", count)
 
@@ -119,4 +88,3 @@ if __name__ == "__main__":
         plt.xlabel('Similarity')
         plt.xlim(left=-0.1, right=0.5)
         plt.savefig(args.output_path)
-

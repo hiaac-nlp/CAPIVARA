@@ -1,16 +1,15 @@
 import argparse
 import os
 import sys
-import textwrap
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import torch
 import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
 
 from models.open_CLIP import OpenCLIP
+from utils.open_clip_utils import tokenize, format_batch, compute_similarity
 
 sys.path.append("./")
 sys.path.append("../")
@@ -23,38 +22,9 @@ def parse_args():
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--postfix-path", type=str, default="_filtered")
     parser.add_argument("--threshold", type=float, default=0.2)
+    parser.add_argument("--lang", type=str, default="pt")
 
     return parser.parse_args()
-
-
-def tokenize(example):
-    caption = example[1]["captions-pt"][0]
-    text_input = text_tokenizer(caption)
-    image_input = vision_processor(example[0])
-
-    return image_input, text_input, example
-
-
-def format_batch(batch):
-    image_input = batch[0]
-    text_input = batch[1].reshape((-1, 77))
-    return image_input, text_input, batch[2]
-
-
-def compute_similarity(model, batch, device):
-    image_input, text_input, examples = batch
-    image_input = image_input.to(device)
-    text_input = text_input.to(device)
-    batch = image_input, text_input
-
-    img_features, txt_features = model(batch)
-
-    norm_img_features = img_features / img_features.norm(dim=1, keepdim=True)
-    norm_txt_features = txt_features / txt_features.norm(dim=1, keepdim=True)
-
-    sim = norm_txt_features @ norm_img_features.T
-
-    return sim.diag()  # similarity between corresponding texts and images
 
 
 if __name__ == "__main__":
@@ -72,7 +42,8 @@ if __name__ == "__main__":
     dataset = wds.WebDataset(args.dataset_path) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x)) \
+        .map(lambda x: tokenize(x, lang=args.lang, text_tokenizer=text_tokenizer,
+                                vision_processor=vision_processor)) \
         .batched(args.batch) \
         .map(lambda x: format_batch(x))
 
