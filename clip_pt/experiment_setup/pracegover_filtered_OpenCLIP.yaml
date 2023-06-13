@@ -1,4 +1,6 @@
-title: pracegover_OpenCLIP_augment_500_steps
+title: pracegover_filtered_OpenCLIP
+tags:
+    - data_centric
 
 datasets:
     train:
@@ -13,7 +15,6 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: True
 optimizer:
     name: "Adam"
     params:
@@ -25,7 +26,7 @@ optimizer:
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 500
+        warmup_lr: 250
 
 
 batch_size: 2816
@@ -33,10 +34,11 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 500
+    max_steps: 700
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
+    val_check_interval: 100
 
 model_checkpoint:
     mode: "min"
