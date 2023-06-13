@@ -18,7 +18,7 @@ sys.path.append("../")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset-path", help="Path to validation/test dataset")
+    parser.add_argument("--dataset-path", help="Path to dataset")
     parser.add_argument("--batch", type=int, help="Batch size", default=1000)
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--postfix-path", type=str, default="_filtered")
@@ -94,7 +94,7 @@ if __name__ == "__main__":
             similarities = compute_similarity(model, batch, device)
             examples = batch[-1]
             for example, sim in zip(examples, similarities):
-                if sim < args.threshold:
+                if sim >= args.threshold:
                     sample = {
                         "__key__": "sample%05d" % index,
                         "png": example[0],
