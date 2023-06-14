@@ -3,7 +3,7 @@ title: MSCOCO_CC3M_teacher_student_mCLIP_XLMR_batch64
 datasets:
     train:
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
         - name: mscoco
           path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
 
