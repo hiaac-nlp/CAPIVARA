@@ -1,4 +1,4 @@
-title: CC3M_Head_augument_700_steps
+title: CC3M_Head_augument_700_steps_2e-4
 tags:
     - preliminary
 
@@ -22,7 +22,7 @@ augment: True
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 2e-6
+        learning_rate: 2e-4
         eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
