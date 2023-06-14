@@ -3,7 +3,7 @@ title: CC3M_self_distill_complete_kl_alpha_09
 datasets:
     train:
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
 
     validation:
         - name: flickr30k

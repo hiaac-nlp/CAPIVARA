@@ -6,7 +6,7 @@ datasets:
         - name: mscoco
           path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
 
     validation:
         - name: mscoco
