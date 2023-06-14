@@ -36,6 +36,12 @@ class MultiHeadCLIP(OpenCLIP):
         super().__init__()
         self.similarity_block = MultiHeadSimilarity(d_model=512, num_heads=8)
 
+        for param in self.model.visual.parameters():
+            param.requires_grad = False
+
+        for param in self.model.text.parameters():
+            param.requires_grad = False
+
     def compute_logits(
             self,
             image_features,
