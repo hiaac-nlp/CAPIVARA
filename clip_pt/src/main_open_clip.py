@@ -9,6 +9,7 @@ from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import WandbLogger
 
+from models.multihead_CLIP import MultiHeadCLIP
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
@@ -43,7 +44,9 @@ def main() -> None:
                         tags:\n\
                             - <your tag>")
 
-    if config.get("model", None) is None:
+    if config.get("similarity_approach", False):
+        model = MultiHeadCLIP()
+    elif config.get("model", None) is None:
         # model doesn't have adapters
         model = OpenCLIP()
     else:
