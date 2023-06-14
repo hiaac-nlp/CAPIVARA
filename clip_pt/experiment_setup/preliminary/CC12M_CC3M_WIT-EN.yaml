@@ -3,7 +3,7 @@ title: CC3M_CC12M_WIT-EN
 datasets:
     train:
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
         - name: CC12M
           path: "/hadatasets/clip_pt/final_webdatasets/cc12m_with-repetition/{00000..00980}.tar"
         - name: WIT-EN

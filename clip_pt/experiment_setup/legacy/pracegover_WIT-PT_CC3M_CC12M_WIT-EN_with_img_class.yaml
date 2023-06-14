@@ -7,7 +7,7 @@ datasets:
         - name: WIT-PT
           path: "/hadatasets/clip_pt/final_webdatasets/WIT_PT_TRAIN/{00000..00017}.tar"
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m-with-repetition/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
         - name: CC12M
           path: "/hadatasets/clip_pt/final_webdatasets/cc12m_with-repetition/{00000..00980}.tar"
         - name: WIT-EN
