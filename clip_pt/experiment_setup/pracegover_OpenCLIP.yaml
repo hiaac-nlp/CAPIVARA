@@ -1,4 +1,6 @@
 title: pracegover_OpenCLIP_augment_700_steps
+tags:
+    - preliminary
 
 datasets:
     train:
