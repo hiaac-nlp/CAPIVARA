@@ -57,7 +57,6 @@ if __name__ == '__main__':
         images, captions = batch
 
         prompts_repeated = prompts * len(images)
-        images = [image for image in images for _ in range(n_prompts)]
 
         inputs = processor(images=images, text=prompts_repeated, return_tensors="pt",
                            padding=True).to(device, torch.float16)
