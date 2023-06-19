@@ -57,6 +57,7 @@ if __name__ == '__main__':
         images, captions = batch
 
         prompts_repeated = prompts * len(images)
+        images = [image for image in images for _ in range(n_prompts)]
 
         inputs = processor(images=images, text=prompts_repeated, return_tensors="pt",
                            padding=True).to(device, torch.float16)
@@ -64,9 +65,8 @@ if __name__ == '__main__':
         generated_ids = model.generate(**inputs, max_new_tokens=50)
         generated_texts = processor.batch_decode(generated_ids, skip_special_tokens=True)
         x = []
-        for i, (prompt, text) in enumerate(zip(prompts_repeated, generated_texts)):
+        for i, (prompt, text, image) in enumerate(zip(prompts_repeated, generated_texts, images)):
             if i % n_prompts == 0:
-                image = images.pop(0)
                 caption = captions.pop(0)
                 caption["generated-captions-en"] = []
 
