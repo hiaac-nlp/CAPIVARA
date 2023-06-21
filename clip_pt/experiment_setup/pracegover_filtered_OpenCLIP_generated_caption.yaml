@@ -6,7 +6,7 @@ generated_captions: "en"
 datasets:
     train:
         - name: pracegover-filtered
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train_filtered/{00000..00018}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train_filtered_blip2_augment/{00000..00018}.tar"
 
     validation:
         - name: flickr30k
