@@ -21,7 +21,7 @@ def image_augmentation(image):
     return augmentation(image)
 
 
-def tokenize(example, vision_processor, text_tokenizer, augment=False, self_distill=False):
+def tokenize(example, vision_processor, text_tokenizer, augment=False, self_distill=False, generated_captions=None):
     img = example[0]
     if augment:
         img = image_augmentation(img)
@@ -40,8 +40,14 @@ def tokenize(example, vision_processor, text_tokenizer, augment=False, self_dist
         text_en_input = text_tokenizer(sample_en)
         return image_input, text_pt_input, text_en_input
     else:
+        captions = example[1]["captions-pt"]
+        if generated_captions == 'en':
+            captions += example[1]["generated-captions-en"]
+        elif generated_captions == 'pt':
+            captions += example[1]["generated-captions-pt"]
+
         # take a random caption
-        text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
+        text_input = text_tokenizer(random.choice(captions))
         return image_input, text_input
 
 
@@ -88,7 +94,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
                                 augment=config.get("augment", True),
-                                self_distill=config.get("self_distill", False))) \
+                                self_distill=config.get("self_distill", False),
+                                generated_captions=config.get("generated_captions", None))) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
 
