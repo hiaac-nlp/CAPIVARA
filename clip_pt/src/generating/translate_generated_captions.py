@@ -1,4 +1,6 @@
 import argparse
+import os
+from pathlib import Path
 
 import braceexpand
 import tqdm
@@ -50,7 +52,13 @@ def merge_translations(args):
         .decode("pil") \
         .to_tuple("jpg;png", "json")
 
-    sink = wds.ShardWriter(str(args.output), maxcount=10000)
+    path = Path(args.output)
+    parent_dir = path.parent
+    dir_path = parent_dir.with_name(parent_dir.name + args.postfix_path)
+    os.makedirs(dir_path, exist_ok=True)
+    dir_path = dir_path / "%05d.tar"
+
+    sink = wds.ShardWriter(str(dir_path), maxcount=10000)
     df = get_next_translation_df(translations_path)
 
     for index, example in tqdm.tqdm(enumerate(dataset), desc="merging dataset"):
