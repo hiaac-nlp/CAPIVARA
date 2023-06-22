@@ -31,9 +31,9 @@ def split_dataset_to_translation(args):
     part_size = args.part_size
     n_div = len(df) // part_size
     for i in range(n_div):
-        df[i * part_size: (i + 1) * part_size].to_csv(f"{args.output}_{i}.csv", index=False)
+        df[i * part_size: (i + 1) * part_size].to_excel(f"{args.output}_{i}.xlsx", index=False)
     if (i + 1) * part_size < len(df):
-        df[(i + 1) * part_size:].to_csv(f"{args.output}_{(i + 1)}.csv", index=False)
+        df[(i + 1) * part_size:].to_excel(f"{args.output}_{(i + 1)}.xlsx", index=False)
 
 
 def get_next_translation_df(translations_path):
