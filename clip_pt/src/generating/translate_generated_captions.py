@@ -1,6 +1,7 @@
 import argparse
 
 import braceexpand
+import tqdm
 import webdataset as wds
 import pandas as pd
 
@@ -22,7 +23,7 @@ def split_dataset_to_translation(args):
         .to_tuple("jpg;png", "json")
 
     output_data = {"image": [], "generated-captions": []}
-    for example in dataset:
+    for example in tqdm.tqdm(dataset, desc="spliting dataset"):
         image = example[1]["image"]
         for caption in example[1]["generated-captions-en"]:
             output_data["image"].append(image)
@@ -52,7 +53,7 @@ def merge_translations(args):
     sink = wds.ShardWriter(str(args.output), maxcount=10000)
     df = get_next_translation_df(translations_path)
 
-    for index, example in enumerate(dataset):
+    for index, example in tqdm.tqdm(enumerate(dataset), desc="merging dataset"):
         image_name = example[1]["image"]
         translated_captions = list(df["translated-caption"][df["image"] == image_name])
         if len(translated_captions) == 0:
