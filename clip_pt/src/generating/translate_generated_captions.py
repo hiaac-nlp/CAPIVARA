@@ -52,9 +52,7 @@ def merge_translations(args):
         .decode("pil") \
         .to_tuple("jpg;png", "json")
 
-    path = Path(args.output)
-    parent_dir = path.parent
-    dir_path = parent_dir.with_name(parent_dir.name + args.postfix_path)
+    dir_path = Path(args.output)
     os.makedirs(dir_path, exist_ok=True)
     dir_path = dir_path / "%05d.tar"
 
