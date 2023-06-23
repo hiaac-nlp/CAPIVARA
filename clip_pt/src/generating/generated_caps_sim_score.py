@@ -1,3 +1,7 @@
+""" Compute the similarity score between the image and the captions (original and generated ones) """
+
+
+
 import argparse
 import os
 import sys
@@ -10,15 +14,12 @@ import webdataset as wds
 from models.open_CLIP import OpenCLIP
 from utils.open_clip_utils import compute_similarity
 
-sys.path.append("./")
+sys.path.append("../generating/")
 sys.path.append("../")
 
 
 def tokenize(example, text_tokenizer, vision_processor, lang="pt"):
-    if len(example[1][f"captions-{lang}"]) > 0:
-        captions = list(example[1][f"captions-{lang}"][1])  # Google Translations
-    else:
-        captions = example[1][f"captions-{lang}"]
+    captions = example[1][f"captions-{lang}"]
     captions += example[1][f"generated-captions-{lang}"]
 
     text_input = text_tokenizer(captions)
@@ -32,7 +33,6 @@ def parse_args():
     parser.add_argument("--dataset-path", help="Path to dataset")
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--postfix-path", type=str, default="_sim")
-    parser.add_argument("--threshold", type=float, default=0.2)
     parser.add_argument("--lang", type=str, default="pt")
 
     return parser.parse_args()
