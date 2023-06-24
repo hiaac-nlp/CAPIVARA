@@ -24,6 +24,7 @@ def tokenize(example, text_tokenizer, vision_processor, lang="pt"):
 
     text_input = text_tokenizer(captions)
     image_input = vision_processor(example[0])
+    image_input = torch.unsqueeze(image_input, dim=0)
 
     return image_input, text_input, example
 
@@ -70,10 +71,9 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         for index, batch in tqdm.tqdm(enumerate(dataset), desc="Computing similarity"):
-            similarities = compute_similarity(model, batch, device)
+            similarities = compute_similarity(model, batch, device, return_diag=False)
             example = batch[-1]
-            example[1][f"similarities-{lang}"] = similarities
-
+            example[1][f"similarities-{lang}"] = similarities.squeeze().tolist()
             sample = {
                 "__key__": "sample%05d" % index,
                 "png": example[0],
