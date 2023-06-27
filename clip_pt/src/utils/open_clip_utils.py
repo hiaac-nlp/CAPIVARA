@@ -16,7 +16,7 @@ def format_batch(batch):
     return image_input, text_input, batch[2]
 
 
-def compute_similarity(model, batch, device):
+def compute_similarity(model, batch, device, return_diag=True):
     image_input, text_input, examples = batch
     image_input = image_input.to(device)
     text_input = text_input.to(device)
@@ -29,4 +29,7 @@ def compute_similarity(model, batch, device):
 
     sim = norm_txt_features @ norm_img_features.T
 
-    return sim.diag()  # similarity between corresponding texts and images
+    if return_diag:
+        return sim.diag()  # similarity between corresponding texts and images
+    else:
+        return sim
