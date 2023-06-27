@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument("--batch", type=int, help="Batch size", default=1000)
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--postfix-path", help="postfix", default="_blip2_augment")
+    parser.add_argument("--start-shard", type=int, default=0)
 
     return parser.parse_args()
 
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     os.makedirs(dir_path, exist_ok=True)
     dir_path = dir_path / "%05d.tar"
 
-    sink = wds.ShardWriter(str(dir_path), maxcount=10000)
+    sink = wds.ShardWriter(str(dir_path), maxcount=10000, start_shard=args.start_shard)
 
     print(">>>>> Load model")
     processor = Blip2Processor.from_pretrained(model_name)
@@ -52,7 +53,7 @@ if __name__ == '__main__':
                "the picture shows"]
 
     n_prompts = len(prompts)
-    index = 0
+    index = args.start_shard * 10_000
     for batch in tqdm.tqdm(dataloader, desc="Generating captions"):
         images, captions = batch
 
