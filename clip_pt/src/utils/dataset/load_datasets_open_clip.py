@@ -4,6 +4,7 @@ import random
 from typing import Dict
 
 import braceexpand
+import numpy as np
 import webdataset as wds
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -21,14 +22,19 @@ def image_augmentation(image):
     return augmentation(image)
 
 
-def tokenize(example, vision_processor, text_tokenizer, augment=False, self_distill=False, generated_captions=None):
+def filter_by_ranking_captions(annotations, k=5):
+    top_k = np.argsort(annotations["similarities-pt"])[-k:].tolist()
+    return [annotations["captions-pt"][i] for i in top_k]
+
+
+def tokenize(example, vision_processor, text_tokenizer, config):
     img = example[0]
-    if augment:
+    if config.get("augment", True):
         img = image_augmentation(img)
 
     image_input = vision_processor(img)
 
-    if self_distill:
+    if config.get("self_distill", False):
         n_captions = len(example[1]["captions-en"])
         caption_index = random.randint(0, n_captions - 1)
 
@@ -41,10 +47,13 @@ def tokenize(example, vision_processor, text_tokenizer, augment=False, self_dist
         return image_input, text_pt_input, text_en_input
     else:
         captions = example[1]["captions-pt"]
-        if generated_captions == 'en':
+        generated_captions = config.get("generated_captions", None)
+        if generated_captions == "en":
             captions += example[1]["generated-captions-en"]
-        elif generated_captions == 'pt':
+        elif generated_captions == "pt":
             captions += example[1]["generated-captions-pt"]
+        elif generated_captions == "filter-by-ranking":
+            captions = filter_by_ranking_captions(example[1], k=config.get("keep_captions", 5))
 
         # take a random caption
         text_input = text_tokenizer(random.choice(captions))
@@ -92,10 +101,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("torchrgb8") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
-                                augment=config.get("augment", True),
-                                self_distill=config.get("self_distill", False),
-                                generated_captions=config.get("generated_captions", None))) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, config)) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
 
