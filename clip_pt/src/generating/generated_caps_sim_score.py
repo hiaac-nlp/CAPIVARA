@@ -76,7 +76,7 @@ if __name__ == "__main__":
             example = batch[-1]
             example[1][f"similarities-{lang}"] = similarities.squeeze().tolist()
             sample = {
-                "__key__": "sample%05d" % index + 10000 * args.start_shard,
+                "__key__": "sample%05d" % (index + 10000 * args.start_shard),
                 "png": example[0],
                 "json": example[1],
             }
