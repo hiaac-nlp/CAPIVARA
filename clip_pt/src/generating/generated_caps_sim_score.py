@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--postfix-path", type=str, default="_sim")
     parser.add_argument("--lang", type=str, default="pt")
+    parser.add_argument("--start-shard", type=int, default=0)
 
     return parser.parse_args()
 
@@ -64,7 +65,7 @@ if __name__ == "__main__":
     os.makedirs(dir_path, exist_ok=True)
     dir_path = dir_path / "%05d.tar"
 
-    sink = wds.ShardWriter(str(dir_path), maxcount=10000)
+    sink = wds.ShardWriter(str(dir_path), maxcount=10000, start_shard=args.start_shard)
 
     model.to(device)
     model.eval()
@@ -75,7 +76,7 @@ if __name__ == "__main__":
             example = batch[-1]
             example[1][f"similarities-{lang}"] = similarities.squeeze().tolist()
             sample = {
-                "__key__": "sample%05d" % index,
+                "__key__": "sample%05d" % index + 10000 * args.start_shard,
                 "png": example[0],
                 "json": example[1],
             }
