@@ -3,7 +3,7 @@ tags:
     - data_centric
     - captioning & filtering
 
-generated_captions: "pt"
+generated_captions: "filter-by-ranking"
 keep_captions: 5
 
 datasets:
