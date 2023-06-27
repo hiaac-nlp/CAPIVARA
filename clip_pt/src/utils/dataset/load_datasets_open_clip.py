@@ -60,6 +60,15 @@ def tokenize(example, vision_processor, text_tokenizer, config):
         return image_input, text_input
 
 
+def tokenize_validation(example, vision_processor, text_tokenizer):
+    img = example[0]
+    image_input = vision_processor(img)
+
+    captions = example[1]["captions-pt"]
+    text_input = text_tokenizer(random.choice(captions))
+    return image_input, text_input
+
+
 def format_batch(batch, self_distill=False):
     image_input = batch[0]
     if self_distill:
@@ -109,7 +118,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
+        .map(lambda x: tokenize_validation(x, vision_processor, text_tokenizer)) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x))
 
