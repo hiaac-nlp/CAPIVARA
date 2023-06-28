@@ -27,6 +27,9 @@ def filter_by_ranking_captions(annotations, k=5):
     return [annotations["captions-pt"][i] for i in top_k]
 
 
+def filter_by_threshold(annotations, thr=0.2):
+    return [caption for caption, sim in zip(annotations["captions-pt"], annotations["similarities-pt"]) if sim >= thr]
+
 def tokenize(example, vision_processor, text_tokenizer, config):
     img = example[0]
     if config.get("augment", True):
@@ -54,6 +57,8 @@ def tokenize(example, vision_processor, text_tokenizer, config):
             captions += example[1]["generated-captions-pt"]
         elif generated_captions == "filter-by-ranking":
             captions = filter_by_ranking_captions(example[1], k=config.get("keep_captions", 5))
+        elif generated_captions == "filter-by-threshold":
+            captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
 
         # take a random caption
         text_input = text_tokenizer(random.choice(captions))
