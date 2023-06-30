@@ -1,12 +1,12 @@
-title: CC3M_filtered_OpenCLIP_generated_caption_pt
+title: CC3M_filtered_OpenCLIP_generated_caption_en
 tags:
     - data_centric
     - captioning & filtering
-generated_captions: "pt"
+generated_captions: "en"
 datasets:
     train:
         - name: CC3M-filtered
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered/{00000..00124}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered_blip2_augment/{00000..00165}.tar"
 
     validation:
         - name: flickr30k # pracegover

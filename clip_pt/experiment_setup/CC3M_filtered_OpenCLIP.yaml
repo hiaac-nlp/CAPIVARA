@@ -3,7 +3,7 @@ title: CC3M_filtered_OpenCLIP_augument_500_steps
 datasets:
     train:
         - name: CC3M-filtered
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered/{00000..00124}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered/{00000..00165}.tar"
 
     validation:
         - name: flickr30k # pracegover
