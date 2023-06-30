@@ -22,6 +22,18 @@ def similarity(captions):
 
 
 def remove_similar(captions, k_min=3, thr=0.3):
+    """
+    Remove similar texts keeping the maximum diversity among them
+
+    :param captions: image captions
+    :param k_min: minimum number of texts to keep
+    :param thr: maximum similarity between texts allowed
+    :return: filtered captions, in which similar text were removed
+    """
+
+    if len(captions) < k_min:
+        return captions
+
     sim_matrix = similarity(captions)
     n_nodes = sim_matrix.shape[0]
     sim_matrix = sim_matrix - np.eye(n_nodes)
