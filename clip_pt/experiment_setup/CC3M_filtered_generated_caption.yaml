@@ -1,5 +1,7 @@
 title: CC3M_filtered_OpenCLIP_generated_caption_pt
-
+tags:
+    - data_centric
+    - captioning & filtering
 generated_captions: "pt"
 datasets:
     train:
