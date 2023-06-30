@@ -6,10 +6,35 @@ from typing import Dict
 import braceexpand
 import numpy as np
 import webdataset as wds
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
+
+vectorizer = TfidfVectorizer()
+
+
+def similarity(captions):
+    tfidf_vectors = vectorizer.fit_transform(captions)
+    return cosine_similarity(tfidf_vectors)
+
+
+def remove_similar(captions, k_min=3, thr=0.3):
+    sim_matrix = similarity(captions)
+    n_nodes = sim_matrix.shape[0]
+    sim_matrix = sim_matrix - np.eye(n_nodes)
+    while not (sim_matrix <= thr).all() and n_nodes > k_min:
+        cost = sim_matrix.sum(axis=0)
+        i = np.argmax(cost)
+        sim_matrix[i, :] = 0
+        sim_matrix[:, i] = 0
+        n_nodes -= 1
+
+    cost = sim_matrix.sum(axis=0)
+    remove_indices = np.where(cost == 0)[0].tolist()
+    return [caption for i, caption in enumerate(captions) if i not in remove_indices]
 
 
 def image_augmentation(image):
@@ -29,6 +54,7 @@ def filter_by_ranking_captions(annotations, k=5):
 
 def filter_by_threshold(annotations, thr=0.2):
     return [caption for caption, sim in zip(annotations["captions-pt"], annotations["similarities-pt"]) if sim >= thr]
+
 
 def tokenize(example, vision_processor, text_tokenizer, config):
     img = example[0]
@@ -59,6 +85,12 @@ def tokenize(example, vision_processor, text_tokenizer, config):
             captions = filter_by_ranking_captions(example[1], k=config.get("keep_captions", 5))
         elif generated_captions == "filter-by-threshold":
             captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
+        elif generated_captions == "filter-by-threshold-diversity":
+            captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
+            captions = remove_similar(captions, k_min=config.get("k_min", 3))
+
+        if len(captions) == 0:
+            return None  # filter example out
 
         # take a random caption
         text_input = text_tokenizer(random.choice(captions))
