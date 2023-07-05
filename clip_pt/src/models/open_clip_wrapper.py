@@ -7,7 +7,6 @@ from torchmetrics import Accuracy
 
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
-from utils import utils
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR
 
@@ -53,6 +52,10 @@ class OpenCLIPWrapper(pl.LightningModule):
 
         # freezing image encoder
         self.model.freeze()
+
+    def optimizer_step(self, *args, **kwargs):
+        super().optimizer_step(*args, **kwargs)
+        self.model.logit_scale.data.clamp_(0, 4.60517)  # ln(100) = 4.60517
 
     def configure_optimizers(self):
         opt_params = self.config.optimizer["params"]
