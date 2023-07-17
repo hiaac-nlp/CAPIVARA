@@ -7,7 +7,6 @@ from torchmetrics import Accuracy
 
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
-from utils import utils
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR, LinearLR
 
@@ -190,3 +189,13 @@ class OpenCLIPWrapper(pl.LightningModule):
 
         self.retrieval_val_acc.reset()
         self.classification_val_acc.reset()
+
+
+def gpu_status():
+    import nvidia_smi
+    nvidia_smi.nvmlInit()
+
+    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(7)
+    info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
+    print("Device {}: {}, Memory : ({:.2f}% free): {}(total), {} (free), {} (used)".format(7, nvidia_smi.nvmlDeviceGetName(handle), 100*info.free/info.total, info.total, info.free, info.used))
+    #TODO: Need to close the handle            

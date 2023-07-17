@@ -32,6 +32,7 @@ def main() -> None:
         help="YAML file with configurations"
     )
     parser.add_argument("-g", "--gpu", required=True, type=int)
+    parser.add_argument("-ck", "--checkpoint-dir", required=False, type=str, default="../checkpoints/open_clip_pt")
 
     args = parser.parse_args()
 
@@ -92,20 +93,20 @@ def main() -> None:
     trainer = pl.Trainer(
         **config["trainer"],
         logger=logger,
-        callbacks=[
+        callbacks=[ 
             ModelCheckpoint(**config["model_checkpoint"]),
             LearningRateMonitor("step"),
             AdaptersActivation(config.model.number_layers,config.model.progressive_adapter),
         ],
         devices=[args.gpu],
-        default_root_dir=os.path.join("../checkpoints/open_clip_pt", config["title"])
+        default_root_dir=os.path.join(args.checkpoint_dir, config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
     if config.get("model", None) is not None:
         # model has adapters
         print('saving the adapters')
-        clip_pt.model.model.text.save_all_adapters(f"CLIP-PT/adapter_checkpoints/{wandb.run.id}")
+        clip_pt.model.model.text.save_pretrained(f"/work/diego.moreira/CLIP-PtBr/clip_pt/src/CLIP-PT/adapter_PEFT_checkpoints/{wandb.run.id}")
 
     carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"])
 

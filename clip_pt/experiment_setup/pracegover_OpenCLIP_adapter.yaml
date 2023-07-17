@@ -1,13 +1,13 @@
-title: MSCOCO_OpenCLIP_Adapters_2100Steps
+title: pracegover_OpenCLIP_Adapters_PEFT_1000-bs_filtered-dataset_no-proj
 
 datasets:
     train:
-        - name: mscoco
-          path: "/hadatasets/clip_pt/final_webdatasets/mscoco_train/{00000..00011}.tar"
+        - name: pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train_filtered/{00000..00018}.tar"
 
     validation:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar"
+        - name: flickr30k
+          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
@@ -29,19 +29,19 @@ optimizer:
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 750
+        warmup_lr: 250
 
-
-# batch_size: 2816
 batch_size: 1000
 accumulate_grad_batches: 1
 tags:
     - Adapters
-    - 2100-Steps
-
+    - 700-Steps
+    - Filtered-Dataset
+    - 1000-BS
+    
 trainer:
     accelerator: "gpu"
-    max_steps: 2100  #
+    max_steps: 700  #
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10

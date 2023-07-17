@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoConfig, XLMRobertaAdapterModel, LoRAConfig, UniPELTConfig
+from transformers import AutoConfig
 
 from models.open_CLIP import OpenCLIP
-
+from peft import LoraConfig, get_peft_model
+from peft import PeftModel, PeftConfig
+import copy
 
 class OpenCLIPAdapter(OpenCLIP):
     def __init__(self,
@@ -19,78 +21,47 @@ class OpenCLIPAdapter(OpenCLIP):
 
         if not inference:
             self.model.text = self.add_adapter(self.model, adapter_name=adapter)
+            list_trainable_params(self.model.text)
+            count_parameters(self.model)
+            count_parameters(self.model.text)
 
     def add_adapter(self, model, adapter_name):
-        # get the state from OpenCLIP
-        open_clip_model_state = model.text.state_dict()
 
         if adapter_name.lower() == "lora":
-            config = LoRAConfig()
-        elif adapter_name.lower() == "unipelt":
-            config = UniPELTConfig()
+            config = LoraConfig(
+                    r=8,
+                    lora_alpha=8,
+                    target_modules=["query", "value"],
+                    lora_dropout=0.0,
+                    bias="none",
+                )
         else:
             raise NotImplementedError
+        
+        lora_model_text = get_peft_model(copy.deepcopy(model.text), config)
 
-        # create text model in AdapterTransformer framework
-        xlm_roberta = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-        xlm_roberta.add_adapter(adapter_name, config=config)
-        xlm_roberta.train_adapter(adapter_name)
-        return self.transfer_weights(adapter_name, open_clip_model_state, xlm_roberta)
+        return lora_model_text
 
-    def load_adapters(self, pretrained_adapter, adapter_name="LoRA"):
-        open_clip_model_state = self.model.text.state_dict()
-        xlm_roberta = XLMRobertaAdapterModel.from_pretrained("xlm-roberta-base")
-        model_path = f"./CLIP-PT/adapter_checkpoints/{pretrained_adapter}/{adapter_name}"
-        xlm_roberta.load_adapter(model_path)
-        self.model.text = self.transfer_weights(adapter_name, open_clip_model_state, xlm_roberta)
 
-    def encode_visual(self, visual_inputs):
-        return self.model.encode_image(visual_inputs).float()
+    def load_adapters(self, pretrained_adapter):
+        if pretrained_adapter != 'none':
+            model_path = f"/work/diego.moreira/CLIP-PtBr/clip_pt/src/CLIP-PT/adapter_PEFT_checkpoints/{pretrained_adapter}"
+            config = PeftConfig.from_pretrained(model_path)
+            self.model.text = PeftModel.from_pretrained(self.model.text, model_path, config=config)
+        else:
+            print('No adapter configuration defined')
+            config = LoraConfig(
+                    r=8,
+                    lora_alpha=8,
+                    target_modules=["query", "value"],
+                    lora_dropout=0.0,
+                    bias="none",
+                )
+            self.model.text = get_peft_model(copy.deepcopy(self.model.text), config)
 
     def encode_text(self, text_inputs):
-        attn_mask = (text_inputs != self.xlm_config.pad_token_id).long()
-        text_latent = self.model.text(text_inputs, attn_mask)
-        text_latent = self.pooler_xlm(text_latent, attn_mask)
-        text_latent = self.model.text.proj(text_latent)
+        text_latent = self.model.text(text_inputs)
         return F.normalize(text_latent, dim=-1)
-
-    def transfer_weights(self, adapter_name, open_clip_model_state, xlm_roberta):
-        """
-        Transfer weights from model in OpenCLIP to AdapterTransformers model
-
-        :param adapter_name:
-        :param open_clip_model_state:
-        :param xlm_roberta:
-        :return:
-        """
-        xlm_roberta.set_active_adapters(adapter_name)
-        xlm_roberta.add_module("proj", nn.Sequential(
-            nn.Linear(768, 640, bias=False),
-            nn.GELU(),
-            nn.Linear(640, 512, bias=False),
-        ))
-
-        # freeze the last Linear layer
-        for name, param in xlm_roberta.named_parameters():
-            if name in ['proj.0.weight', 'proj.2.weight']:
-                param.requires_grad = False
-
-        # map the layer names from OpenCLIP to AdapterTransformers model
-        for key in list(open_clip_model_state.keys()):
-            # There is a difference in key names between the original OpenCLIP model and the
-            # XLM-Roberta model
-            open_clip_model_state[
-                key.replace('transformer', 'roberta')] = open_clip_model_state.pop(key)
-
-        # transfer the weights from OpenCLIP model to AdapterTransformers one
-        m, u = xlm_roberta.load_state_dict(open_clip_model_state, strict=False)
-        print("Missing keys:")
-        print(m)
-        print("Unexpected keys:")
-        print(u)
-
-        return xlm_roberta.to(self.devices)
-
 
 class MeanPooler(torch.nn.Module):
     """Mean pooling"""
@@ -100,4 +71,32 @@ class MeanPooler(torch.nn.Module):
         return masked_output.sum(dim=1) / attention_mask.sum(-1, keepdim=True)
 
 def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    """
+    Prints the number of trainable parameters in the model.
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
+    )
+
+def list_trainable_params(model):
+    for name, param in model.named_parameters():
+        print(f'{name}: {param.requires_grad}')
+
+def freeze(in_model):
+        for param in in_model.parameters():
+            param.requires_grad = False
+
+
+def gpu_status():
+    import nvidia_smi
+    nvidia_smi.nvmlInit()
+
+    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(7)
+    info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
+    print("Device {}: {}, Memory : ({:.2f}% free): {}(total), {} (free), {} (used)".format(7, nvidia_smi.nvmlDeviceGetName(handle), 100*info.free/info.total, info.total, info.free, info.used))

@@ -41,7 +41,8 @@ def tokenize(example, vision_processor, text_tokenizer, augment=False, self_dist
         return image_input, text_pt_input, text_en_input
     else:
         # take a random caption
-        text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
+        # text_input = text_tokenizer(random.choice(example[1]["captions-pt"])) # random caption
+        text_input = text_tokenizer(example[1]["captions-pt"][0])               # first caption
         return image_input, text_input
 
 

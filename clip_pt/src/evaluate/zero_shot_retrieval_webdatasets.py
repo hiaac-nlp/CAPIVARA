@@ -7,13 +7,12 @@ import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
 
-from models.open_CLIP import OpenCLIP
-from models.open_CLIP_adapter import OpenCLIPAdapter
-from models.open_clip_wrapper import OpenCLIPWrapper
-
 sys.path.append("./")
 sys.path.append("../")
 
+from models.open_CLIP import OpenCLIP
+from models.open_CLIP_adapter import OpenCLIPAdapter
+from models.open_clip_wrapper import OpenCLIPWrapper
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -34,6 +33,7 @@ def tokenize(example, args):
     image_input = vision_processor(example[0])
 
     captions = None
+    
     if args.translation.lower() == "english":
         captions = example[1]["captions-en"]
     else:
@@ -49,9 +49,8 @@ def tokenize(example, args):
 
     return image_input, text_input
 
-
 def format_batch(batch):
-    image_input = batch[0]
+    image_input = batch[0] 
     text_input = batch[1].reshape((-1, 77))
     return image_input, text_input
 
@@ -195,11 +194,8 @@ if __name__ == "__main__":
         if args.adapter is None:
             model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
         else:
-            print('--------------------------------------------------------------')
             model = OpenCLIPAdapter(inference=True, devices=device)
-            print(sum(p.numel() for p in model.parameters() if p.requires_grad))
             model.load_adapters(pretrained_adapter=args.adapter)
-            print(sum(p.numel() for p in model.parameters() if p.requires_grad))
     else:
         model = OpenCLIP()
 

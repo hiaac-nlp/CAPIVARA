@@ -8,12 +8,12 @@ import webdataset as wds
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+sys.path.append("./")
+sys.path.append("../")
+
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
-
-sys.path.append("./")
-sys.path.append("../")
 
 
 def parse_args():
