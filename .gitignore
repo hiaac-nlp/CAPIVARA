@@ -134,3 +134,16 @@ dmypy.json
 
 # Carbon Log
 emissions.csv
+
+# Models Checkpoints
+clip_pt/checkpoints/
+
+# Adapters Checkpoints
+clip_pt/src/CLIP-PT/
+
+# Logs and Extra Configs
+clip_pt/src/core
+clip_pt/src/evaluate/ground_truth/
+
+# Wandb logs
+clip_pt/src/wandb/
