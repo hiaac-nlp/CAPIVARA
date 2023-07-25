@@ -1,4 +1,4 @@
-title: TEST_pracegover_OpenCLIP_Adapters_PEFT_1000-bs_filtered-dataset_no-proj
+title: TEST_pracegover_OpenCLIP_Adapters_PEFT_${batch_size}-bs_filtered-dataset_no-proj
 
 datasets:
     train:
@@ -37,13 +37,13 @@ tags:
     - Adapters
     - 5-Steps
     - Filtered-Dataset
-    - 1000-BS
+    - ${batch_size}-BS
     
 trainer:
     accelerator: "gpu"
-    max_steps: 5  #
+    max_steps: 20  #
     num_sanity_val_steps: 0
-    overfit_batches: 0.0
+    overfit_batches: 0
     log_every_n_steps: 1
     val_check_interval: 1
 

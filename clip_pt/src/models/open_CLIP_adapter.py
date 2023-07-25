@@ -20,12 +20,12 @@ class OpenCLIPAdapter(OpenCLIP):
         self.adapter = adapter
 
         if not inference:
-            self.model.text = self.add_adapter(self.model, adapter_name=adapter)
+            self.add_adapter(adapter_name=adapter)
             list_trainable_params(self.model.text)
             count_parameters(self.model)
             count_parameters(self.model.text)
 
-    def add_adapter(self, model, adapter_name):
+    def add_adapter(self, adapter_name):
 
         if adapter_name.lower() == "lora":
             config = LoraConfig(
@@ -34,14 +34,16 @@ class OpenCLIPAdapter(OpenCLIP):
                     target_modules=["query", "value"],
                     lora_dropout=0.0,
                     bias="none",
+                    modules_to_save=["proj"],
                 )
         else:
             raise NotImplementedError
         
-        lora_model_text = get_peft_model(copy.deepcopy(model.text), config)
-
-        return lora_model_text
-
+        self.model.text.set_grad_checkpointing(True)
+        def make_inputs_require_grad(module, input, output):
+            output.requires_grad_(True)
+        self.model.text.transformer.embeddings.register_forward_hook(make_inputs_require_grad)
+        self.model.text = get_peft_model(self.model.text, config)
 
     def load_adapters(self, pretrained_adapter):
         if pretrained_adapter != 'none':
@@ -91,7 +93,6 @@ def list_trainable_params(model):
 def freeze(in_model):
         for param in in_model.parameters():
             param.requires_grad = False
-
 
 def gpu_status():
     import nvidia_smi
