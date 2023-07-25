@@ -1,4 +1,4 @@
-title: pracegover_OpenCLIP_Adapters_PEFT_{batch_size}-bs_filtered-dataset_no-proj
+title: pracegover_OpenCLIP_Adapters_PEFT_1000-bs_filtered-dataset_no-proj
 
 datasets:
     train:
@@ -37,7 +37,7 @@ tags:
     - Adapters
     - 700-Steps
     - Filtered-Dataset
-    - {batch_size}-BS
+    - 1000-BS
     
 trainer:
     accelerator: "gpu"
