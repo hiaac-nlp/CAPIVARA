@@ -51,15 +51,9 @@ class OpenCLIPAdapter(OpenCLIP):
             config = PeftConfig.from_pretrained(model_path)
             self.model.text = PeftModel.from_pretrained(self.model.text, model_path, config=config)
         else:
-            print('No adapter configuration defined')
-            config = LoraConfig(
-                    r=8,
-                    lora_alpha=8,
-                    target_modules=["query", "value"],
-                    lora_dropout=0.0,
-                    bias="none",
-                )
-            self.model.text = get_peft_model(copy.deepcopy(self.model.text), config)
+            print('**************************************')
+            print('** No adapter configuration defined **')
+            print('**************************************')
 
     def encode_text(self, text_inputs):
         text_latent = self.model.text(text_inputs)
