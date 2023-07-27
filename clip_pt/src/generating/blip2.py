@@ -42,8 +42,8 @@ if __name__ == '__main__':
     sink = wds.ShardWriter(str(dir_path), maxcount=10000, start_shard=args.start_shard)
 
     print(">>>>> Load model")
-    processor = Blip2Processor.from_pretrained(model_name)
-    model = Blip2ForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16)
+    processor = Blip2Processor.from_pretrained(model_name, cache_dir="/hahomes/gabriel.santos")
+    model = Blip2ForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16, cache_dir="/hahomes/gabriel.santos")
     model.to(device)
     model.eval()
 
@@ -81,3 +81,4 @@ if __name__ == '__main__':
                 print(sample)
                 sink.write(sample)
                 index += 1
+    sink.close()

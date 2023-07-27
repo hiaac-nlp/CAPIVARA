@@ -81,3 +81,5 @@ if __name__ == "__main__":
                 "json": example[1],
             }
             sink.write(sample)
+    sink.close()
+
