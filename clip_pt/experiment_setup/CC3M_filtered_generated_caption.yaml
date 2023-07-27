@@ -2,7 +2,7 @@ title: CC3M_filtered_generated_caption_pt_10_epoch
 tags:
     - data_centric
     - captioning & filtering
-generated_captions: "pt"
+generated_captions: "all"
 datasets:
     train:
         - name: CC3M-filtered

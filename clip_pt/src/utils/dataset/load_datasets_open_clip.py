@@ -87,19 +87,23 @@ def tokenize(example, vision_processor, text_tokenizer, config):
         text_en_input = text_tokenizer(sample_en)
         return image_input, text_pt_input, text_en_input
     else:
-        captions = example[1]["captions-pt"]
-        generated_captions = config.get("generated_captions", None)
-        if generated_captions == "en":
-            captions += example[1]["generated-captions-en"]
-        elif generated_captions == "pt":
-            captions += example[1]["generated-captions-pt"]
-        elif generated_captions == "filter-by-ranking":
+        lang = config.get("lang", "pt")
+
+        captions = example[1][f"captions-{lang}"]
+        generated_captions_strategy = config.get("generated_captions", None)
+
+        if generated_captions_strategy == "all":
+            captions += example[1][f"generated-captions-{lang}"]
+        elif generated_captions_strategy == "filter-by-ranking":
             captions = filter_by_ranking_captions(example[1], k=config.get("keep_captions", 5))
-        elif generated_captions == "filter-by-threshold":
+        elif generated_captions_strategy == "filter-by-threshold":
             captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
-        elif generated_captions == "filter-by-threshold-diversity":
+        elif generated_captions_strategy == "filter-by-threshold-diversity":
             captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
             captions = remove_similar(captions, k_min=config.get("k_min", 3))
+        elif isinstance(generated_captions_strategy, int):
+            k = generated_captions_strategy
+            captions += random.sample(example[1][f"generated-captions-{lang}"], k=k)
 
         if len(captions) == 0:
             return None  # filter example out

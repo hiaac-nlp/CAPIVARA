@@ -2,7 +2,7 @@ title: pracegover_filtered_OpenCLIP_generated_caption_pt
 tags:
     - data_centric
 
-generated_captions: "pt"
+generated_captions: "all"
 datasets:
     train:
         - name: pracegover-filtered
