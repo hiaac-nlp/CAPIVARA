@@ -1,4 +1,7 @@
-title: CC3M_filtered_OpenCLIP_augument_500_steps
+title: CC3M_filtered_OpenCLIP_10_epochs
+tags:
+    - data_centric
+    - baseline
 
 datasets:
     train:
@@ -17,15 +20,16 @@ augment: True
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 2e-6
-        eps: 1e-6
+        min_learning_rate: 1e-7
+        learning_rate: 5e-7
+        eps: 1e-8
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
 
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 800
+        warmup_lr: 500
 
 
 batch_size: 2816
@@ -33,7 +37,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 500
+    max_steps: 5863
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10

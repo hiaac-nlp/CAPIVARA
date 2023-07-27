@@ -4,7 +4,7 @@ tags:
     - captioning & filtering
 
 generated_captions: "filter-by-threshold-diversity"
-threshold: 0.2
+threshold: 0.15
 k_min: 3
 
 datasets:

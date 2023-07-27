@@ -1,12 +1,15 @@
-title: CC3M_filtered_generated_caption_pt_10_epoch
+title: CC3M_filtered_cap_filt_keep_5_captions_10_epochs
 tags:
     - data_centric
     - captioning & filtering
-generated_captions: "pt"
+
+generated_captions: "filter-by-ranking"
+keep_captions: 5
+
 datasets:
     train:
         - name: CC3M-filtered
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered_blip2_augment_translated/{00000..00165}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered_blip2_augment_translated_sim/{00000..00165}.tar"
 
     validation:
         - name: flickr30k # pracegover
@@ -36,7 +39,6 @@ batch_size: 2816
 accumulate_grad_batches: 1
 
 trainer:
-    # gradient_clip_val: 1.0 # clip gradients' global norm to <= 1.0
     accelerator: "gpu"
     max_steps: 5863 # 10 epochs
     num_sanity_val_steps: 2

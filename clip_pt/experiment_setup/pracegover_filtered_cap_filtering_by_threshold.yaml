@@ -1,10 +1,10 @@
-title: pracegover_filtered_cap_filt_thr_02
+title: pracegover_filtered_cap_filt_thr_015
 tags:
     - data_centric
     - captioning & filtering
 
 generated_captions: "filter-by-threshold"
-threshold: 0.2
+threshold: 0.15
 
 datasets:
     train:
