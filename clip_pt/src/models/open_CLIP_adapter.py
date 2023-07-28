@@ -55,6 +55,21 @@ class OpenCLIPAdapter(OpenCLIP):
             print('** No adapter configuration defined **')
             print('**************************************')
 
+            config = LoraConfig(
+                        r=8,
+                        lora_alpha=8,
+                        target_modules=["query", "value"],
+                        lora_dropout=0.0,
+                        bias="none",
+                        modules_to_save=["proj"],
+                    )
+
+            self.model.text.set_grad_checkpointing(True)
+            def make_inputs_require_grad(module, input, output):
+                output.requires_grad_(True)
+            self.model.text.transformer.embeddings.register_forward_hook(make_inputs_require_grad)
+            self.model.text = get_peft_model(self.model.text, config)
+
     def encode_text(self, text_inputs):
         text_latent = self.model.text(text_inputs)
         return F.normalize(text_latent, dim=-1)
