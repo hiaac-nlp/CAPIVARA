@@ -104,6 +104,7 @@ def tokenize(example, vision_processor, text_tokenizer, config):
         elif isinstance(generated_captions_strategy, int):
             k = generated_captions_strategy
             captions += random.sample(example[1][f"generated-captions-{lang}"], k=k)
+            print(captions)
 
         if len(captions) == 0:
             return None  # filter example out

@@ -1,8 +1,8 @@
-title: CC3M_filtered_1_generated_caption_pt_10_epoch
+title: CC3M_filtered_5_generated_caption_pt_10_epoch
 tags:
     - data_centric
     - captioning & filtering
-generated_captions: 1
+generated_captions: 5
 datasets:
     train:
         - name: CC3M-filtered
