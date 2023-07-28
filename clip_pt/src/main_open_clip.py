@@ -90,14 +90,17 @@ def main() -> None:
     logger = WandbLogger(project="CLIP-PT", name=config.title, tags=tags)
     config["model_checkpoint"].pop("dirpath")
 
+    callbacks = [
+            ModelCheckpoint(**config["model_checkpoint"]),
+            LearningRateMonitor("step"),
+        ]
+    if config.get("model", None) is not None:
+        callbacks.append(AdaptersActivation(config.model.number_layers, config.model.progressive_adapter))
+
     trainer = pl.Trainer(
         **config["trainer"],
         logger=logger,
-        callbacks=[ 
-            ModelCheckpoint(**config["model_checkpoint"]),
-            LearningRateMonitor("step"),
-            AdaptersActivation(config.model.number_layers,config.model.progressive_adapter),
-        ],
+        callbacks=callbacks,
         devices=[args.gpu],
         default_root_dir=os.path.join(args.checkpoint_dir, config["title"])
     )
