@@ -53,6 +53,10 @@ class OpenCLIPWrapper(pl.LightningModule):
         # freezing image encoder
         self.model.freeze()
 
+    def optimizer_step(self, *args, **kwargs):
+        super().optimizer_step(*args, **kwargs)
+        self.model.logit_scale.data.clamp_(0, 4.60517)  # ln(100) = 4.60517
+
     def configure_optimizers(self):
         opt_params = self.config.optimizer["params"]
         optimizer = Adam(
@@ -83,7 +87,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         if self.config.scheduler.name.lower() == "cosinewarmuplr":
             scheduler = CosineWarmupLR(
                 optimizer,
-                lr_min=1.0e-6,
+                lr_min=opt_params.get("min_learning_rate", 1.0e-6),
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=self.trainer.max_steps
@@ -118,6 +122,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         loss = clip_loss(logits_per_text)
         optimizer.zero_grad()
         self.manual_backward(loss)
+
         optimizer.step()
         if lr_scheduler:
             lr_scheduler.step(loss)
@@ -190,12 +195,3 @@ class OpenCLIPWrapper(pl.LightningModule):
         self.retrieval_val_acc.reset()
         self.classification_val_acc.reset()
 
-
-def gpu_status():
-    import nvidia_smi
-    nvidia_smi.nvmlInit()
-
-    handle = nvidia_smi.nvmlDeviceGetHandleByIndex(7)
-    info = nvidia_smi.nvmlDeviceGetMemoryInfo(handle)
-    print("Device {}: {}, Memory : ({:.2f}% free): {}(total), {} (free), {} (used)".format(7, nvidia_smi.nvmlDeviceGetName(handle), 100*info.free/info.total, info.total, info.free, info.used))
-    #TODO: Need to close the handle            

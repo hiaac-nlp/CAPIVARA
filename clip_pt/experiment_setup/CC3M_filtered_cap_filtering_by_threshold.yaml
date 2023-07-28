@@ -1,35 +1,38 @@
-title: CC3M_OpenCLIP_augument_700_steps
+title: CC3M_filtered_cap_filt_thr_015_10_epochs
 tags:
-    - preliminary
+    - data_centric
+    - captioning & filtering
+
+generated_captions: "filter-by-threshold"
+threshold: 0.15
 
 datasets:
     train:
-        - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
+        - name: CC3M-filtered
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_filtered_blip2_augment_translated_sim/{00000..00165}.tar"
 
     validation:
-            #- name: pracegover
-            #path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar"
-        - name: flickr30k
+        - name: flickr30k # pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: True     
+augment: True
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 2e-6
-        eps: 1e-6
+        min_learning_rate: 1e-7
+        learning_rate: 5e-7
+        eps: 1e-8
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
 
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 250
+        warmup_lr: 500
 
 
 batch_size: 2816
@@ -37,7 +40,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 700
+    max_steps: 5863
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
