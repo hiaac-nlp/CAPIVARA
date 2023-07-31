@@ -1,12 +1,12 @@
-title: CC3M_OpenCLIP_10_epochs
+title: CC3M_1_generated_caption_pt_10_epoch
 tags:
     - data_centric
-    - baseline
-
+    - captioning & filtering
+generated_captions: 1
 datasets:
     train:
         - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_blip2_augment_translated_sim/{00000..00266}.tar"
 
     validation:
         - name: flickr30k # pracegover
@@ -36,8 +36,9 @@ batch_size: 2816
 accumulate_grad_batches: 1
 
 trainer:
+    # gradient_clip_val: 1.0 # clip gradients' global norm to <= 1.0
     accelerator: "gpu"
-    max_steps: 5863
+    max_steps: 5863 # 10 epochs
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
