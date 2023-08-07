@@ -89,7 +89,11 @@ def tokenize(example, vision_processor, text_tokenizer, config):
     else:
         lang = config.get("lang", "pt")
 
-        captions = example[1][f"captions-{lang}"]
+        if lang.lower() == "pt":
+            captions = example[1][f"captions-{lang}"][:2]
+        else:
+            captions = example[1][f"captions-{lang}"][:1]
+
         generated_captions_strategy = config.get("generated_captions", None)
 
         if generated_captions_strategy == "all":
