@@ -103,8 +103,7 @@ def tokenize(example, vision_processor, text_tokenizer, config):
             captions = remove_similar(captions, k_min=config.get("k_min", 3))
         elif isinstance(generated_captions_strategy, int):
             k = generated_captions_strategy
-            captions += random.sample(example[1][f"generated-captions-{lang}"], k=k)
-            print(captions)
+            captions += example[1][f"generated-captions-{lang}"][:k]
 
         if len(captions) == 0:
             return None  # filter example out
@@ -202,5 +201,6 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         output["img_classif_labels"] = img_classif_dataset.get_labels()
 
     return output
+
 
 
