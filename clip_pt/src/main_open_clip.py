@@ -50,7 +50,7 @@ def main() -> None:
         model = OpenCLIP()
     else:
         # model has adapters
-        model = OpenCLIPAdapter(adapter=config.model.adapter, devices=args.gpu)
+        model = OpenCLIPAdapter(adapter=config.model.adapter, devices=args.gpu, projection_layer=config.model.projection_layer)
 
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer

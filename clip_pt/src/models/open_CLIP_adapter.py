@@ -12,12 +12,14 @@ class OpenCLIPAdapter(OpenCLIP):
     def __init__(self,
                  adapter: str = None,
                  devices=None,
+                 projection_layer='true',
                  inference=False):
         super().__init__()
         self.xlm_config = AutoConfig.from_pretrained("xlm-roberta-base")
         self.pooler_xlm = MeanPooler()
         self.devices = devices
         self.adapter = adapter
+        self.projection_layer = projection_layer
 
         if not inference:
             self.add_adapter(adapter_name=adapter)
@@ -28,17 +30,27 @@ class OpenCLIPAdapter(OpenCLIP):
     def add_adapter(self, adapter_name):
 
         if adapter_name.lower() == "lora":
-            config = LoraConfig(
-                    r=8,
-                    lora_alpha=8,
-                    target_modules=["query", "value"],
-                    lora_dropout=0.0,
-                    bias="none",
-                    modules_to_save=["proj"],
-                )
+            if self.projection_layer == 'true' or self.projection_layer == None:
+                config = LoraConfig(
+                        r=8,
+                        lora_alpha=8,
+                        target_modules=["query", "value"],
+                        lora_dropout=0.0,
+                        bias="none",
+                        modules_to_save=["proj"],
+                    )
+            else:
+                config = LoraConfig(
+                        r=8,
+                        lora_alpha=8,
+                        target_modules=["query", "value"],
+                        lora_dropout=0.0,
+                        bias="none",
+                    )
         else:
             raise NotImplementedError
-        
+        print('Adapter Config: ')
+        print(config)
         self.model.text.set_grad_checkpointing(True)
         def make_inputs_require_grad(module, input, output):
             output.requires_grad_(True)

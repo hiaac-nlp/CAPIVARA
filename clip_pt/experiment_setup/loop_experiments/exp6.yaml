@@ -1,9 +1,9 @@
-title: pracegover_OpenCLIP_Adapters_PEFT_1000-bs_filtered-dataset_no-proj
+title: ${trainer.max_steps}-CC3M_PEFT_(bs-${batch_size})(LR-${optimizer.params.learning_rate})(proj-layer:${model.projection_layer})
 
 datasets:
     train:
-        - name: pracegover
-          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train_filtered/{00000..00018}.tar"
+        - name: CC3M
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
 
     validation:
         - name: flickr30k
@@ -22,7 +22,8 @@ model:
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-3
+        learning_rate: 1e-5
+        min_learning_rate: 1e-6
         eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
@@ -32,17 +33,20 @@ scheduler:
     params:
         warmup_lr: 250
 
-batch_size: 1000
+
+batch_size: 4300
 accumulate_grad_batches: 1
 tags:
     - Adapters
-    - 700-Steps
+    - ${trainer.max_steps}-Steps
     - Filtered-Dataset
-    - 1000-BS
+    - ${batch_size}-BS
+    - LR-${optimizer.params.learning_rate}
+    - proj-layer-${model.projection_layer}
     
 trainer:
     accelerator: "gpu"
-    max_steps: 700  #
+    max_steps: 5863  #
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -64,4 +68,3 @@ carbon:
     carbon_checker: "false"
     brazil_carbon_intensity: 0.077
     process: "process"
-
