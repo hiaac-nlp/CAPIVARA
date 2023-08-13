@@ -1,4 +1,4 @@
-title: (${trainer.max_steps}-steps)-CC3M_PEFT_(bs-${batch_size})(LR-${optimizer.params.learning_rate})(proj-layer:${model.projection_layer})
+title: (Carbon_Checker)(${trainer.max_steps}-steps)-CC3M_PEFT_(bs-${batch_size})(LR-${optimizer.params.learning_rate})(proj-layer:${model.projection_layer})
 
 datasets:
     train:
@@ -34,7 +34,7 @@ scheduler:
         warmup_lr: 250
 
 
-batch_size: 2816
+batch_size: 4300
 accumulate_grad_batches: 1
 tags:
     - Adapters
@@ -46,7 +46,7 @@ tags:
     
 trainer:
     accelerator: "gpu"
-    max_steps: 5863  #
+    max_steps: 586  #
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -65,6 +65,6 @@ early_stopping:
     patience: 100
 
 carbon:
-    carbon_checker: "false"
+    carbon_checker: "true"
     brazil_carbon_intensity: 0.077
     process: "process"

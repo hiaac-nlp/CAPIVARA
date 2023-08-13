@@ -109,9 +109,9 @@ def main() -> None:
     if config.get("model", None) is not None:
         # model has adapters
         print('saving the adapters')
-        clip_pt.model.model.text.save_pretrained(f"/work/diego.moreira/CLIP-PtBr/clip_pt/src/CLIP-PT/adapter_PEFT_checkpoints/{wandb.run.id}")
+        clip_pt.model.model.text.save_pretrained(f"/hahomes/diego.moreira/adapter_PEFT_checkpoints/{wandb.run.id}")
 
-    carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"])
+    carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"],carbon_checker=config.carbon["carbon_checker"])
 
 
 if __name__ == "__main__":

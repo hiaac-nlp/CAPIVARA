@@ -1,4 +1,4 @@
-title: CC3M_OpenCLIP_10_epochs
+title: (Carbon_Checker)CC3M_OpenCLIP_586 steps
 tags:
     - data_centric
     - baseline
@@ -37,7 +37,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 5863
+    max_steps: 586
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -56,6 +56,6 @@ early_stopping:
     patience: 100
 
 carbon:
-    carbon_checker: "false"
+    carbon_checker: "true"
     brazil_carbon_intensity: 0.077
     process: "process"

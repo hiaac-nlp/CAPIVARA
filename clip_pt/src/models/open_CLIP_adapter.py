@@ -59,7 +59,7 @@ class OpenCLIPAdapter(OpenCLIP):
 
     def load_adapters(self, pretrained_adapter):
         if pretrained_adapter != 'none':
-            model_path = f"/work/diego.moreira/CLIP-PtBr/clip_pt/src/CLIP-PT/adapter_PEFT_checkpoints/{pretrained_adapter}"
+            model_path = f"/hahomes/diego.moreira/adapter_PEFT_checkpoints/{pretrained_adapter}"
             config = PeftConfig.from_pretrained(model_path)
             self.model.text = PeftModel.from_pretrained(self.model.text, model_path, config=config)
         else:
