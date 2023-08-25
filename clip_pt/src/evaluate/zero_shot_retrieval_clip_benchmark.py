@@ -22,8 +22,9 @@ def parse_args():
     parser.add_argument("--distill", default=None, type=str, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["english", "marian", "google"], required=False)
+    parser.add_argument("--language", default="pt", choices=["pt", "xh", "hi"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
-    parser.add_argument("--open-clip", type=bool, default=False, required=False,
+    parser.add_argument("--open_clip", type=str, default="False", required=False,
                         help="Indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
     parser.add_argument("--gpu", help="GPU", )
     parser.add_argument("--adapter", default=None, required=False, help="Load the adapter weights")
@@ -38,16 +39,19 @@ def tokenize(example, args):
     if args.translation.lower() == "english":
         captions = example[1]["captions-en"]
     else:
-        if len(example[1]["captions-pt"]) == 1:
-            captions = example[1]["captions-pt"][0]
+        lang = args.language.lower()
+        if len(example[1][f"captions-{lang}"]) == 1:
+            captions = example[1][f"captions-{lang}"][0]
         else:
-            if args.translation == "google":
-                captions = example[1]["captions-pt"][1::2]
-            elif args.translation == "marian":
-                captions = example[1]["captions-pt"][0::2]
+            if lang == 'pt':  # pt has 10 captions, 5 by google and 5 by marian
+                if args.translation == "google":
+                    captions = example[1][f"captions-{lang}"][1::2]
+                elif args.translation == "marian":
+                    captions = example[1][f"captions-{lang}"][0::2]
+            else:
+                captions = example[1][f"captions-{lang}"]
 
     return image_input, captions
-
 
 def format_batch(batch):
     image_input = batch[0]
@@ -200,13 +204,14 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, batch_size=None, num_workers=10)
 
     print(">>>>>>> Loading model")
-    if args.open_clip:
+    if args.open_clip == 'True':
         if args.adapter is None:
             model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
         else:
             model = OpenCLIPAdapter(inference=True, devices=device)
             model.load_adapters(pretrained_adapter=args.adapter)
     else:
+        print('Using Baseline Model')
         model = OpenCLIP()
 
     vision_processor = model.image_preprocessor
