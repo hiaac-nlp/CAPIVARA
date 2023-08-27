@@ -7,9 +7,8 @@ from torchmetrics import Accuracy
 
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
-from utils import utils
 from utils.loss import clip_loss
-from utils.scheduler import CosineWarmupLR
+from utils.scheduler import CosineWarmupLR, LinearLR
 
 
 class OpenCLIPWrapper(pl.LightningModule):
@@ -54,6 +53,10 @@ class OpenCLIPWrapper(pl.LightningModule):
         # freezing image encoder
         self.model.freeze()
 
+    def optimizer_step(self, *args, **kwargs):
+        super().optimizer_step(*args, **kwargs)
+        self.model.logit_scale.data.clamp_(0, 4.60517)  # ln(100) = 4.60517
+
     def configure_optimizers(self):
         opt_params = self.config.optimizer["params"]
         optimizer = Adam(
@@ -84,10 +87,20 @@ class OpenCLIPWrapper(pl.LightningModule):
         if self.config.scheduler.name.lower() == "cosinewarmuplr":
             scheduler = CosineWarmupLR(
                 optimizer,
-                lr_min=opt_params["min_learning_rate"],
+                lr_min=opt_params.get("min_learning_rate", 1.0e-6),
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=self.trainer.max_steps
+            )
+        
+        if self.config.scheduler.name.lower() == 'linearlr':
+            scheduler = LinearLR(
+                optimizer, 
+                start_factor=self.config.scheduler.params["start_factor"], 
+                end_factor=self.config.scheduler.params["end_factor"], 
+                total_iters=self.config.scheduler.params["total_iters"], 
+                last_epoch=-1, 
+                verbose=False
             )
 
         return {
@@ -109,6 +122,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         loss = clip_loss(logits_per_text)
         optimizer.zero_grad()
         self.manual_backward(loss)
+
         optimizer.step()
         if lr_scheduler:
             lr_scheduler.step(loss)

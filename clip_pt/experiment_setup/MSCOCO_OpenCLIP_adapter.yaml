@@ -1,4 +1,4 @@
-title: MSCOCO_OpenCLIP_Adapters_lr-1e-3
+title: MSCOCO_OpenCLIP_Adapters_2100Steps
 
 datasets:
     train:
@@ -15,7 +15,8 @@ datasets:
 
 model:
     adapter: "LoRA"
-    progressive_adapter: 20
+    number_layers: 11
+    progressive_adapter: -1
 
 optimizer:
     name: "Adam"
@@ -28,19 +29,23 @@ optimizer:
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 200
+        warmup_lr: 750
 
 
 # batch_size: 2816
 batch_size: 1000
 accumulate_grad_batches: 1
+tags:
+    - Adapters
+    - 2100-Steps
 
 trainer:
     accelerator: "gpu"
-    max_epochs: 10  #
+    max_steps: 2100  #
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
+    val_check_interval: 100
 
 model_checkpoint:
     mode: "min"

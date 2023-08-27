@@ -1,6 +1,7 @@
-title: CC3M_OpenCLIP_augument_9220_steps-${optimizer.params.min_learning_rate}-${optimizer.params.learning_rate}
+title: (Carbon_Checker)CC3M_OpenCLIP_586 steps
 tags:
-    - preliminary
+    - data_centric
+    - baseline
 
 datasets:
     train:
@@ -8,29 +9,27 @@ datasets:
           path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
 
     validation:
-            #- name: pracegover
-            #path: "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar"
-        - name: flickr30k
+        - name: flickr30k # pracegover
           path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
 
     img_classification:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: True     
+augment: True
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-8
-        min_learning_rate: 1e-9
-        eps: 1e-6
+        min_learning_rate: 1e-7
+        learning_rate: 5e-7
+        eps: 1e-8
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
 
 scheduler:
     name: "CosineWarmupLR"
     params:
-        warmup_lr: 2500
+        warmup_lr: 500
 
 
 batch_size: 2816
@@ -38,7 +37,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 9220 # 10 epochs - 9446
+    max_steps: 586
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -57,6 +56,6 @@ early_stopping:
     patience: 9220
 
 carbon:
-    carbon_checker: "false"
+    carbon_checker: "true"
     brazil_carbon_intensity: 0.077
     process: "process"

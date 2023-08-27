@@ -10,10 +10,12 @@ import tqdm
 import webdataset as wds
 from torch.utils.data import DataLoader
 
+sys.path.append("./")
+sys.path.append("../")
+
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -34,24 +36,24 @@ def tokenize(example, args):
     image_input = vision_processor(example[0])
 
     captions = None
+    
     if args.translation.lower() == "english":
         captions = example[1]["captions-en"]
     else:
         if len(example[1]["captions-pt"]) == 1:
             captions = example[1]["captions-pt"][0]
         else:
-            if args.translation == "marian":
+            if args.translation == "google":
                 captions = example[1]["captions-pt"][1::2]
-            elif args.translation == "google":
+            elif args.translation == "marian":
                 captions = example[1]["captions-pt"][0::2]
 
     text_input = text_tokenizer(captions)
 
     return image_input, text_input
 
-
 def format_batch(batch):
-    image_input = batch[0]
+    image_input = batch[0] 
     text_input = batch[1].reshape((-1, 77))
     return image_input, text_input
 

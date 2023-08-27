@@ -16,6 +16,7 @@ from models.self_distill_clip_wrapper import SelfDistillCLIPWrapper, \
     TeacherStudentSelfDistillCLIPWrapper
 from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 from utils.dataset.load_datasets_open_clip import load_datasets
+from utils.callbacks import AdaptersActivation
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 logging.basicConfig(level='ERROR')
@@ -31,6 +32,7 @@ def main() -> None:
         help="YAML file with configurations"
     )
     parser.add_argument("-g", "--gpu", required=True, type=int)
+    parser.add_argument("-ck", "--checkpoint-dir", required=False, type=str, default="../checkpoints/open_clip_pt")
 
     args = parser.parse_args()
 
@@ -48,7 +50,7 @@ def main() -> None:
         model = OpenCLIP()
     else:
         # model has adapters
-        model = OpenCLIPAdapter(adapter=config.model.adapter, devices=args.gpu)
+        model = OpenCLIPAdapter(adapter=config.model.adapter, devices=args.gpu, projection_layer=config.model.projection_layer)
 
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer
@@ -88,24 +90,28 @@ def main() -> None:
     logger = WandbLogger(project="CLIP-PT", name=config.title, tags=tags)
     config["model_checkpoint"].pop("dirpath")
 
+    callbacks = [
+            ModelCheckpoint(**config["model_checkpoint"]),
+            LearningRateMonitor("step"),
+        ]
+    if config.get("model", None) is not None:
+        callbacks.append(AdaptersActivation(config.model.number_layers, config.model.progressive_adapter))
+
     trainer = pl.Trainer(
         **config["trainer"],
         logger=logger,
-        callbacks=[
-            ModelCheckpoint(**config["model_checkpoint"]),
-            LearningRateMonitor("step")
-        ],
+        callbacks=callbacks,
         devices=[args.gpu],
-        default_root_dir=os.path.join("../checkpoints/open_clip_pt", config["title"])
+        default_root_dir=os.path.join(args.checkpoint_dir, config["title"])
     )
     trainer.fit(clip_pt, train_dataloader, val_dataloader)
 
     if config.get("model", None) is not None:
         # model has adapters
         print('saving the adapters')
-        clip_pt.model.text_encoder.save_all_adapters(f"CLIP-PT/adapter_checkpoints/{wandb.run.id}")
+        clip_pt.model.model.text.save_pretrained(f"/hahomes/diego.moreira/adapter_PEFT_checkpoints/{wandb.run.id}")
 
-    carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"])
+    carbon_tracker_end(tracker_code_carbon, config.carbon["brazil_carbon_intensity"],carbon_checker=config.carbon["carbon_checker"])
 
 
 if __name__ == "__main__":

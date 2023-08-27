@@ -4,11 +4,49 @@ import random
 from typing import Dict
 
 import braceexpand
+import numpy as np
 import webdataset as wds
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
 from utils.dataset.grocery_store_dataset import GroceryStoreDataset
+
+vectorizer = TfidfVectorizer()
+
+
+def similarity(captions):
+    tfidf_vectors = vectorizer.fit_transform(captions)
+    return cosine_similarity(tfidf_vectors)
+
+
+def remove_similar(captions, k_min=3, thr=0.3):
+    """
+    Remove similar texts keeping the maximum diversity among them
+
+    :param captions: image captions
+    :param k_min: minimum number of texts to keep
+    :param thr: maximum similarity between texts allowed
+    :return: filtered captions, in which similar text were removed
+    """
+
+    if len(captions) < k_min:
+        return captions
+
+    sim_matrix = similarity(captions)
+    n_nodes = sim_matrix.shape[0]
+    sim_matrix = sim_matrix - np.eye(n_nodes)
+    while not (sim_matrix <= thr).all() and n_nodes > k_min:
+        cost = sim_matrix.sum(axis=0)
+        i = np.argmax(cost)
+        sim_matrix[i, :] = 0
+        sim_matrix[:, i] = 0
+        n_nodes -= 1
+
+    cost = sim_matrix.sum(axis=0)
+    remove_indices = np.where(cost == 0)[0].tolist()
+    return [caption for i, caption in enumerate(captions) if i not in remove_indices]
 
 
 def image_augmentation(image):
@@ -21,14 +59,23 @@ def image_augmentation(image):
     return augmentation(image)
 
 
-def tokenize(example, vision_processor, text_tokenizer, limit_num_captions=None, laclip=False, augment=False, self_distill=False):
+def filter_by_ranking_captions(annotations, k=5):
+    top_k = np.argsort(annotations["similarities-pt"])[-k:].tolist()
+    return [annotations["captions-pt"][i] for i in top_k]
+
+
+def filter_by_threshold(annotations, thr=0.2):
+    return [caption for caption, sim in zip(annotations["captions-pt"], annotations["similarities-pt"]) if sim >= thr]
+
+
+def tokenize(example, vision_processor, text_tokenizer, config):
     img = example[0]
-    if augment:
+    if config.get("augment", True):
         img = image_augmentation(img)
 
     image_input = vision_processor(img)
 
-    if self_distill:
+    if config.get("self_distill", False):
         n_captions = len(example[1]["captions-en"])
         caption_index = random.randint(0, n_captions - 1)
 
@@ -39,16 +86,44 @@ def tokenize(example, vision_processor, text_tokenizer, limit_num_captions=None,
         text_pt_input = text_tokenizer(sample_pt)
         text_en_input = text_tokenizer(sample_en)
         return image_input, text_pt_input, text_en_input
-    elif laclip:
-        # Limit the number of captions that can be chosen randomnly
-        n_captions = len(example[1]["captions-pt"])
-        caption_index = random.randint(0, min(n_captions - 1, limit_num_captions - 1))
-        text_input = text_tokenizer(example[1]["captions-pt"][caption_index])
-        return image_input, text_input
     else:
+        lang = config.get("lang", "pt")
+
+        if lang.lower() == "pt":
+            captions = example[1][f"captions-{lang}"][:2]
+        else:
+            captions = example[1][f"captions-{lang}"][:1]
+
+        generated_captions_strategy = config.get("generated_captions", None)
+
+        if generated_captions_strategy == "all":
+            captions += example[1][f"generated-captions-{lang}"]
+        elif generated_captions_strategy == "filter-by-ranking":
+            captions = filter_by_ranking_captions(example[1], k=config.get("keep_captions", 5))
+        elif generated_captions_strategy == "filter-by-threshold":
+            captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
+        elif generated_captions_strategy == "filter-by-threshold-diversity":
+            captions = filter_by_threshold(example[1], thr=config.get("threshold", 0.2))
+            captions = remove_similar(captions, k_min=config.get("k_min", 3))
+        elif isinstance(generated_captions_strategy, int):
+            k = generated_captions_strategy
+            captions += example[1][f"generated-captions-{lang}"][:k]
+
+        if len(captions) == 0:
+            return None  # filter example out
+
         # take a random caption
-        text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
+        text_input = text_tokenizer(random.choice(captions))
         return image_input, text_input
+
+
+def tokenize_validation(example, vision_processor, text_tokenizer):
+    img = example[0]
+    image_input = vision_processor(img)
+
+    captions = example[1]["captions-pt"]
+    text_input = text_tokenizer(random.choice(captions))
+    return image_input, text_input
 
 
 def format_batch(batch, self_distill=False):
@@ -69,9 +144,6 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         returns an inaccurate value, so we have to set it manually.
         Reference: https://webdataset.github.io/webdataset/sharding/
     """
-    if config.get("laclip", False):
-        print("Using LA-CLIP!")
-    
     current_path = os.path.dirname(__file__)
     with open(os.path.join(current_path, "datasets_size.json")) as file:
         datasets_sizes = json.load(file)
@@ -95,11 +167,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("torchrgb8") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
-                                laclip=config.get("laclip", False),
-                                limit_num_captions=config.get("limit_num_captions", 1),
-                                augment=config.get("augment", True),
-                                self_distill=config.get("self_distill", False))) \
+        .map(lambda x: tokenize(x, vision_processor, text_tokenizer, config)) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x, self_distill=config.get("self_distill", False)))
 
@@ -107,7 +175,7 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .shuffle(10000) \
         .decode("pil") \
         .to_tuple("jpg;png", "json") \
-        .map(lambda x: tokenize(x, vision_processor, text_tokenizer)) \
+        .map(lambda x: tokenize_validation(x, vision_processor, text_tokenizer)) \
         .batched(config.batch_size) \
         .map(lambda x: format_batch(x))
 
