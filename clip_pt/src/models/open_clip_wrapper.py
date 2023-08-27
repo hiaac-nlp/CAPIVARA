@@ -84,7 +84,7 @@ class OpenCLIPWrapper(pl.LightningModule):
         if self.config.scheduler.name.lower() == "cosinewarmuplr":
             scheduler = CosineWarmupLR(
                 optimizer,
-                lr_min=1.0e-6,
+                lr_min=opt_params["min_learning_rate"],
                 lr_max=opt_params["learning_rate"],
                 warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=self.trainer.max_steps

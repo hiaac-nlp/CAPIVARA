@@ -1,11 +1,12 @@
-title: CC3M_OpenCLIP_augument_9220_steps-${optimizer.params.min_learning_rate}-${optimizer.params.learning_rate}
+title: CC3M_LaCLIP_OpenCLIP_augument_caption_limit_${limit_num_captions}_${trainer.max_steps}_steps-${optimizer.params.min_learning_rate}-${optimizer.params.learning_rate}
 tags:
-    - preliminary
+    - text_augmentation
+    - laclip
 
 datasets:
     train:
-        - name: CC3M
-          path: "/hadatasets/clip_pt/final_webdatasets/cc3m/{00000..00266}.tar"
+        - name: CC3M_LaCLIP
+          path: "/hadatasets/clip_pt/final_webdatasets/cc3m_laclip/{00000..00259}.tar"
 
     validation:
             #- name: pracegover
@@ -17,12 +18,14 @@ datasets:
         path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
         annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
 
-augment: True     
+augment: True
+laclip: True
+limit_num_captions: 4
 optimizer:
     name: "Adam"
     params:
-        learning_rate: 1e-8
-        min_learning_rate: 1e-9
+        learning_rate: 5e-7
+        min_learning_rate: 1e-8
         eps: 1e-6
         weight_decay: 0.2
         betas: [ 0.9, 0.98 ]
@@ -38,7 +41,7 @@ accumulate_grad_batches: 1
 
 trainer:
     accelerator: "gpu"
-    max_steps: 9220 # 10 epochs - 9446
+    max_steps: 9220 # 10 epochs
     num_sanity_val_steps: 2
     overfit_batches: 0.0
     log_every_n_steps: 10
@@ -49,7 +52,7 @@ model_checkpoint:
     save_last: true
     save_weights_only: true
     monitor: "val/retrieval_loss/dataloader_idx_0"
-    dirpath: "../checkpoints/clip_pt/MSCOCO_LiT"
+    dirpath: "../checkpoints/clip_pt/LaCLIP"
 
 early_stopping:
     verbose: true

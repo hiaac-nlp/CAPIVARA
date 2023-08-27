@@ -2,6 +2,9 @@ import argparse
 import os
 import sys
 
+sys.path.append("./")
+sys.path.append("../")
+
 import torch
 import tqdm
 import webdataset as wds
@@ -10,9 +13,6 @@ from torch.utils.data import DataLoader
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
-
-sys.path.append("./")
-sys.path.append("../")
 
 
 def parse_args():

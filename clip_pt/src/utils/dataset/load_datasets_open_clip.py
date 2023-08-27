@@ -21,7 +21,7 @@ def image_augmentation(image):
     return augmentation(image)
 
 
-def tokenize(example, vision_processor, text_tokenizer, augment=False, self_distill=False):
+def tokenize(example, vision_processor, text_tokenizer, limit_num_captions=None, laclip=False, augment=False, self_distill=False):
     img = example[0]
     if augment:
         img = image_augmentation(img)
@@ -39,6 +39,12 @@ def tokenize(example, vision_processor, text_tokenizer, augment=False, self_dist
         text_pt_input = text_tokenizer(sample_pt)
         text_en_input = text_tokenizer(sample_en)
         return image_input, text_pt_input, text_en_input
+    elif laclip:
+        # Limit the number of captions that can be chosen randomnly
+        n_captions = len(example[1]["captions-pt"])
+        caption_index = random.randint(0, min(n_captions - 1, limit_num_captions - 1))
+        text_input = text_tokenizer(example[1]["captions-pt"][caption_index])
+        return image_input, text_input
     else:
         # take a random caption
         text_input = text_tokenizer(random.choice(example[1]["captions-pt"]))
@@ -63,6 +69,9 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         returns an inaccurate value, so we have to set it manually.
         Reference: https://webdataset.github.io/webdataset/sharding/
     """
+    if config.get("laclip", False):
+        print("Using LA-CLIP!")
+    
     current_path = os.path.dirname(__file__)
     with open(os.path.join(current_path, "datasets_size.json")) as file:
         datasets_sizes = json.load(file)
@@ -87,6 +96,8 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         .decode("torchrgb8") \
         .to_tuple("jpg;png", "json") \
         .map(lambda x: tokenize(x, vision_processor, text_tokenizer,
+                                laclip=config.get("laclip", False),
+                                limit_num_captions=config.get("limit_num_captions", 1),
                                 augment=config.get("augment", True),
                                 self_distill=config.get("self_distill", False))) \
         .batched(config.batch_size) \
