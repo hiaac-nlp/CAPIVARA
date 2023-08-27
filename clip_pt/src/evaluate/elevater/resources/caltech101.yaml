@@ -1,8 +1,0 @@
-# GPUS: (0,)
-
-DATASET:
-  DATASET: 'caltech-101'
-  ROOT: '../DATASET/caltech101-tf/'
-  NUM_CLASSES: 102
-TEST:
-  METRIC: 'mean-per-class'

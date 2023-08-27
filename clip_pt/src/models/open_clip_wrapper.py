@@ -194,4 +194,3 @@ class OpenCLIPWrapper(pl.LightningModule):
 
         self.retrieval_val_acc.reset()
         self.classification_val_acc.reset()
-

@@ -53,7 +53,7 @@ model_checkpoint:
 early_stopping:
     verbose: true
     monitor: "val/retrieval_loss/dataloader_idx_0"
-    patience: 100
+    patience: 9220
 
 carbon:
     carbon_checker: "true"

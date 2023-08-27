@@ -2,6 +2,9 @@ import argparse
 import os
 import sys
 
+sys.path.append("./")
+sys.path.append("../")
+
 import torch
 import tqdm
 import webdataset as wds
