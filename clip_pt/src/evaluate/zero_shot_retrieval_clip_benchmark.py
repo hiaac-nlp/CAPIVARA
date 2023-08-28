@@ -39,12 +39,13 @@ def tokenize(example, args):
         captions = example[1]["captions-en"]
     else:
         if len(example[1]["captions-pt"]) == 1:
-            captions = example[1]["captions-pt"][0]
+            captions = example[1]["captions-pt"]
         else:
             if args.translation == "google":
                 captions = example[1]["captions-pt"][1::2]
             elif args.translation == "marian":
                 captions = example[1]["captions-pt"][0::2]
+    captions = captions[:5]
 
     return image_input, captions
 
