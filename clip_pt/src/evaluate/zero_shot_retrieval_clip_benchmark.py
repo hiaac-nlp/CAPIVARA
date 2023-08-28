@@ -41,7 +41,7 @@ def tokenize(example, args):
     else:
         lang = args.language.lower()
         if len(example[1][f"captions-{lang}"]) == 1:
-            captions = example[1][f"captions-{lang}"][0]
+            captions = example[1][f"captions-{lang}"]
         else:
             if lang == 'pt':  # pt has 10 captions, 5 by google and 5 by marian
                 if args.translation == "google":
