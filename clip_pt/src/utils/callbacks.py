@@ -25,8 +25,6 @@ class AdaptersActivation(Callback):
                     if name in params_to_train: 
                         param.requires_grad = False
                         print(f'Freezing {name}')
-                    # else:
-                    #     print(f'{name} dont finded')
                     
     def on_train_epoch_end(self, trainer, pl_module):
         if self.activation_finish != -1:

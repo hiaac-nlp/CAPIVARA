@@ -34,7 +34,7 @@ scheduler:
         warmup_lr: 250
 
 
-batch_size: 4300
+batch_size: 1000
 accumulate_grad_batches: 1
 tags:
     - Adapters
