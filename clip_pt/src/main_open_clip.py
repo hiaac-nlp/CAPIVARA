@@ -12,8 +12,7 @@ from pytorch_lightning.loggers import WandbLogger
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
-from models.self_distill_clip_wrapper import SelfDistillCLIPWrapper, \
-    TeacherStudentSelfDistillCLIPWrapper
+
 from utils.carbon_tracker import carbon_tracker_init, carbon_tracker_end
 from utils.dataset.load_datasets_open_clip import load_datasets
 from utils.callbacks import AdaptersActivation
@@ -67,21 +66,10 @@ def main() -> None:
                                               gpu_ids=[args.gpu],
                                               carbon_checker=config.carbon["carbon_checker"])
 
-    if config.get("self_distill", False) == "teacher":
-        clip_pt = TeacherStudentSelfDistillCLIPWrapper(config, train_size,
-                                                       val_labels=datasets["img_classif_labels"],
-                                                       model=model,
-                                                       carbon_tracker=tracker_code_carbon)
-    elif config.get("self_distill", False):
-        clip_pt = SelfDistillCLIPWrapper(config, train_size,
-                                         val_labels=datasets["img_classif_labels"],
-                                         model=model,
-                                         carbon_tracker=tracker_code_carbon)
-    else:
-        clip_pt = OpenCLIPWrapper(config, train_size,
-                                  val_labels=datasets["img_classif_labels"],
-                                  model=model,
-                                  carbon_tracker=tracker_code_carbon)
+    clip_pt = OpenCLIPWrapper(config, train_size,
+                              val_labels=datasets["img_classif_labels"],
+                              model=model,
+                              carbon_tracker=tracker_code_carbon)
 
     tags = ["open_clip"]
     tags += [dataset["name"] for dataset in config.datasets.train]  # add training datasets as tags
