@@ -46,7 +46,9 @@ In order to make easier to replicate our experiments, we share the scripts we us
 
 #### Zero-shot cross-modal retrieval
 
+
 #### Zero-shot image classification
+
 
 ## Citation
 ```bibtex
@@ -54,4 +56,4 @@ In order to make easier to replicate our experiments, we share the scripts we us
   title={CAPIVARA: Cost-Efficient Approach for Improving Multilingual CLIP Performance on Low-Resource Languages},
   ...
 }
-```
+`
