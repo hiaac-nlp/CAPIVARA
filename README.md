@@ -40,6 +40,9 @@ pip install -r requirements.txt
 ### Code organization
 
 ### Data preprocessing
+#### Dataset Translation
+
+Since the texts used are translated from English into the target languages, if it is necessary to introduce new data in addition to the data provided by us, a new translation is required. We used Google Translate to do this. First, we extracted all the captions for each of the sets used. Then we translated the captions using the translator. Finally, we added all the translated captions to their original bases with the tag of the language used. All sets are kept in the original format of the bases to make it easier for users who already use them.
 
 ### Train
 
@@ -62,10 +65,104 @@ Other settings (all present in the file [example.yaml](https://github.com/hiaac-
 In order to make easier to replicate our experiments, we share the scripts we used for inference.
 
 #### Zero-shot cross-modal retrieval
+CAPIVARA can be used to retrieve or classify both modals, images and texts. 
 
+#### Image Retrieval
+
+The following method can be used to retrieve images:
+
+```bash
+def text_to_image_retrieval(text_required, model, image_features, text_features, all_images, all_texts):
+    all_texts = sum(all_texts, [])
+    caption = []
+    for text in text_required:
+        if type(text) != int:
+            caption.append(text)
+            text_features = text_tokenizer(text)
+            text_features = model.encode_text(text_features.to(device))
+            text_features = text_features
+        else:
+            caption.append([text])
+        similarities = []
+        for i in tqdm.tqdm(range(len(image_features)), desc="t2i retrieval"):
+            if type(text) == int:
+                scores = text_features[text] @ image_features[i].t()  # shape: [batch_size, batch_size]
+            else:
+                scores = text_features @ image_features[i].t()  # shape: [batch_size, batch_size]
+            item = {
+                'score': scores.cpu(),
+                'id': i,
+                'image': all_images[i].cpu() 
+                }
+            similarities.append(item)
+        similarities_df = pd.DataFrame(similarities)
+        sorted_similarities_df = similarities_df.sort_values(by='score', ascending=False)
+    return sorted_similarities_df, caption
+```
+
+In this way, a list containing the similarity scores between the input text and the set of images is returned, as well as their ids and images.
+
+#### Text Retrieval
+As a complement, the method below retrieves text from a target image.
+
+```bash
+def image_to_text_retrieval(image_required, image_features, text_features, all_images, all_texts):    
+    all_texts = sum(all_texts, [])
+    images_selected = []
+    for image in image_required:
+        images_selected.append(all_images[image])
+        similarities = []
+        for i in tqdm.tqdm(range(len(text_features)), desc="i2t retrieval"):
+            scores = text_features[i] @ image_features[image].t()  # shape: [batch_size, batch_size]
+            item = {
+                'score': scores.cpu(),
+                'id': i,
+                'text': all_texts[i]
+                }
+            similarities.append(item)
+        similarities_df = pd.DataFrame(similarities)
+        sorted_similarities_df = similarities_df.sort_values(by='score', ascending=False)
+    return sorted_similarities_df, images_selected
+```
+
+This method returns a list containing the similarity scores between the input image and the set of texts, as well as their ids and images.
+The use of these methods and other auxiliary methods can also be seen in the [retrieval example notebook](link), where it is possible to iteratively retrieve images and texts.
+
+#### Retrieval Evaluation
+
+To carry out the evaluation of image and text retrieval automatically, generating the metrics used in the article, the python script [zero_shot_retrieval_clip_benchmark.py](https://github.com/hiaac-nlp/CAPIVARA/blob/main/clip_pt/src/evaluate/zero_shot_retrieval_clip_benchmark.py) can be used.
+The following parameters can be used:
+
+```bash
+--model-path, directs to the path of the model checkpoint
+--distill, to use knowledge distillation
+--dataset-path, path to validation/test dataset
+--translation, select which translation framework will be used "english", "marian", "google" (default)
+--language, language used for captions: "en" (default), "xh", "hi"
+--batch, batch size
+--open_clip, indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
+--gpu, select GPU 
+--adapter, load the adapter weights
+```
 
 #### Zero-shot image classification
+To use the model as a classifier, the following code can be used:
 
+```
+img_features, txt_features = model.model(batch)
+logits, _ = model.model.compute_logits(img_features,
+                                                 txt_features,
+                                                 fixed_logit=False)  # shape: [n_imgs, n_classes]
+predictions = torch.argsort(logits, descending=True)
+predicted_labels = predictions[:, :k]
+
+# Check if the target label is in the top-k predictions for each sample
+correct_predictions = (predicted_labels == targets.view(-1, 1)).any(dim=1)
+
+```
+
+The predictions return the correct predictions relating the classified image and text. We then check the first k correctly classified values.
+An [classification example notebook](link) for classifying images and text is also available.
 
 ## Citation
 ```bibtex
