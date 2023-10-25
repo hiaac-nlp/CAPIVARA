@@ -3,7 +3,7 @@ list=("3cavs4uj" "2pqi2s2g" "ch2u16t2" "n702m8ga" "308t9rhg" "pk1sesbc" "sr8onor
 for i in ${list[@]}
 do
    echo "======= $i ========"
-   python evaluate/zero_shot_retrieval_webdatasets.py --model-path "./CLIP-PT/$i/checkpoints/last.ckpt" --dataset-path "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar" --batch 100 --gpu $1
+   python ../evaluate/zero_shot_retrieval_webdatasets.py --model-path "./CLIP-PT/$i/checkpoints/last.ckpt" --dataset-path "/hadatasets/clip_pt/final_webdatasets/pracegover_val/{00000..00007}.tar" --batch 100 --gpu $1
 done
 
 

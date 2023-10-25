@@ -1,3 +1,0 @@
-python3 evaluate/zero_shot_imagenet_babel.py --gpu 5 --imagenet_folder "/hadatasets/clip_pt/images/imagenet" --save-dir "./" --languages "MANUAL-TRANSLATED-PT"
-python3 evaluate/zero_shot_imagenet_babel.py --gpu 5 --imagenet_folder "/hadatasets/clip_pt/images/imagenet" --save-dir "./" --languages "PT"
-python3 evaluate/zero_shot_imagenet_babel.py --gpu 5 --imagenet_folder "/hadatasets/clip_pt/images/imagenet" --save-dir "./" --languages "EN"
