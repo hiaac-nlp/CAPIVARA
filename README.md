@@ -118,7 +118,7 @@ def image_to_text_retrieval(image_required, image_features, text_features, all_i
                 'score': scores.cpu(),
                 'id': i,
                 'text': all_texts[i]
-                }
+            }
             similarities.append(item)
         similarities_df = pd.DataFrame(similarities)
         sorted_similarities_df = similarities_df.sort_values(by='score', ascending=False)
