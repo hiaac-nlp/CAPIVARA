@@ -65,13 +65,13 @@ Other settings (all present in the file [example.yaml](https://github.com/hiaac-
 In order to make easier to replicate our experiments, we share the scripts we used for inference.
 
 #### Zero-shot cross-modal retrieval
-CAPIVARA can be used to retrieve or classify both modals, images and texts. 
+CAPIVARA can be used to retrieve or classify both modals, images and texts.
 
 #### Image Retrieval
 
 The following method can be used to retrieve images:
 
-```bash
+```python
 def text_to_image_retrieval(text_required, model, image_features, text_features, all_images, all_texts):
     all_texts = sum(all_texts, [])
     caption = []
@@ -92,8 +92,8 @@ def text_to_image_retrieval(text_required, model, image_features, text_features,
             item = {
                 'score': scores.cpu(),
                 'id': i,
-                'image': all_images[i].cpu() 
-                }
+                'image': all_images[i].cpu()
+            }
             similarities.append(item)
         similarities_df = pd.DataFrame(similarities)
         sorted_similarities_df = similarities_df.sort_values(by='score', ascending=False)
@@ -105,8 +105,8 @@ In this way, a list containing the similarity scores between the input text and 
 #### Text Retrieval
 As a complement, the method below retrieves text from a target image.
 
-```bash
-def image_to_text_retrieval(image_required, image_features, text_features, all_images, all_texts):    
+```python
+def image_to_text_retrieval(image_required, image_features, text_features, all_images, all_texts):
     all_texts = sum(all_texts, [])
     images_selected = []
     for image in image_required:
@@ -141,18 +141,20 @@ The following parameters can be used:
 --language, language used for captions: "en" (default), "xh", "hi"
 --batch, batch size
 --open_clip, indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
---gpu, select GPU 
+--gpu, select GPU
 --adapter, load the adapter weights
 ```
 
 #### Zero-shot image classification
 To use the model as a classifier, the following code can be used:
 
-```
+```python
 img_features, txt_features = model.model(batch)
-logits, _ = model.model.compute_logits(img_features,
-                                                 txt_features,
-                                                 fixed_logit=False)  # shape: [n_imgs, n_classes]
+logits, _ = model.model.compute_logits(
+                img_features,
+                txt_features,
+                fixed_logit=False
+            )  # shape: [n_imgs, n_classes]
 predictions = torch.argsort(logits, descending=True)
 predicted_labels = predictions[:, :k]
 
