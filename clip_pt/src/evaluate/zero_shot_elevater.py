@@ -26,7 +26,7 @@ from models.open_clip_wrapper import OpenCLIPWrapper
 
 if os.environ['LANGUAGE'] == 'pt-BR':
     print("Loading portuguese prompts")
-    from utils.resources.translated_prompts import template_map, class_map
+    from utils.resources.portuguese_prompts import template_map, class_map
 elif os.environ['LANGUAGE'] == 'en':
     print("Loading english prompts")
     from utils.resources.english_prompts import template_map, class_map
@@ -60,17 +60,17 @@ def parse_args():
         help="GPU",
     )
     parser.add_argument(
-        "--open-clip", 
-        type=bool, 
-        default=False, 
+        "--open-clip",
+        type=bool,
+        default=False,
         required=False,
         help="Indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)"
     )
     parser.add_argument(
-        "--adapter", 
+        "--adapter",
         type=str,
-        default=None, 
-        required=False, 
+        default=None,
+        required=False,
         help="Path to adapter checkpoint"
     )
     parser.add_argument(
@@ -99,10 +99,10 @@ def parse_args():
     )
     parser.add_argument(
         "--img-batch-size", type=int, default=64, help="Image batch size."
-    )    
+    )
     parser.add_argument(
         "--num-workers", type=int, default=4, help="Number of workers for ImageNet dataloader."
-    )  
+    )
     parser.add_argument(
         "--save-results-json",
         default=False,
@@ -178,7 +178,7 @@ def run_classification(model, classifier, dataloader, device, index_path = None)
             image_features = model.encode_visual(images)
             image_features = F.normalize(image_features, dim=-1)
             logits = (100. * image_features @ classifier).softmax(dim=-1)
-            
+
             true.append(target.cpu())
             pred.append(logits.float().cpu())
 
@@ -249,7 +249,7 @@ def main():
     print("Preparing zeroshot dataset.")
     data = {}
     data[args.dataset] = get_zeroshot_dataset(
-        args, 
+        args,
         vision_processor
     )
 
@@ -265,7 +265,7 @@ def main():
     # Make inference and evaluation
     classifier = zero_shot_classifier(model, text_tokenizer, classnames, templates, device)
     logits, target = run_classification(model, classifier, data[args.dataset].dataloader, device, args.index if args.index is not None else None)
-    
+
     results = {}
     result = metric(target.cpu().numpy(), logits.cpu().numpy())
 
@@ -302,7 +302,7 @@ def main():
                 'rnd_seeds': [0],
                 'predictions': [logits.cpu().data.numpy().tolist()],
             }
-        
+
         json_string = json_prec_dump(results_dict)
 
         prediction_folder = os.path.join(os.path.dirname(output_path), args.model_name)

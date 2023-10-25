@@ -49,7 +49,7 @@ class PraCegoVerDataset(torch.utils.data.Dataset):
         image_input['pixel_values'] = torch.squeeze(image_input['pixel_values'], dim=0)
         text_input['input_ids'] = torch.squeeze(text_input['input_ids'], dim=0)
         text_input['attention_mask'] = torch.squeeze(text_input['attention_mask'], dim=0)
-        text_input['token_type_ids'] = torch.squeeze(text_input['token_type_ids'], dim=0)        
+        text_input['token_type_ids'] = torch.squeeze(text_input['token_type_ids'], dim=0)
 
         return image_input, text_input
 

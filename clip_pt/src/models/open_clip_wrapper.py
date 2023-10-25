@@ -13,12 +13,12 @@ from utils.scheduler import CosineWarmupLR, LinearLR
 
 class OpenCLIPWrapper(pl.LightningModule):
     def __init__(
-            self,
-            config: DictConfig,
-            train_size: int = 0,
-            val_labels=None,
-            carbon_tracker=None,
-            model=None
+        self,
+        config: DictConfig,
+        train_size: int = 0,
+        val_labels=None,
+        carbon_tracker=None,
+        model=None
     ):
         super().__init__()
         self.save_hyperparameters(config)
@@ -92,14 +92,14 @@ class OpenCLIPWrapper(pl.LightningModule):
                 warmup=self.config.scheduler.params["warmup_lr"],
                 T_max=self.trainer.max_steps
             )
-        
+
         if self.config.scheduler.name.lower() == 'linearlr':
             scheduler = LinearLR(
-                optimizer, 
-                start_factor=self.config.scheduler.params["start_factor"], 
-                end_factor=self.config.scheduler.params["end_factor"], 
-                total_iters=self.config.scheduler.params["total_iters"], 
-                last_epoch=-1, 
+                optimizer,
+                start_factor=self.config.scheduler.params["start_factor"],
+                end_factor=self.config.scheduler.params["end_factor"],
+                total_iters=self.config.scheduler.params["total_iters"],
+                last_epoch=-1,
                 verbose=False
             )
 

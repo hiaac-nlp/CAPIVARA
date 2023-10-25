@@ -10,13 +10,13 @@ from utils.dataset.evaluation_dataset import EvaluationDataset
 class ImageNetDataset(EvaluationDataset):
 
     def __init__(
-        self, 
-        dataset_path, 
-        annotation_path, 
-        vision_processor, 
+        self,
+        dataset_path,
+        annotation_path,
+        vision_processor,
         text_tokenizer,
-        template="Uma foto de [CLASS].", 
-        lang="pt", 
+        template="Uma foto de [CLASS].",
+        lang="pt",
         label_type="fine", # coarse or fine
         max_length=95
     ):
@@ -30,15 +30,15 @@ class ImageNetDataset(EvaluationDataset):
 
         labels_df = self.df_dataset[
             [
-                "id", 
-                "translated_fine_grained_label", 
-                "translated_coarse_grained_label", 
+                "id",
+                "translated_fine_grained_label",
+                "translated_coarse_grained_label",
                 "fine_grained_label"
             ]
         ].value_counts().reset_index(name='count')
         labels_df["id"] = pd.to_numeric(labels_df["id"])
         labels_df = labels_df.sort_values(by=["id"], ascending=True)
-        
+
         if lang == "pt":
             if label_type=="coarse":
                 self.labels = labels_df["translated_coarse_grained_label"].values.tolist()
@@ -84,6 +84,3 @@ class ImageNetDataset(EvaluationDataset):
             truncation=True,
             max_length=95
         )
-
-    
-

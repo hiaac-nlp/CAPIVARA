@@ -36,7 +36,7 @@ def tokenize(example, args):
     image_input = vision_processor(example[0])
 
     captions = None
-    
+
     if args.translation.lower() == "english":
         captions = example[1]["captions-en"]
     else:
@@ -53,7 +53,7 @@ def tokenize(example, args):
     return image_input, text_input
 
 def format_batch(batch):
-    image_input = batch[0] 
+    image_input = batch[0]
     text_input = batch[1].reshape((-1, 77))
     return image_input, text_input
 
