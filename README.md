@@ -166,10 +166,25 @@ correct_predictions = (predicted_labels == targets.view(-1, 1)).any(dim=1)
 The predictions return the correct predictions relating the classified image and text. We then check the first k correctly classified values.
 An [classification example notebook](link) for classifying images and text is also available.
 
+## Acknowledgements
+
+This project was supported by the Ministry of Science, Technology, and Innovation of Brazil, with
+resources granted by the Federal Law 8.248 of October 23, 1991, under the PPI-Softex. The project
+was coordinated by Softex and published as Intelligent agents for mobile platforms based on
+Cognitive Architecture technology [01245.013778/2020-21].
+
+D.A.B.M. is partially funded by FAPESP 2023/05939-5.
+A.I.F., T.S., N.S. are partially funded by Centro de Excelência em Inteligência Artificial (CEIA),
+da Universidade Federal de Goiás (UFG). E.L.C. is partially funded by CNPq 315468/2021-1.
+H.P. is partially funded by CNPq 304836/2022-2. S.A. is partially funded by CNPq 315231/2020-3,
+FAPESP 2013/08293-7, 2020/09838-0, Google Award for Inclusion Research 2022.
+
 ## Citation
 ```bibtex
-@inproceedings{capivara,
+@article{santos2023capivara,
   title={CAPIVARA: Cost-Efficient Approach for Improving Multilingual CLIP Performance on Low-Resource Languages},
-  ...
+  author={Santos, Gabriel Oliveira dos and Moreia, Diego Alysson and Ferreira, Alef Iury and Silva, Jhessica and Pereira, Luiz and Bueno, Pedro and Sousa, Thiago and Maia, Helena and Da Silva, N{\'a}dia and Colombini, Esther and others},
+  journal={arXiv preprint arXiv:2310.13683},
+  year={2023}
 }
-`
+```
