@@ -11,3 +11,5 @@ Pillow==9.4.0
 torchvision==0.14.0 -f https://download.pytorch.org/whl/cu117/torch_stable.html
 wandb==0.13.9
 multilingual-clip==1.0.10
+peft==0.5.0
+open-clip-torch==2.20.0
