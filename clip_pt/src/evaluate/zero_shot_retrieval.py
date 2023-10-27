@@ -19,7 +19,6 @@ from models.open_clip_wrapper import OpenCLIPWrapper
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", help="Path to model checkpoint", )
-    parser.add_argument("--distill", default=None, type=str, help="From knowledge distillation", )
     parser.add_argument("--dataset-path", help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["english", "marian", "google"], required=False)
     parser.add_argument("--language", default="pt", choices=["pt", "xh", "hi"], required=False)

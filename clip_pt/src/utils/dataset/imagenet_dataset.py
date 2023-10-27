@@ -2,10 +2,10 @@ import os.path
 
 import pandas as pd
 from PIL import Image
-from torch.utils.data.dataset import Dataset
 from transformers import CLIPFeatureExtractor
 
 from utils.dataset.evaluation_dataset import EvaluationDataset
+
 
 class ImageNetDataset(EvaluationDataset):
 
