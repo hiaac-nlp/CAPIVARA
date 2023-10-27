@@ -56,7 +56,7 @@ python3 CLIP-PtBr/clip_pt/src/main_open_clip.py \
 To use the adapter training settings, you must also pass on the directory of the checkpoint used:
 ```bash
 python3 CLIP-PtBr/clip_pt/src/main_open_clip.py \
-		--config_path=path/to/config_file
+		--config_path=path/to/config_file \
 		--checkpoint-dir=path/to/checkpoint \
 ```
 Other settings (all present in the file [example.yaml](https://github.com/hiaac-nlp/CAPIVARA/blob/main/clip_pt/experiment_setup/example.yaml) are available to configure the training and import according to your needs.
@@ -134,15 +134,15 @@ To carry out the evaluation of image and text retrieval automatically, generatin
 The following parameters can be used:
 
 ```bash
---model-path, directs to the path of the model checkpoint
---distill, to use knowledge distillation
---dataset-path, path to validation/test dataset
---translation, select which translation framework will be used "english", "marian", "google" (default)
---language, language used for captions: "en" (default), "xh", "hi"
---batch, batch size
---open_clip, indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
---gpu, select GPU
---adapter, load the adapter weights
+--model-path # directs to the path of the model checkpoint
+--distill # to use knowledge distillation
+--dataset-path # path to validation/test dataset
+--translation # select which translation framework will be used "english", "marian", "google" (default)
+--language # language used for captions: "en" (default), "xh", "hi"
+--batch # batch size
+--open_clip # indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)
+--gpu # select GPU
+--adapter # load the adapter weights
 ```
 
 #### Zero-shot image classification
