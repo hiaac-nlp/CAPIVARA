@@ -132,10 +132,6 @@ def load_datasets(config, vision_processor, text_tokenizer) -> Dict:
         returns an inaccurate value, so we have to set it manually.
         Reference: https://webdataset.github.io/webdataset/sharding/
     """
-    current_path = os.path.dirname(__file__)
-    with open(os.path.join(current_path, "datasets_size.json")) as file:
-        datasets_sizes = json.load(file)
-
     print(">>>>> Train datasets:", [dataset['path'] for dataset in config.datasets.train])
     print(">>>>> Validation datasets:", [dataset['path'] for dataset in config.datasets.validation])
 
