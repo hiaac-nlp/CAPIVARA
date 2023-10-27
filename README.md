@@ -193,7 +193,7 @@ def image_to_text_retrieval(image_required, image_features, text_features, all_i
 ```
 
 This method returns a list containing the similarity scores between the input image and the set of texts, as well as their ids and images.
-The use of these methods and other auxiliary methods can also be seen in the [retrieval example notebook](link), where it is possible to iteratively retrieve images and texts.
+The use of these methods and other auxiliary methods can also be seen in the [retrieval example notebook](https://github.com/hiaac-nlp/CAPIVARA/blob/main/clip_pt/src/evaluate/capivara_retrieval.ipynb), where it is possible to iteratively retrieve images and texts.
 
 #### Retrieval Evaluation
 
@@ -230,7 +230,7 @@ correct_predictions = (predicted_labels == targets.view(-1, 1)).any(dim=1)
 ```
 
 The predictions return the correct predictions relating the classified image and text. We then check the first k correctly classified values.
-An [classification example notebook](link) for classifying images and text is also available.
+An [classification example notebook](https://github.com/hiaac-nlp/CAPIVARA/blob/main/clip_pt/src/evaluate/capivara_classification.ipynb) for classifying images and text is also available.
 
 ## Acknowledgements
 
