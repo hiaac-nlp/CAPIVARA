@@ -65,11 +65,11 @@ pip install -r requirements.txt
 │     │  │  └─ resources				<--- setup files used for inference
 │     │  ├─ zero_shot_elevater.py			<--- script used for zero-shot image classification in ELEVATOR
 │     │  ├─ zero_shot_image_classification.py		<--- script used for zero-shot image classification in ImageNet, ObjectNet, and GroceryStore
-│     │  ├─ zero_shot_imagenet_babel.py		<--- script used for zero-shot image classification in ImageNet Babel
+│     │  ├─ zero_shot_imagenet_babel.py			<--- script used for zero-shot image classification in ImageNet Babel
 │     │  └─ zero_shot_retrieval.py			<--- script used for zero-shot cross modal retrieval
 │     ├─ generating
 │     │  ├─ blip2.py					<--- script used for generating synthetic captions
-│     │  └─ generated_caps_sim_score.py		<--- script used for compute similarity score between captions and images
+│     │  └─ generated_caps_sim_score.py			<--- script used for compute similarity score between captions and images
 │     ├─ main_open_clip.py				<--- main script used for training
 │     ├─ models
 │     │  ├─ open_CLIP.py				<--- base CLIP class
@@ -79,11 +79,11 @@ pip install -r requirements.txt
 │     └─ utils
 │        ├─ carbon_tracker.py				<--- methods used to estimate the carbon footprint
 │        ├─ loss.py					<--- loss function
-│        ├─ open_clip_utils.py			<--- implements auxiliar methods
+│        ├─ open_clip_utils.py				<--- implements auxiliar methods
 │        ├─ scheduler.py				<--- implements learning rate schedulers
 │        └─ dataset
 │           ├─ evaluation_dataset.py			<--- base evaluation class
-│           ├─ grocery_store_dataset.py		<--- implements grocery store evaluation class 
+│           ├─ grocery_store_dataset.py			<--- implements grocery store evaluation class 
 │           ├─ imagenet_dataset.py			<--- implements ImageNet evaluation class 
 │           ├─ object_net.py				<--- implements ObjectNet evaluation class 
 │           └─ load_datasets_open_clip.py		<--- methods to load train/val datasets
