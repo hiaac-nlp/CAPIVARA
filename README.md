@@ -181,10 +181,10 @@ FAPESP 2013/08293-7, 2020/09838-0, Google Award for Inclusion Research 2022.
 
 ## Citation
 ```bibtex
-@article{santos2023capivara,
+@inproceedings{santos2023capivara,
   title={CAPIVARA: Cost-Efficient Approach for Improving Multilingual CLIP Performance on Low-Resource Languages},
-  author={Santos, Gabriel Oliveira dos and Moreia, Diego Alysson and Ferreira, Alef Iury and Silva, Jhessica and Pereira, Luiz and Bueno, Pedro and Sousa, Thiago and Maia, Helena and Da Silva, N{\'a}dia and Colombini, Esther and others},
-  journal={arXiv preprint arXiv:2310.13683},
-  year={2023}
+  author={Santos, Gabriel O. dos and Moreira, Diego A. B. and Ferreira, Alef I. and Silva, Jhessica and Pereira, Luiz and Bueno, Pedro and Sousa, Thiago and Maia, Helena and da Silva, N{\'a}dia and Colombini, Esther and Pedrini, Helio and Avila, Sandra},
+  booktitle = " Workshop on Multi-lingual Representation Learning (MRL), Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+  year = "2023"
 }
 ```
