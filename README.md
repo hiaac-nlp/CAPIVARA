@@ -26,6 +26,59 @@ In our pipeline, we employed the following models:
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Performance improvement with CAPIVARA + Opt. in Low-Resource Languages: Xhosa, Hindi, and Portuguese. The percentage point increase over the baseline ([OpenCLIP ViT-B/32 XLM-Roberta Base](https://huggingface.co/laion/CLIP-ViT-B-32-xlm-roberta-base-laion5B-s13B-b90k)) in terms of mean recall for text-to-image (txt2img) and image-to-text (img2txt) retrieval is highlighted above the respective bars. |
 
+#### Zero-shot Cross-Modal Retrieval
+
+We conducted zero-shot cross-modal retrieval experiments on Flickr30k and MS COCO with captions
+translated into Portuguese, and PraCegoVer. We report the average and standard deviation for 3 runs.
+
+<table>
+<thead>
+  <tr>
+    <th>Model</th>
+    <th colspan="2">Flickr30k</th>
+    <th colspan="2"> MS COCO</th>
+    <th colspan="2">PraCegoVer</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td>text-to-image</td>
+    <td> image-to-text</td>
+    <td>text-to-image</td>
+    <td> image-to-text</td>
+    <td>text-to-image</td>
+    <td> image-to-text</td>
+  </tr>
+  <tr>
+    <td>OpenCLIP ViT-B/32 XLM-Roberta Base</td>
+    <td>76.23</td>
+    <td>87.93</td>
+    <td>52.62</td>
+    <td>66.55</td>
+    <td>65.36</td>
+    <td><b>69.43</b></td>
+  </tr>
+  <tr>
+    <td>CAPIVARA</td>
+    <td><b>79.56 ± 0.01</b></td>
+    <td><b>89.95 ± 0.04</b></td>
+    <td><b>56.27 ± 0.01</b></td>
+    <td><b>71.24 ± 0.01</b></td>
+    <td>66.40 ± 0.01</td>
+    <td>64.75 ± 0.01</td>
+  </tr>
+  <tr>
+    <td>CAPIVARA + Opt.</td>
+    <td>79.39 ± 0.05</td>
+    <td>89.13 ± 0.08</td>
+    <td>55.49 ± 0.06</td>
+    <td>69.26 ± 0.05</td>
+    <td><b>66.89 ± 0.04</b></td>
+    <td>67.93 ± 0.01</td>
+  </tr>
+</tbody>
+</table>
 
 #### Zero-shot image classification
 
@@ -87,7 +140,6 @@ pip install -r requirements.txt
 │           ├─ imagenet_dataset.py			<--- implements ImageNet evaluation class 
 │           ├─ object_net.py				<--- implements ObjectNet evaluation class 
 │           └─ load_datasets_open_clip.py		<--- methods to load train/val datasets
-
 └─ preprocessing					<--- auxiliar dataset preprocessing methods
 ```
 
@@ -248,7 +300,7 @@ FAPESP 2013/08293-7, 2020/09838-0, Google Award for Inclusion Research 2022.
 @inproceedings{santos2023capivara,
   title={CAPIVARA: Cost-Efficient Approach for Improving Multilingual CLIP Performance on Low-Resource Languages},
   author={Santos, Gabriel O. dos and Moreira, Diego A. B. and Ferreira, Alef I. and Silva, Jhessica and Pereira, Luiz and Bueno, Pedro and Sousa, Thiago and Maia, Helena and da Silva, N{\'a}dia and Colombini, Esther and Pedrini, Helio and Avila, Sandra},
-  booktitle = " Workshop on Multi-lingual Representation Learning (MRL), Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+  booktitle = "Workshop on Multi-lingual Representation Learning (MRL), Conference on Empirical Methods in Natural Language Processing (EMNLP)",
   year = "2023"
 }
 ```
