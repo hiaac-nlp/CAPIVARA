@@ -57,9 +57,8 @@ class OpenCLIPAdapter(OpenCLIP):
         self.model.text.transformer.embeddings.register_forward_hook(make_inputs_require_grad)
         self.model.text = get_peft_model(self.model.text, config)
 
-    def load_adapters(self, pretrained_adapter):
-        if pretrained_adapter != 'none':
-            model_path = f"/hahomes/diego.moreira/adapter_PEFT_checkpoints/{pretrained_adapter}"
+    def load_adapters(self, pretrained_adapter: bool = False, model_path: str = None):
+        if pretrained_adapter:
             config = PeftConfig.from_pretrained(model_path)
             self.model.text = PeftModel.from_pretrained(self.model.text, model_path, config=config)
         else:

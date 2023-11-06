@@ -23,6 +23,7 @@ from torch.utils.data.distributed import DistributedSampler
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
+from utils.capivara_utils import download_pretrained_from_hf
 
 if os.environ['LANGUAGE'] == 'pt-BR':
     print("Loading portuguese prompts")
@@ -48,10 +49,6 @@ def parse_args():
         type=str,
         default="OpenCLIP",
         help="Name of the experiment",
-    )
-    parser.add_argument(
-        "--model-path",
-        help="Path to model checkpoint"
     )
     parser.add_argument(
         "--gpu",
@@ -235,10 +232,11 @@ def main():
     print(">>>>>>> Loading model")
     if args.open_clip:
         if args.adapter is None:
-            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
+            model_path = download_pretrained_from_hf(model_id="hiaac-nlp/CAPIVARA")
+            model = OpenCLIPWrapper.load_from_checkpoint(model_path, strict=False).model
         else:
             model = OpenCLIPAdapter(inference=True, devices=device)
-            model.load_adapters(pretrained_adapter=args.model_path)
+            model.load_adapters(pretrained_adapter=True, model_path=args.adapter)
     else:
         model = OpenCLIP()
 
@@ -256,7 +254,7 @@ def main():
     templates = template_map[args.dataset]
     classnames = class_map[args.dataset]
 
-    metadata_base_dir = "evaluate/utils/resources"
+    metadata_base_dir = "../evaluate/utils/resources"
     metadata_name = elevater_dataset_metadata_map[args.dataset]
     metadata_path = os.path.join(metadata_base_dir, metadata_name + ".yaml")
     dataset_metadata = OmegaConf.load(metadata_path)
@@ -272,10 +270,10 @@ def main():
     if args.open_clip:
         if args.adapter is None:
             output_path = os.path.join(args.save_dir, args.exp_name+".txt")
-            id_name = args.model_path.split("/")[-3]
+            id_name = model_path.split("/")[-1]
         else:
             output_path = os.path.join(args.save_dir, "adapter", args.exp_name+".txt")
-            id_name = args.model_path
+            id_name = args.adapter.split("/")[-1]
     else:
         output_path = os.path.join(args.save_dir, f"baseline_open_clip-{os.environ['LANGUAGE']}.txt")
         id_name = f"baseline_open_clip_{os.environ['LANGUAGE']}"

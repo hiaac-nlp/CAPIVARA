@@ -14,19 +14,30 @@ sys.path.append("../")
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
+from utils.capivara_utils import download_pretrained_from_hf
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", help="Path to model checkpoint", )
-    parser.add_argument("--dataset-path", help="Path to validation/test dataset")
+    parser.add_argument("--dataset-path", type=str, help="Path to validation/test dataset")
     parser.add_argument("--translation", choices=["english", "marian", "google"], required=False)
     parser.add_argument("--language", default="pt", choices=["pt", "xh", "hi"], required=False)
     parser.add_argument("--batch", type=int, help="Batch size", )
-    parser.add_argument("--open_clip", type=str, default="False", required=False,
-                        help="Indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)")
-    parser.add_argument("--gpu", help="GPU", )
-    parser.add_argument("--adapter", default=None, required=False, help="Load the adapter weights")
+    parser.add_argument(
+        "--open-clip",
+        type=str,
+        default="False",
+        required=False,
+        help="Indicates whether model is fine-tuned (True) or is the original OpenCLIP (False)"
+    )
+    parser.add_argument("--gpu", help="GPU")
+    parser.add_argument(
+        "--adapter",
+        type=str,
+        default=None,
+        required=False,
+        help="Load the adapter weights"
+    )
 
     return parser.parse_args()
 
@@ -205,10 +216,11 @@ if __name__ == "__main__":
     print(">>>>>>> Loading model")
     if args.open_clip == 'True':
         if args.adapter is None:
-            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
+            model_path = download_pretrained_from_hf(model_id="hiaac-nlp/CAPIVARA")
+            model = OpenCLIPWrapper.load_from_checkpoint(model_path, strict=False).model
         else:
             model = OpenCLIPAdapter(inference=True, devices=device)
-            model.load_adapters(pretrained_adapter=args.adapter)
+            model.load_adapters(pretrained_adapter=True, model_path=args.adapter)
     else:
         print('Using Baseline Model')
         model = OpenCLIP()
