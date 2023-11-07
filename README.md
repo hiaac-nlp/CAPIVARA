@@ -125,20 +125,20 @@ pip install -r requirements.txt
 │     │  ├─ zero_shot_elevater.py			<--- script used for zero-shot image classification in ELEVATOR
 │     │  ├─ zero_shot_image_classification.py		<--- script used for zero-shot image classification in ImageNet, ObjectNet, and GroceryStore
 │     │  ├─ zero_shot_imagenet_babel.py			<--- script used for zero-shot image classification in ImageNet Babel
-│     │  └─ zero_shot_retrieval.py			<--- script used for zero-shot cross modal retrieval
+│     │  └─ zero_shot_retrieval.py			<--- script used for zero-shot cross-modal retrieval
 │     ├─ generating
 │     │  ├─ blip2.py					<--- script used for generating synthetic captions
-│     │  └─ generated_caps_sim_score.py			<--- script used for compute similarity score between captions and images
+│     │  └─ generated_caps_sim_score.py			<--- script used for computing similarity score between captions and images
 │     ├─ main_open_clip.py				<--- main script used for training
 │     ├─ models
 │     │  ├─ open_CLIP.py				<--- base CLIP class
 │     │  ├─ open_CLIP_adapter.py			<--- CLIP + LoRA class
-│     │  └─ open_clip_wrapper.py			<--- Wrapper that implements the training methods using pytorch-lightning
-│     ├─ recipes					<--- auxiliar executable files
+│     │  └─ open_clip_wrapper.py			<--- Wrapper that implements the training methods using PyTorch-lightning
+│     ├─ recipes					<--- auxiliary executable files
 │     └─ utils
 │        ├─ carbon_tracker.py				<--- methods used to estimate the carbon footprint
 │        ├─ loss.py					<--- loss function
-│        ├─ open_clip_utils.py				<--- implements auxiliar methods
+│        ├─ open_clip_utils.py				<--- implements auxiliary methods
 │        ├─ scheduler.py				<--- implements learning rate schedulers
 │        └─ dataset
 │           ├─ evaluation_dataset.py			<--- base evaluation class
@@ -146,7 +146,7 @@ pip install -r requirements.txt
 │           ├─ imagenet_dataset.py			<--- implements ImageNet evaluation class 
 │           ├─ object_net.py				<--- implements ObjectNet evaluation class 
 │           └─ load_datasets_open_clip.py		<--- methods to load train/val datasets
-└─ preprocessing					<--- auxiliar dataset preprocessing methods
+└─ preprocessing					<--- auxiliary dataset preprocessing methods
 ```
 
 
@@ -190,7 +190,7 @@ python3 main_open_clip.py \
 Other settings (all present in the file [example.yaml](https://github.com/hiaac-nlp/CAPIVARA/blob/main/clip_pt/experiment_setup/example.yaml) are available to configure the training and import according to your needs.
 
 ### Inference
-In order to make easier to replicate our experiments, we share the scripts we used for inference.
+In order to make it easier to replicate our experiments, we share the scripts we used for inference.
 
 #### Zero-shot Text-to-Image Retrieval
 
