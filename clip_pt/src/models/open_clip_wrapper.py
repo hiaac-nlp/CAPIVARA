@@ -15,7 +15,6 @@ class OpenCLIPWrapper(pl.LightningModule):
     def __init__(
         self,
         config: DictConfig,
-        train_size: int = 0,
         val_labels=None,
         carbon_tracker=None,
         model=None
@@ -36,7 +35,6 @@ class OpenCLIPWrapper(pl.LightningModule):
         self.carbon_tracker = carbon_tracker
 
         self.config = config
-        self.train_size = train_size
         self.val_labels = val_labels
 
         n_classes = self.config["batch_size"] * self.config["accumulate_grad_batches"]

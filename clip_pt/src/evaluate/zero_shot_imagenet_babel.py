@@ -27,6 +27,7 @@ from tqdm import tqdm
 from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from models.open_clip_wrapper import OpenCLIPWrapper
+from utils.capivara_utils import download_pretrained_from_hf
 
 
 xlmr_langs = [l.upper() for l in ['kn', 'sk', 'et', 'gu', 'sl', 'ka', 'gl', 'hi', 'ja', 'no', 'ms', 'my', 'eo', 'fi', 'ar', 'lv', 'de', 'ha', 'mn', 'sa', 'fr', 'br', 'or', 'ta', 'bs', 'lo', 'he', 'si', 'te', 'es', 'el', 'pt', 'km', 'ro', 'sv', 'bg', 'vi', 'az', 'la', 'th', 'af', 'om', 'eu', 'ga', 'ca', 'nl', 'ps', 'ml', 'uk', 'hy', 'jv', 'gd', 'sd', 'tl', 'zh', 'mk', 'am', 'kk', 'da', 'pa', 'ug', 'sq', 'fy', 'su', 'mg', 'is', 'ku', 'lt', 'yi', 'be', 'uz', 'id', 'sw', 'as', 'cy', 'ru', 'sr', 'mr', 'ko', 'fa', 'ur', 'xh', 'bn', 'hr', 'pl', 'cs', 'tr', 'ne', 'it', 'ky', 'hu', 'so']]
@@ -125,10 +126,6 @@ def parse_args():
         help="Name of the experiment",
     )
     parser.add_argument(
-        "--model-path",
-        help="Path to model checkpoint"
-    )
-    parser.add_argument(
         "--gpu",
         default=0,
         type=int,
@@ -209,7 +206,7 @@ def get_data(args, transformation, tokenizer):
     text_collate = Collator(tokenizer)
     text_datasets = []
 
-    babel_imagenet = json.load(open(os.path.join("evaluate", "utils", "resources", f"babel_imagenet.json"), "r", encoding="utf-8"))
+    babel_imagenet = json.load(open(os.path.join("../", "evaluate", "utils", "resources", f"babel_imagenet.json"), "r", encoding="utf-8"))
     if "," not in args.prompts:
         prompt_names = [args.prompts]
     else:
@@ -222,7 +219,7 @@ def get_data(args, transformation, tokenizer):
         elif prompt_name == "openai_en":
             prompts = openai_en_prompts
         else:
-            lang_prompts = json.load(open(os.path.join("evaluate", "utils", "resources", f"{prompt_name}.json"), "r", encoding="utf-8"))
+            lang_prompts = json.load(open(os.path.join("../", "evaluate", "utils", "resources", f"{prompt_name}.json"), "r", encoding="utf-8"))
         for lang in languages:
             try:
                 if lang == "EN":
@@ -325,14 +322,15 @@ def main():
 
     if args.open_clip:
         if args.adapter is None:
-            model = OpenCLIPWrapper.load_from_checkpoint(args.model_path, strict=False).model
+            model_path = download_pretrained_from_hf(model_id="hiaac-nlp/CAPIVARA")
+            model = OpenCLIPWrapper.load_from_checkpoint(model_path, strict=False).model
             output_path = os.path.join(args.save_dir, args.exp_name+".txt")
-            id_name = args.model_path.split("/")[-3]
+            id_name = model_path.split("/")[-1]
         else:
             model = OpenCLIPAdapter(inference=True, devices=device)
-            model.load_adapters(pretrained_adapter=args.adapter)
+            model.load_adapters(pretrained_adapter=True, model_path=args.adapter)
             output_path = os.path.join(args.save_dir, "adapter", args.exp_name+".txt")
-            id_name = args.adapter
+            id_name = args.adapter.split("/")[-1]
     else:
         model = OpenCLIP()
         output_path = os.path.join(args.save_dir, f"baseline_open_clip-{args.languages}.txt")

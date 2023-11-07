@@ -60,13 +60,12 @@ def main() -> None:
 
     train_dataloader = datasets["train_dataloader"]
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
-    train_size = datasets["train_size"]
 
     tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"],
                                               gpu_ids=[args.gpu],
                                               carbon_checker=config.carbon["carbon_checker"])
 
-    clip_pt = OpenCLIPWrapper(config, train_size,
+    clip_pt = OpenCLIPWrapper(config,
                               val_labels=datasets["img_classif_labels"],
                               model=model,
                               carbon_tracker=tracker_code_carbon)
