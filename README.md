@@ -1,6 +1,7 @@
 # <img src="assets/capivara.png" style="width:50px; margin-right:-5px"> CAPIVARA: Cost-Efficient Approach for Improving Multilingual CLIP Performance on Low-Resource Languages
 
 [![Arxiv](http://img.shields.io/badge/Arxiv-2023-B31B1B.svg)](https://arxiv.org/abs/2310.13683)
+[![Hugging Face](https://img.shields.io/badge/Models-Hugging%20Face-yellow)](https://huggingface.co/hiaac-nlp)
 
 In this project, we propose <img src="assets/capivara.png" style="width:20px"> CAPIVARA, a cost-efficient framework
 designed to enhance the performance of multilingual CLIP models in low-resource languages. Our framework are built upon
@@ -11,6 +12,11 @@ the computation cost.
 <img src="assets/capivara.png" style="width:20px"> CAPIVARA holds the state of the art in many zero-shot tasks involving 
 images and Portuguese texts. Also, our method has the potential of significantly improve the model performance in other 
 low-resource languages using a single RTX Quadro 8000 GPU for just 2 hours.
+
+## Models
+
++ [<img src="assets/capivara.png" style="width:20px"> CAPIVARA](https://huggingface.co/hiaac-nlp/CAPIVARA)
++ [<img src="assets/capivara.png" style="width:20px"> CAPIVARA + Opt.](https://huggingface.co/hiaac-nlp/CAPIVARA-Opt)
 
 ## Pipeline
 <img src="assets/pipeline.png" >
