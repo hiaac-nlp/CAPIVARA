@@ -4,13 +4,13 @@
 [![Hugging Face](https://img.shields.io/badge/Models-Hugging%20Face-yellow)](https://huggingface.co/hiaac-nlp)
 
 In this project, we propose <img src="assets/capivara.png" style="width:20px"> CAPIVARA, a cost-efficient framework
-designed to enhance the performance of multilingual CLIP models in low-resource languages. Our framework are built upon
+designed to enhance the performance of multilingual CLIP models in low-resource languages. Our framework is built upon
 pre-trained [OpenCLIP](https://github.com/mlfoundations/open_clip/tree/main#openclip), and it implements the
 conventional fine-tuning and also an optimized fine-tuning (CAPIVARA + Opt.) that uses LoRA and gradient checkpointing in order to reduce 
 the computation cost.
 
 <img src="assets/capivara.png" style="width:20px"> CAPIVARA holds the state of the art in many zero-shot tasks involving 
-images and Portuguese texts. Also, our method has the potential of significantly improve the model performance in other 
+images and Portuguese texts. Also, our method has the potential to significantly improve the model performance in other 
 low-resource languages using a single RTX Quadro 8000 GPU for just 2 hours.
 
 ## Models
@@ -40,7 +40,7 @@ translated into Portuguese, and PraCegoVer. We report the average and standard d
 <table>
 <thead>
   <tr>
-    <th>Model</th>
+    <th>Models</th>
     <th colspan="2">Flickr30k</th>
     <th colspan="2"> MS COCO</th>
     <th colspan="2">PraCegoVer</th>
@@ -57,7 +57,7 @@ translated into Portuguese, and PraCegoVer. We report the average and standard d
     <td> image-to-text</td>
   </tr>
   <tr>
-    <td>OpenCLIP ViT-B/32 XLM-Roberta Base</td>
+    <td>OpenCLIP ViT-B/32 XLM-Roberta Base (Baseline)</td>
     <td>76.23</td>
     <td>87.93</td>
     <td>52.62</td>
@@ -88,11 +88,11 @@ translated into Portuguese, and PraCegoVer. We report the average and standard d
 
 #### Zero-shot image classification
 
-|                         | **Caltech-101** | **CIFAR-10** | **CIFAR-100** | **Country-211** | **DTD**      | **EuroSAT**  | **FER-2013** | **FGVC-Aircraft** | **Food-101** | **GTSRB**    | **Hateful-Memes** | **KITTI-Distance** | **MNIST**    | **Oxford Flowers-102** | **Oxford-IIIT Pets** | **PatchCamelyon** | **Rendered-SST2** | **RESISC-45** | **Stanford-Cars** | **PASCAL VOC-2007** | **Average**  | **ImageNet-1k** |
+|            Models             | **Caltech-101** | **CIFAR-10** | **CIFAR-100** | **Country-211** | **DTD**      | **EuroSAT**  | **FER-2013** | **FGVC-Aircraft** | **Food-101** | **GTSRB**    | **Hateful-Memes** | **KITTI-Distance** | **MNIST**    | **Oxford Flowers-102** | **Oxford-IIIT Pets** | **PatchCamelyon** | **Rendered-SST2** | **RESISC-45** | **Stanford-Cars** | **PASCAL VOC-2007** | **Average**  | **ImageNet-1k** |
 |:-----------------------:|:---------------:|:------------:|:-------------:|:---------------:|:------------:|:------------:|:------------:|:-----------------:|:------------:|:------------:|:-----------------:|:------------------:|:------------:|:----------------------:|:--------------------:|:-----------------:|:-----------------:|:-------------:|:-----------------:|:-------------------:|:------------:|:---------------:|
-| **OpenCLIP (Baseline)** | 84.53 ± 0.00    | 93.99 ± 0.00 | 68.44 ± 0.00  | 17.82 ± 0.00    | 41.17 ± 0.00 | 47.16 ± 0.00 | 48.65 ± 0.00 | 26.30 ± 0.00      | 65.06 ± 0.00 | 43.27 ± 0.00 | 56.50 ± 0.00      | 28.41 ± 0.00       | 54.99 ± 0.00 | 50.88 ± 0.00           | 81.56 ± 0.00         | 50.96 ± 0.00      | 54.20 ± 0.00      | 58.51 ± 0.00  | 84.93 ± 0.00      | 82.09 ± 0.00        | 56.97 ± 0.00 | 45.84 ± 0.00    |
-|      **CAPIVARA**       | 82.97 ± 0.03    | 93.85 ± 0.00 | 69.37 ± 0.01  | 17.61 ± 0.00    | 42.34 ± 0.04 | 47.77 ± 0.02 | 46.68 ± 0.05 | 25.49 ± 0.01      | 64.58 ± 0.01 | 46.34 ± 0.01 | 56.17 ± 0.00      | 33.94 ± 0.13       | 60.14 ± 0.04 | 49.93 ± 0.02           | 79.37 ± 0.00         | 51.71 ± 0.01      | 54.82 ± 0.03      | 59.71 ± 0.01  | 85.10 ± 0.02      | 82.29 ± 0.00        | **57.51 ± 0.02** | **46.06 ± 0.01**    |
-|   **CAPIVARA + Opt.**   | 83.68 ± 0.02    | 93.93 ± 0.03 | 68.87 ± 0.01  | 17.32 ± 0.02    | 41.79 ± 0.07 | 48.85 ± 0.12 | 46.85 ± 0.13 | 25.54 ± 0.09      | 64.46 ± 0.00 | 44.66 ± 0.06 | 56.81 ± 0.03      | 28.27 ± 0.11       | 55.00 ± 0.10 | 51.99 ± 0.12           | 80.90 ± 0.09         | 52.39 ± 0.07      | 52.94 ± 0.04      | 56.93 ± 0.01  | 84.90 ± 0.06      | 81.99 ± 0.02        | 56.90 ± 0.06 | 45.65 ± 0.02    |
+| OpenCLIP ViT-B/32 XLM-Roberta Base (Baseline) | 84.53 ± 0.00    | 93.99 ± 0.00 | 68.44 ± 0.00  | 17.82 ± 0.00    | 41.17 ± 0.00 | 47.16 ± 0.00 | 48.65 ± 0.00 | 26.30 ± 0.00      | 65.06 ± 0.00 | 43.27 ± 0.00 | 56.50 ± 0.00      | 28.41 ± 0.00       | 54.99 ± 0.00 | 50.88 ± 0.00           | 81.56 ± 0.00         | 50.96 ± 0.00      | 54.20 ± 0.00      | 58.51 ± 0.00  | 84.93 ± 0.00      | 82.09 ± 0.00        | 56.97 ± 0.00 | 45.84 ± 0.00    |
+|      CAPIVARA       | 82.97 ± 0.03    | 93.85 ± 0.00 | 69.37 ± 0.01  | 17.61 ± 0.00    | 42.34 ± 0.04 | 47.77 ± 0.02 | 46.68 ± 0.05 | 25.49 ± 0.01      | 64.58 ± 0.01 | 46.34 ± 0.01 | 56.17 ± 0.00      | 33.94 ± 0.13       | 60.14 ± 0.04 | 49.93 ± 0.02           | 79.37 ± 0.00         | 51.71 ± 0.01      | 54.82 ± 0.03      | 59.71 ± 0.01  | 85.10 ± 0.02      | 82.29 ± 0.00        | **57.51 ± 0.02** | **46.06 ± 0.01**    |
+|   CAPIVARA + Opt.   | 83.68 ± 0.02    | 93.93 ± 0.03 | 68.87 ± 0.01  | 17.32 ± 0.02    | 41.79 ± 0.07 | 48.85 ± 0.12 | 46.85 ± 0.13 | 25.54 ± 0.09      | 64.46 ± 0.00 | 44.66 ± 0.06 | 56.81 ± 0.03      | 28.27 ± 0.11       | 55.00 ± 0.10 | 51.99 ± 0.12           | 80.90 ± 0.09         | 52.39 ± 0.07      | 52.94 ± 0.04      | 56.93 ± 0.01  | 84.90 ± 0.06      | 81.99 ± 0.02        | 56.90 ± 0.06 | 45.65 ± 0.02    |
 
 
 ## Reproducibility
