@@ -7,19 +7,29 @@ from models.open_CLIP import OpenCLIP
 from peft import LoraConfig, get_peft_model
 from peft import PeftModel, PeftConfig
 import copy
+from utils.capivara_utils import load_pretrained_weights_from_capivara
 
 class OpenCLIPAdapter(OpenCLIP):
-    def __init__(self,
-                 adapter: str = None,
-                 devices=None,
-                 projection_layer='true',
-                 inference=False):
+    def __init__(
+        self,
+        adapter: str = None,
+        devices=None,
+        projection_layer='true',
+        inference=False,
+        load_pretrained_weights: bool = False,
+        path_to_pretrained_weights: str = None,
+    ):
         super().__init__()
         self.xlm_config = AutoConfig.from_pretrained("xlm-roberta-base")
         self.pooler_xlm = MeanPooler()
         self.devices = devices
         self.adapter = adapter
         self.projection_layer = projection_layer
+
+        if load_pretrained_weights:
+            print("Loading pretrained weights")
+            self.model = load_pretrained_weights_from_capivara(self.model, path_to_pretrained_weights)
+            print("Pretrained weights loaded")
 
         if not inference:
             self.add_adapter(adapter_name=adapter)
