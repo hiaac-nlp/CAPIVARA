@@ -42,21 +42,21 @@ class OpenCLIPAdapter(OpenCLIP):
         if adapter_name.lower() == "lora":
             if self.projection_layer == 'true' or self.projection_layer == None:
                 config = LoraConfig(
-                        r=8,
-                        lora_alpha=8,
-                        target_modules=["query", "value"],
-                        lora_dropout=0.0,
-                        bias="none",
-                        modules_to_save=["proj"],
-                    )
+                    r=8,
+                    lora_alpha=8,
+                    target_modules=["query", "value"],
+                    lora_dropout=0.0,
+                    bias="none",
+                    modules_to_save=["proj"],
+                )
             else:
                 config = LoraConfig(
-                        r=8,
-                        lora_alpha=8,
-                        target_modules=["query", "value"],
-                        lora_dropout=0.0,
-                        bias="none",
-                    )
+                    r=8,
+                    lora_alpha=8,
+                    target_modules=["query", "value"],
+                    lora_dropout=0.0,
+                    bias="none",
+                )
         else:
             raise NotImplementedError
         print('Adapter Config: ')
@@ -77,13 +77,13 @@ class OpenCLIPAdapter(OpenCLIP):
             print('**************************************')
 
             config = LoraConfig(
-                        r=8,
-                        lora_alpha=8,
-                        target_modules=["query", "value"],
-                        lora_dropout=0.0,
-                        bias="none",
-                        modules_to_save=["proj"],
-                    )
+                r=8,
+                lora_alpha=8,
+                target_modules=["query", "value"],
+                lora_dropout=0.0,
+                bias="none",
+                modules_to_save=["proj"],
+            )
 
             self.model.text.set_grad_checkpointing(True)
             def make_inputs_require_grad(module, input, output):
