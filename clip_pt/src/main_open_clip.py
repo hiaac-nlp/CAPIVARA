@@ -49,26 +49,40 @@ def main() -> None:
         model = OpenCLIP()
     else:
         # model has adapters
-        model = OpenCLIPAdapter(adapter=config.model.adapter, devices=args.gpu, projection_layer=config.model.projection_layer)
+        model = OpenCLIPAdapter(
+            adapter=config.model.adapter,
+            devices=args.gpu,
+            projection_layer=config.model.projection_layer,
+            load_pretrained_weights=config.get("load_pretrained_weights", False),
+            path_to_pretrained_weights=config.get("path_to_pretrained_weights", None)
+        )
 
     vision_processor = model.image_preprocessor
     text_tokenizer = model.text_tokenizer
 
-    datasets = load_datasets(config=config,
-                             vision_processor=vision_processor,
-                             text_tokenizer=text_tokenizer)
+    datasets = load_datasets(
+        config=config,
+        vision_processor=vision_processor,
+        text_tokenizer=text_tokenizer
+    )
 
     train_dataloader = datasets["train_dataloader"]
     val_dataloader = [datasets["val_dataloader"], datasets["img_classification"]]
 
-    tracker_code_carbon = carbon_tracker_init(tracking_mode=config.carbon["process"],
-                                              gpu_ids=[args.gpu],
-                                              carbon_checker=config.carbon["carbon_checker"])
+    tracker_code_carbon = carbon_tracker_init(
+        tracking_mode=config.carbon["process"],
+        gpu_ids=[args.gpu],
+        carbon_checker=config.carbon["carbon_checker"]
+    )
 
-    clip_pt = OpenCLIPWrapper(config,
-                              val_labels=datasets["img_classif_labels"],
-                              model=model,
-                              carbon_tracker=tracker_code_carbon)
+    clip_pt = OpenCLIPWrapper(
+        config,
+        val_labels=datasets["img_classif_labels"],
+        model=model,
+        carbon_tracker=tracker_code_carbon,
+        load_pretrained_weights=config.get("load_pretrained_weights", False),
+        path_to_pretrained_weights=config.get("path_to_pretrained_weights", None)
+    )
 
     tags = ["open_clip"]
     tags += [dataset["name"] for dataset in config.datasets.train]  # add training datasets as tags
@@ -78,9 +92,9 @@ def main() -> None:
     config["model_checkpoint"].pop("dirpath")
 
     callbacks = [
-            ModelCheckpoint(**config["model_checkpoint"]),
-            LearningRateMonitor("step"),
-        ]
+        ModelCheckpoint(**config["model_checkpoint"]),
+        LearningRateMonitor("step"),
+    ]
     if config.get("model", None) is not None:
         callbacks.append(AdaptersActivation(config.model.number_layers, config.model.progressive_adapter))
 

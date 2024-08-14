@@ -1,0 +1,69 @@
+title: PraCegoVer-Filtered-CAPIVARA_OPT-(MaxSteps-${trainer.max_steps})-(BatchSize-${batch_size})-(AccumulateGrad-${accumulate_grad_batches})-(Optimizer-${optimizer.name})-(Scheduler-${scheduler.name})-(WarmupLR-${scheduler.params.warmup_lr})-(WeightDecay-${optimizer.params.weight_decay})-(LearningRate-${optimizer.params.learning_rate})-(PretrainedModel-${load_pretrained_weights})-(Adapter-${model.adapter})-(ProjectionLayer-${model.projection_layer})
+datasets:
+    train:
+        - name: pracegover
+          path: "/hadatasets/clip_pt/final_webdatasets/pracegover_train_filtered/{00000..00018}.tar"
+
+    validation:
+        - name: flickr30k
+          path: "/hadatasets/clip_pt/final_webdatasets/flickr30k_val/00000.tar"
+
+    img_classification:
+        path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/val.txt"
+        annotation_path: "/hadatasets/clip_pt/validation_datasets/GroceryStoreDataset/dataset/translated_classes_gsd.csv"
+
+load_pretrained_weights: true
+path_to_pretrained_weights: "hiaac-nlp/CAPIVARA"
+
+model:
+    adapter: "LoRA"
+    number_layers: 11
+    progressive_adapter: -1
+    projection_layer: true
+
+optimizer:
+    name: "Adam"
+    params:
+        learning_rate: 1e-5
+        eps: 1e-6
+        weight_decay: 0.2
+        betas: [ 0.9, 0.98 ]
+
+scheduler:
+    name: "CosineWarmupLR"
+    params:
+        warmup_lr: 250
+
+batch_size: 1000
+accumulate_grad_batches: 1
+tags:
+    - Adapters
+    - ${trainer.max_steps}-Steps
+    - Blip2-Augmented-Dataset
+    - ${batch_size}-BS
+
+trainer:
+    accelerator: "gpu"
+    max_steps: 1500  #
+    num_sanity_val_steps: 2
+    overfit_batches: 0.0
+    log_every_n_steps: 10
+    val_check_interval: 100
+
+model_checkpoint:
+    mode: "min"
+    save_last: true
+    save_weights_only: true
+    monitor: "val/classification_loss/dataloader_idx_1"
+    dirpath: "../checkpoints/clip_pt/MSCOCO_LiT"
+
+early_stopping:
+    verbose: true
+    monitor: "val/classification_loss/dataloader_idx_1"
+    patience: 100
+
+carbon:
+    carbon_checker: "false"
+    brazil_carbon_intensity: 0.077
+    process: "process"
+

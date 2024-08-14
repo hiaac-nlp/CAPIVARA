@@ -9,6 +9,7 @@ from models.open_CLIP import OpenCLIP
 from models.open_CLIP_adapter import OpenCLIPAdapter
 from utils.loss import clip_loss
 from utils.scheduler import CosineWarmupLR, LinearLR
+from utils.capivara_utils import load_pretrained_weights_from_capivara
 
 
 class OpenCLIPWrapper(pl.LightningModule):
@@ -17,7 +18,9 @@ class OpenCLIPWrapper(pl.LightningModule):
         config: DictConfig,
         val_labels=None,
         carbon_tracker=None,
-        model=None
+        model=None,
+        load_pretrained_weights: bool = False,
+        path_to_pretrained_weights: str = None,
     ):
         super().__init__()
         self.save_hyperparameters(config)
@@ -28,9 +31,18 @@ class OpenCLIPWrapper(pl.LightningModule):
                 self.model = OpenCLIP()
             else:
                 # model has adapters
-                self.model = OpenCLIPAdapter(adapter=config.model.adapter)
+                self.model = OpenCLIPAdapter(
+                    adapter=config.model.adapter,
+                    load_pretrained_weights=load_pretrained_weights,
+                    path_to_pretrained_weights=path_to_pretrained_weights,
+                )
         else:
             self.model = model
+
+        if not isinstance(self.model, OpenCLIPAdapter) and load_pretrained_weights:
+            print("Loading pretrained weights")
+            self.model = load_pretrained_weights_from_capivara(self.model, path_to_pretrained_weights)
+            print("Pretrained weights loaded")
 
         self.carbon_tracker = carbon_tracker
 

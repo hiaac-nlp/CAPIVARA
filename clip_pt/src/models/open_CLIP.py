@@ -5,9 +5,11 @@ import torch
 class OpenCLIP(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.model, _, self.image_preprocessor = open_clip.create_model_and_transforms('xlm-roberta-base-ViT-B-32',
-                                                                                       pretrained='laion5b_s13b_b90k')
-        self.text_tokenizer = open_clip.get_tokenizer('xlm-roberta-base-ViT-B-32')
+        self.model, _, self.image_preprocessor = open_clip.create_model_and_transforms(
+            "xlm-roberta-base-ViT-B-32",
+            pretrained="laion5b_s13b_b90k"
+        )
+        self.text_tokenizer = open_clip.get_tokenizer("xlm-roberta-base-ViT-B-32")
         self.model.text.set_grad_checkpointing(True)
 
     def forward(self, batch):

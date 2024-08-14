@@ -38,6 +38,14 @@ def parse_args():
         required=False,
         help="Load the adapter weights"
     )
+    # Optional argument of local-model-path
+    parser.add_argument(
+        "--local-model-path",
+        type=str,
+        default=None,
+        required=False,
+        help="Path to the local model"
+    )
 
     return parser.parse_args()
 
@@ -216,8 +224,12 @@ if __name__ == "__main__":
     print(">>>>>>> Loading model")
     if args.open_clip == 'True':
         if args.adapter is None:
-            model_path = download_pretrained_from_hf(model_id="hiaac-nlp/CAPIVARA")
-            model = OpenCLIPWrapper.load_from_checkpoint(model_path, strict=False).model
+            if args.local_model_path is not None and os.path.exists(args.local_model_path):
+                print("Loading local model... ")
+                model = OpenCLIPWrapper.load_from_checkpoint(args.local_model_path, strict=False).model
+            else:
+                model_path = download_pretrained_from_hf(model_id="hiaac-nlp/CAPIVARA")
+                model = OpenCLIPWrapper.load_from_checkpoint(model_path, strict=False).model
         else:
             model = OpenCLIPAdapter(inference=True, devices=device)
             model.load_adapters(pretrained_adapter=True, model_path=args.adapter)
